@@ -1,8 +1,15 @@
+---
+# YAML front matter required for Jekyll to process this file
+---
+
 @charset 'UTF-8';
-@use 'playlist' with (
-  $wp-channel-color: #FFD500,
-  $wp-tracks-container-background-color: #005BBB
-);
+
+// Override playlist variables
+$wp-channel-color: #FFD500;
+$wp-tracks-container-background-color: #005BBB;
+
+// Import partials from _sass directory
+@import 'playlist';
 @import 'base';
 
 .playlist .vocals {

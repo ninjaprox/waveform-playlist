@@ -33,7 +33,7 @@ import {
   useDynamicEffects,
   useTrackDynamicEffects,
 
-  // Recording (integrated)
+  // Recording (integrated with playlist)
   useIntegratedRecording,
 
   // Keyboard shortcuts
@@ -43,6 +43,18 @@ import {
   // Export
   useExportWav,
 } from '@waveform-playlist/browser';
+
+// Recording primitives (lower-level hooks)
+import {
+  useMicrophoneAccess,
+  useRecording,
+  useMicrophoneLevel,
+} from '@waveform-playlist/recording';
+
+// Annotation hooks
+import {
+  useAnnotationControls,
+} from '@waveform-playlist/annotations';
 ```
 
 ---

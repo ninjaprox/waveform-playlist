@@ -1,6 +1,6 @@
 {
   "name": "@waveform-playlist/recording",
-  "version": "5.0.0-alpha.0",
+  "version": "5.0.0-alpha.1",
   "description": "Audio recording support for waveform-playlist using AudioWorklet",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -18,7 +18,13 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["waveform", "audio", "recording", "audioworklet", "waveform-playlist"],
+  "keywords": [
+    "waveform",
+    "audio",
+    "recording",
+    "audioworklet",
+    "waveform-playlist"
+  ],
   "author": "Naomi Aro",
   "license": "MIT",
   "repository": {

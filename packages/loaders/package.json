@@ -1,6 +1,6 @@
 {
   "name": "@waveform-playlist/loaders",
-  "version": "5.0.0-alpha.0",
+  "version": "5.0.0-alpha.1",
   "description": "Audio loaders for waveform-playlist",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -18,7 +18,12 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["waveform", "audio", "loader", "waveform-playlist"],
+  "keywords": [
+    "waveform",
+    "audio",
+    "loader",
+    "waveform-playlist"
+  ],
   "author": "Naomi Aro",
   "license": "MIT",
   "repository": {

@@ -299,7 +299,7 @@ const FlexibleApiContent: React.FC<FlexibleApiContentProps> = ({ tracks, onTrack
   const { play, pause, stop, seekTo, setMasterVolume, setTimeFormat, setAutomaticScroll, zoomIn, zoomOut } = usePlaylistControls();
   const { currentTimeRef } = usePlaybackAnimation();
   const { duration, masterVolume, timeFormat, sampleRate, samplesPerPixel } = usePlaylistData();
-  const { isAutomaticScroll } = usePlaylistState();
+  const { isAutomaticScroll, selectionStart, selectionEnd } = usePlaylistState();
   const format = timeFormat as TimeFormat;
 
   // Setup drag sensors and handlers for clip movement/trimming
@@ -337,6 +337,18 @@ const FlexibleApiContent: React.FC<FlexibleApiContentProps> = ({ tracks, onTrack
   const handleSkipBackward = () => seekTo((currentTimeRef.current ?? 0) - 5);
   const handleSkipForward = () => seekTo((currentTimeRef.current ?? 0) + 5);
 
+  // Play handler that respects selection
+  const handlePlay = async () => {
+    if (selectionStart !== selectionEnd && selectionEnd > selectionStart) {
+      // Play only the selected region
+      const selectionDuration = selectionEnd - selectionStart;
+      await play(selectionStart, selectionDuration);
+    } else {
+      // Play from current position to the end
+      await play(currentTimeRef.current ?? 0);
+    }
+  };
+
   return (
     <Flex direction="column" gap="3">
       {/* Main Transport Controls */}
@@ -351,7 +363,7 @@ const FlexibleApiContent: React.FC<FlexibleApiContentProps> = ({ tracks, onTrack
               <SkipBackIcon size={16} weight="light" />
               Skip -5s
             </Button>
-            <Button onClick={() => play()} variant="solid" color="green" size="2">
+            <Button onClick={handlePlay} variant="solid" color="green" size="2">
               <PlayIcon size={16} weight="fill" />
               Play
             </Button>

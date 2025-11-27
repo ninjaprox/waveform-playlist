@@ -1,0 +1,47 @@
+{
+  "name": "@waveform-playlist/webaudio-peaks",
+  "version": "1.0.0",
+  "description": "Small library to extract peaks from an array of audio samples or an AudioBuffer from the WebAudio API.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "webaudio",
+    "peaks",
+    "waveform",
+    "visualization",
+    "waveform-playlist"
+  ],
+  "author": "Naomi Aro <naomiaro@gmail.com> (https://naomiaro.github.io/)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naomiaro/waveform-playlist.git",
+    "directory": "packages/webaudio-peaks"
+  },
+  "homepage": "https://naomiaro.github.io/waveform-playlist",
+  "bugs": {
+    "url": "https://github.com/naomiaro/waveform-playlist/issues"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "devDependencies": {
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  }
+}

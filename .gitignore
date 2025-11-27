@@ -6,6 +6,14 @@ node_modules/
 /styles
 lib
 .DS_Store
-test/.DS_Store
-ghpages/.jekyll-cache/
-dist/waveform-playlist/scss
+
+# Source maps
+*.js.map
+
+# Storybook
+*storybook.log
+storybook-static
+website/static/storybook/
+
+# Package build output
+packages/*/dist/

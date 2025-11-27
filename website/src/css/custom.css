@@ -1,0 +1,559 @@
+/**
+ * Waveform Playlist - Berlin Underground Aesthetic
+ * Dark, moody, industrial vibes with electric accents
+ */
+
+/* Import Space Grotesk - a modern, slightly industrial font */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Electric coral/salmon - like neon club lights */
+  --ifm-color-primary: #ff6b6b;
+  --ifm-color-primary-dark: #ff4757;
+  --ifm-color-primary-darker: #ff3344;
+  --ifm-color-primary-darkest: #ee1133;
+  --ifm-color-primary-light: #ff8585;
+  --ifm-color-primary-lighter: #ff9999;
+  --ifm-color-primary-lightest: #ffb3b3;
+
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 107, 107, 0.15);
+
+  /* Typography */
+  --ifm-font-family-base: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', monospace;
+  --ifm-heading-font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --ifm-heading-font-weight: 600;
+
+  /* Spacing - slightly tighter for that editorial feel */
+  --ifm-heading-line-height: 1.2;
+  --ifm-leading: 1.6;
+
+  /* Light mode footer */
+  --ifm-footer-background-color: #f5f5f5;
+  --ifm-footer-color: #444;
+  --ifm-footer-title-color: #333;
+  --ifm-footer-link-color: #555;
+  --ifm-footer-link-hover-color: var(--ifm-color-primary);
+}
+
+/* Dark mode - the default Berlin vibe */
+[data-theme='dark'] {
+  /* Ampelmännchen green - official brand #63C75F with glow */
+  --ifm-color-primary: #63C75F;
+  --ifm-color-primary-dark: #52b84e;
+  --ifm-color-primary-darker: #48a845;
+  --ifm-color-primary-darkest: #3a8838;
+  --ifm-color-primary-light: #78d074;
+  --ifm-color-primary-lighter: #8dd889;
+  --ifm-color-primary-lightest: #a8e3a5;
+
+  --docusaurus-highlighted-code-line-bg: rgba(99, 199, 95, 0.15);
+
+  /* Deep, moody backgrounds */
+  --ifm-background-color: #0a0a0f;
+  --ifm-background-surface-color: #12121a;
+  --ifm-navbar-background-color: rgba(10, 10, 15, 0.95);
+  --ifm-footer-background-color: #0a0a0f;
+
+  /* Warm amber text - night vision preservation */
+  --ifm-font-color-base: #d8c0a8;
+  --ifm-font-color-secondary: #a89078;
+
+  /* Dark mode footer */
+  --ifm-footer-color: var(--ifm-font-color-secondary);
+  --ifm-footer-title-color: var(--ifm-font-color-base);
+  --ifm-footer-link-color: var(--ifm-font-color-secondary);
+  --ifm-footer-link-hover-color: var(--ifm-color-primary);
+
+  /* Night vision heading colors - red/amber tones */
+  --wfpl-heading-h1: #d08070;
+  --wfpl-heading-h2: #c87060;
+  --wfpl-heading-h3: #c87060;
+  --wfpl-heading-h4: #c8a888;
+  --wfpl-heading-glow-strong: rgba(180, 60, 40, 0.5);
+  --wfpl-heading-glow-medium: rgba(200, 80, 50, 0.3);
+  --wfpl-heading-glow-subtle: rgba(180, 80, 60, 0.25);
+}
+
+/* Hero section styling */
+.hero {
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+  padding: 6rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0, 212, 170, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+[data-theme='dark'] .hero {
+  background: linear-gradient(135deg, #0a0a0f 0%, #0f0f18 50%, #0a0a0f 100%);
+}
+
+[data-theme='dark'] .hero::before {
+  background:
+    radial-gradient(circle at 20% 80%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+}
+
+.hero__title {
+  font-size: 4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+  color: #ffffff;
+}
+
+.hero__subtitle {
+  font-size: 1.4rem;
+  font-weight: 400;
+  opacity: 1;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Brutalist button style */
+.button {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 0.9rem 2rem;
+  border-radius: 0;
+  transition: all 0.2s ease;
+}
+
+.button--primary {
+  background: var(--ifm-color-primary);
+  border: 2px solid var(--ifm-color-primary);
+  color: #0a0a0f;
+}
+
+.button--primary:hover {
+  background: transparent;
+  color: var(--ifm-color-primary);
+  transform: translateY(-2px);
+}
+
+.button--secondary {
+  background: transparent;
+  border: 2px solid var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.button--secondary:hover {
+  background: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  color: #0a0a0f;
+  transform: translateY(-2px);
+}
+
+/* Navbar - minimal and dark */
+.navbar {
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.navbar__title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.navbar__link {
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Footer - adapts to theme via CSS variables */
+.footer {
+  background-color: var(--ifm-footer-background-color);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.footer__title {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+  color: var(--ifm-footer-title-color);
+}
+
+.footer__link-item {
+  color: var(--ifm-footer-link-color);
+}
+
+.footer__link-item:hover {
+  color: var(--ifm-footer-link-hover-color);
+}
+
+.footer__copyright {
+  color: var(--ifm-footer-color);
+}
+
+/* Dark mode footer border */
+[data-theme='dark'] .footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Code blocks - moody syntax highlighting */
+pre {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0;
+}
+
+code {
+  border-radius: 0;
+  font-weight: 500;
+}
+
+/* Dark mode code blocks - night vision aesthetic */
+[data-theme='dark'] pre {
+  background: #12100e !important;
+  border-color: rgba(200, 160, 120, 0.2);
+}
+
+[data-theme='dark'] code {
+  background: rgba(30, 24, 18, 0.8);
+  color: #d8c0a8;
+}
+
+[data-theme='dark'] pre code {
+  background: transparent;
+}
+
+/* Syntax highlighting - warm amber/red palette */
+[data-theme='dark'] .token.comment,
+[data-theme='dark'] .token.prolog,
+[data-theme='dark'] .token.doctype,
+[data-theme='dark'] .token.cdata {
+  color: #7a6858;
+}
+
+[data-theme='dark'] .token.punctuation {
+  color: #a89078;
+}
+
+[data-theme='dark'] .token.property,
+[data-theme='dark'] .token.tag,
+[data-theme='dark'] .token.boolean,
+[data-theme='dark'] .token.number,
+[data-theme='dark'] .token.constant,
+[data-theme='dark'] .token.symbol {
+  color: #e8a060; /* Warm orange */
+}
+
+[data-theme='dark'] .token.selector,
+[data-theme='dark'] .token.attr-name,
+[data-theme='dark'] .token.string,
+[data-theme='dark'] .token.char,
+[data-theme='dark'] .token.builtin {
+  color: #c49a6c; /* Amber */
+}
+
+[data-theme='dark'] .token.operator,
+[data-theme='dark'] .token.entity,
+[data-theme='dark'] .token.url,
+[data-theme='dark'] .language-css .token.string,
+[data-theme='dark'] .style .token.string,
+[data-theme='dark'] .token.variable {
+  color: #d08070; /* Muted red */
+}
+
+[data-theme='dark'] .token.atrule,
+[data-theme='dark'] .token.attr-value,
+[data-theme='dark'] .token.keyword {
+  color: #c87060; /* Red like headings */
+}
+
+[data-theme='dark'] .token.function,
+[data-theme='dark'] .token.class-name {
+  color: #e8c090; /* Bright amber */
+}
+
+[data-theme='dark'] .token.regex,
+[data-theme='dark'] .token.important {
+  color: #d4a070;
+}
+
+[data-theme='dark'] .token.important,
+[data-theme='dark'] .token.bold {
+  font-weight: bold;
+}
+
+[data-theme='dark'] .token.italic {
+  font-style: italic;
+}
+
+/* Inline code in dark mode */
+[data-theme='dark'] :not(pre) > code {
+  background: rgba(40, 32, 24, 0.8);
+  border: 1px solid rgba(200, 160, 120, 0.2);
+  color: #e8a060;
+  padding: 0.1em 0.4em;
+}
+
+/* Cards and containers - brutalist edges */
+.card {
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  transform: translateY(-4px);
+}
+
+/* Feature section styling */
+.features-section {
+  background: var(--ifm-background-surface-color);
+  padding: 5rem 0;
+}
+
+.feature-card {
+  text-align: left;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.feature-card:hover {
+  border-color: var(--ifm-color-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.feature-card h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.feature-card p {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+/* Links - subtle underline animation */
+a:not(.button):not(.navbar__link):not(.menu__link) {
+  text-decoration: none;
+  background-image: linear-gradient(var(--ifm-color-primary), var(--ifm-color-primary));
+  background-size: 0% 2px;
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  transition: background-size 0.3s ease;
+}
+
+a:not(.button):not(.navbar__link):not(.menu__link):hover {
+  background-size: 100% 2px;
+}
+
+/* Docs content spacing - give headings room to breathe */
+.markdown h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown h3 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.markdown h4 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown > p,
+.markdown > ul,
+.markdown > ol,
+.markdown > table,
+.markdown > pre {
+  margin-bottom: 1.25rem;
+}
+
+/* Docs sidebar - cleaner look */
+.menu__link {
+  font-size: 0.9rem;
+  border-radius: 0;
+}
+
+.menu__link--active {
+  border-left: 3px solid var(--ifm-color-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Table of contents */
+.table-of-contents__link {
+  font-size: 0.85rem;
+}
+
+/* Scrollbar - dark and minimal */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ifm-background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Selection color */
+::selection {
+  background: var(--ifm-color-primary);
+  color: #0a0a0f;
+}
+
+/* Glitch effect for headings on hover (optional, subtle) */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-1px, 1px); }
+  40% { transform: translate(1px, -1px); }
+  60% { transform: translate(-1px, -1px); }
+  80% { transform: translate(1px, 1px); }
+  100% { transform: translate(0); }
+}
+
+h1:hover, h2:hover {
+  animation: glitch 0.3s ease;
+}
+
+/* ============================================
+   NIGHT VISION DARK MODE
+   Red headers, amber text for night vision preservation
+   Applies to example pages and docs
+   ============================================ */
+
+/* Main headings - deep red "low watt bulb" */
+[data-theme='dark'] main.container h1,
+[data-theme='dark'] .markdown h1 {
+  color: var(--wfpl-heading-h1);
+  text-shadow:
+    0 0 60px var(--wfpl-heading-glow-strong),
+    0 0 30px var(--wfpl-heading-glow-medium);
+}
+
+[data-theme='dark'] main.container h2,
+[data-theme='dark'] .markdown h2 {
+  color: var(--wfpl-heading-h2);
+  text-shadow: 0 0 25px var(--wfpl-heading-glow-medium);
+}
+
+[data-theme='dark'] main.container h3,
+[data-theme='dark'] .markdown h3 {
+  color: var(--wfpl-heading-h3);
+  text-shadow: 0 0 20px var(--wfpl-heading-glow-subtle);
+}
+
+[data-theme='dark'] .markdown h4,
+[data-theme='dark'] .markdown h5,
+[data-theme='dark'] .markdown h6 {
+  color: var(--wfpl-heading-h4);
+}
+
+/* Sidebar links - amber text in dark mode */
+[data-theme='dark'] .menu__link {
+  color: var(--ifm-font-color-base);
+}
+
+[data-theme='dark'] .menu__link:hover {
+  color: var(--wfpl-heading-h4);
+}
+
+[data-theme='dark'] .menu__link--active {
+  color: var(--wfpl-heading-h2);
+  border-left-color: var(--wfpl-heading-h2);
+}
+
+/* Table of contents (right sidebar) - amber text */
+[data-theme='dark'] .table-of-contents__link {
+  color: var(--ifm-font-color-secondary);
+}
+
+[data-theme='dark'] .table-of-contents__link:hover {
+  color: var(--wfpl-heading-h4);
+}
+
+[data-theme='dark'] .table-of-contents__link--active {
+  color: var(--wfpl-heading-h2);
+}
+
+/* Announcement bar - theme-aware styling */
+/* Light mode (default) */
+div[class*='announcementBar'] {
+  background: #fff8f0 !important;
+  color: #5c4a3a !important;
+}
+
+div[class*='announcementBar'] a {
+  color: #d35400 !important;
+}
+
+div[class*='announcementBar'] code {
+  background: #f5ebe0;
+  border: 1px solid #e0d0c0;
+  color: #c0392b;
+  padding: 0.1em 0.4em;
+}
+
+/* Dark mode */
+[data-theme='dark'] div[class*='announcementBar'] {
+  background: #2a2520 !important;
+  color: #c49a6c !important;
+}
+
+[data-theme='dark'] div[class*='announcementBar'] button[class*='close'] {
+  color: #d08070 !important;
+}
+
+[data-theme='dark'] div[class*='announcementBar'] a {
+  color: #63C75F !important;
+}
+
+[data-theme='dark'] div[class*='announcementBar'] code {
+  background: rgba(40, 32, 24, 0.8);
+  border: 1px solid rgba(200, 160, 120, 0.3);
+  color: #e8a060;
+  padding: 0.1em 0.4em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero__title {
+    font-size: 2.5rem;
+  }
+
+  .hero__subtitle {
+    font-size: 1.1rem;
+  }
+}

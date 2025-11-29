@@ -146,33 +146,21 @@ Features:
 
 ---
 
-### Theming
-
-Light and dark themes with custom colors.
-
-[View Theming Example](/examples/theming)
-
-Features:
-- Light/dark mode toggle
-- Custom color schemes
-- Docusaurus theme integration
-
----
-
 ### Waveform Styling
 
-Customize waveform appearance with bar width, gap controls, and playback styling.
+Customize waveform appearance with bar width, gap controls, theming, and playback styling.
 
 [View Styling Example](/examples/styling)
 
 Features:
+- Light/dark mode support with Docusaurus theme integration
 - `barWidth` - Control the width of waveform bars
 - `barGap` - Add spacing between bars
 - `waveProgressColor` - Colored fill behind played portion
 - `playheadColor` - Vertical line at playback position
 - `selectedWaveOutlineColor` / `selectedWaveFillColor` - Colors when track is selected
 - SoundCloud-style waveforms
-- Multiple theme color combinations
+- Custom color schemes and gradients
 
 ---
 

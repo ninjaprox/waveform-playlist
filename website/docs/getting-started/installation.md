@@ -10,13 +10,13 @@ Waveform Playlist v5 is currently in pre-release. Install with the `@next` tag t
 
 ## Package Manager
 
-Install the main package using your preferred package manager:
+Install the main package and its required peer dependency:
 
 ```bash npm2yarn
-npm install @waveform-playlist/browser@next
+npm install @waveform-playlist/browser@next tone
 ```
 
-This will install the browser package along with its peer dependencies.
+If you already have React and styled-components in your project, you're ready to go!
 
 ## Peer Dependencies
 

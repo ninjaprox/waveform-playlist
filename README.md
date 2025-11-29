@@ -36,8 +36,10 @@ A multi-track audio editor and player built with React, Tone.js, and the Web Aud
 ## Quick Start
 
 ```bash
-npm install @waveform-playlist/browser @waveform-playlist/core @waveform-playlist/ui-components
+npm install @waveform-playlist/browser@next tone
 ```
+
+> **Note**: `tone` is a peer dependency and must be installed separately.
 
 ```tsx
 import { WaveformPlaylistProvider, Waveform, PlayButton, PauseButton, StopButton } from '@waveform-playlist/browser';

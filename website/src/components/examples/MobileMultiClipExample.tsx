@@ -199,98 +199,110 @@ const PlaylistWithDrag: React.FC<PlaylistWithDragProps> = ({ tracks, onTracksCha
   );
 };
 
+// Helper to get required file IDs for a track
+const getRequiredFileIds = (trackConfig: typeof trackConfigs[0]): string[] => {
+  return [...new Set(trackConfig.clips.map(clip => clip.fileId))];
+};
+
+// Helper to create a track when all its required files are loaded
+const createTrackFromConfig = (
+  trackConfig: typeof trackConfigs[0],
+  fileBuffers: Map<string, { buffer: AudioBuffer; waveformData: WaveformData }>
+): ClipTrack => {
+  const clips = trackConfig.clips.map((clipConfig) => {
+    const fileData = fileBuffers.get(clipConfig.fileId);
+    if (!fileData) {
+      throw new Error(`Audio file not found for ID: ${clipConfig.fileId}`);
+    }
+
+    return createClipFromSeconds({
+      audioBuffer: fileData.buffer,
+      startTime: clipConfig.startTime,
+      duration: clipConfig.duration,
+      offset: clipConfig.offset,
+      name: `${trackConfig.name} ${clipConfig.offset}-${clipConfig.offset + clipConfig.duration}s`,
+      waveformData: fileData.waveformData,
+    });
+  });
+
+  return createTrack({
+    name: trackConfig.name,
+    clips,
+    muted: false,
+    soloed: false,
+    volume: 1,
+    pan: 0,
+  });
+};
+
 export function MobileMultiClipExample() {
   const { theme } = useDocusaurusTheme();
   const [tracks, setTracks] = useState<ClipTrack[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedFiles, setLoadedFiles] = useState<Map<string, { buffer: AudioBuffer; waveformData: WaveformData }>>(new Map());
   const [error, setError] = useState<Error | null>(null);
+  const [loadedCount, setLoadedCount] = useState(0);
 
+  // Load audio files PROGRESSIVELY - each file loads independently
   useEffect(() => {
     let cancelled = false;
+    const audioContext = getGlobalAudioContext();
 
-    const loadTracks = async () => {
+    // Load each file independently (not Promise.all)
+    audioFiles.forEach(async (file) => {
       try {
-        setLoading(true);
-        setError(null);
+        // Load audio and peaks in parallel for THIS file
+        const [audioResponse, waveformData] = await Promise.all([
+          fetch(file.src),
+          loadWaveformData(file.peaksSrc),
+        ]);
 
-        const audioContext = getGlobalAudioContext();
+        if (!audioResponse.ok) {
+          throw new Error(`Failed to fetch ${file.src}: ${audioResponse.statusText}`);
+        }
 
-        // Load all audio files and BBC peaks in parallel
-        const fileLoadPromises = audioFiles.map(async (file) => {
-          // Load audio and peaks in parallel
-          const [audioResponse, waveformData] = await Promise.all([
-            fetch(file.src),
-            loadWaveformData(file.peaksSrc),
-          ]);
-
-          if (!audioResponse.ok) {
-            throw new Error(`Failed to fetch ${file.src}: ${audioResponse.statusText}`);
-          }
-
-          const arrayBuffer = await audioResponse.arrayBuffer();
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-          return { id: file.id, buffer: audioBuffer, waveformData };
-        });
-
-        const loadedFiles = await Promise.all(fileLoadPromises);
-        const fileBuffers = new Map(loadedFiles.map(f => [f.id, { buffer: f.buffer, waveformData: f.waveformData }]));
-
-        // Create tracks with BBC peaks attached to clips
-        const loadedTracks = trackConfigs.map((trackConfig) => {
-          const clips = trackConfig.clips.map((clipConfig) => {
-            const fileData = fileBuffers.get(clipConfig.fileId);
-            if (!fileData) {
-              throw new Error(`Audio file not found for ID: ${clipConfig.fileId}`);
-            }
-
-            return createClipFromSeconds({
-              audioBuffer: fileData.buffer,
-              startTime: clipConfig.startTime,
-              duration: clipConfig.duration,
-              offset: clipConfig.offset,
-              name: `${trackConfig.name} ${clipConfig.offset}-${clipConfig.offset + clipConfig.duration}s`,
-              waveformData: fileData.waveformData as WaveformData, // Attach BBC peaks!
-            });
-          });
-
-          return createTrack({
-            name: trackConfig.name,
-            clips,
-            muted: false,
-            soloed: false,
-            volume: 1,
-            pan: 0,
-          });
-        });
+        const arrayBuffer = await audioResponse.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
         if (!cancelled) {
-          setTracks(loadedTracks);
-          setLoading(false);
+          // Update loaded files map for THIS file immediately
+          setLoadedFiles(prev => {
+            const newMap = new Map(prev);
+            newMap.set(file.id, { buffer: audioBuffer, waveformData: waveformData as WaveformData });
+            return newMap;
+          });
+          setLoadedCount(prev => prev + 1);
         }
       } catch (err) {
         if (!cancelled) {
-          console.error('Failed to load tracks:', err);
+          console.error(`Failed to load ${file.id}:`, err);
           setError(err as Error);
-          setLoading(false);
         }
       }
-    };
-
-    loadTracks();
+    });
 
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
-        Loading audio tracks...
-      </div>
-    );
-  }
+  // Build tracks progressively as files load
+  useEffect(() => {
+    // For each track config, check if all required files are loaded
+    const newTracks: ClipTrack[] = [];
+
+    for (const trackConfig of trackConfigs) {
+      const requiredFileIds = getRequiredFileIds(trackConfig);
+      const allFilesLoaded = requiredFileIds.every(id => loadedFiles.has(id));
+
+      if (allFilesLoaded) {
+        newTracks.push(createTrackFromConfig(trackConfig, loadedFiles));
+      }
+    }
+
+    setTracks(newTracks);
+  }, [loadedFiles]);
+
+  const loading = loadedCount < audioFiles.length;
 
   if (error) {
     return (
@@ -303,7 +315,7 @@ export function MobileMultiClipExample() {
   return (
     <Container>
       <Instructions>
-        <strong>Touch Controls</strong>
+        <strong>Touch Controls {loading && `(Loading: ${loadedCount}/${audioFiles.length} files)`}</strong>
         <ul>
           <li><strong>Scroll:</strong> Swipe left/right on the waveform area</li>
           <li><strong>Move clip:</strong> Touch and hold the clip header (250ms), then drag</li>

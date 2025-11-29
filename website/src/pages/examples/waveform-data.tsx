@@ -71,7 +71,7 @@ audiowaveform -i audio.mp3 -o peaks-30.dat -z 30 -b 8  # ~30 SPP
 audiowaveform -i audio.mp3 -o peaks-16bit.dat -z 256 -b 16`}
           </pre>
 
-          <h3>Usage in Code</h3>
+          <h3>Fully Progressive Loading</h3>
           <pre style={{
             background: 'var(--ifm-code-background)',
             padding: '1rem',
@@ -97,45 +97,38 @@ const trackConfigs = [
 ];
 
 function WaveformDataExample() {
-  const [waveformDataMap, setWaveformDataMap] = useState<Map<string, WaveformData>>(new Map());
-  const [peaksLoaded, setPeaksLoaded] = useState(false);
+  const [peaksMap, setPeaksMap] = useState<Map<string, WaveformData>>(new Map());
 
-  // 1. Load BBC peaks first (fast - ~50KB each)
+  // 1. Load peaks PROGRESSIVELY - each track appears as its peaks load!
   useEffect(() => {
-    Promise.all(
-      trackConfigs.map(async (config) => {
-        const waveformData = await loadWaveformData(config.peaksSrc);
-        return { name: config.name, waveformData };
-      })
-    ).then(results => {
-      const map = new Map(results.map(r => [r.name, r.waveformData]));
-      setWaveformDataMap(map);
-      setPeaksLoaded(true);
+    trackConfigs.forEach(async (config) => {
+      const waveformData = await loadWaveformData(config.peaksSrc);
+      // Update state for THIS track immediately - triggers re-render
+      setPeaksMap(prev => new Map(prev).set(config.name, waveformData));
     });
   }, []);
 
-  // 2. Build audio configs with waveformData attached
+  // 2. Build configs - only include tracks that have peaks ready
   const audioConfigs = useMemo(() =>
-    trackConfigs.map(config => ({
-      src: config.audioSrc,
-      name: config.name,
-      waveformData: waveformDataMap.get(config.name), // Attach pre-computed peaks!
-    })),
-  [waveformDataMap]);
+    trackConfigs
+      .filter(config => peaksMap.has(config.name))
+      .map(config => ({
+        src: config.audioSrc,
+        name: config.name,
+        waveformData: peaksMap.get(config.name), // Pre-computed peaks!
+      })),
+  [peaksMap]);
 
-  // 3. Load audio (slower - ~1MB each). Only start after peaks ready.
-  const { tracks, loading: audioLoading } = useAudioTracks(
-    peaksLoaded ? audioConfigs : []
+  // 3. Load audio progressively - tracks appear as they load!
+  const { tracks, loading, loadedCount, totalCount } = useAudioTracks(
+    audioConfigs,  // Configs added progressively as peaks arrive
+    { progressive: true }
   );
 
-  if (!peaksLoaded || audioLoading) {
-    return <div>Loading...</div>;
-  }
-
-  // waveformData is now attached to each clip - the library uses it
-  // instead of computing peaks from audio. Supports zoom via resample().
+  // Tracks render immediately as each one loads - no waiting!
   return (
     <WaveformPlaylistProvider tracks={tracks} samplesPerPixel={1024}>
+      {loading && <div>Loading: {loadedCount} / {totalCount}</div>}
       <PlayButton /> <PauseButton /> <StopButton />
       <Waveform />
     </WaveformPlaylistProvider>

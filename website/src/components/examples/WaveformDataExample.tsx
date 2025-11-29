@@ -17,7 +17,7 @@ import {
   waveformDataToPeaks,
   getWaveformDataMetadata,
 } from '@waveform-playlist/browser';
-import { Channel } from '@waveform-playlist/ui-components';
+// Channel import removed - no longer using preview rendering
 import { useDocusaurusTheme } from '../../hooks/useDocusaurusTheme';
 
 // Track configuration with both audio and BBC peaks files
@@ -114,45 +114,7 @@ const StatBox = styled.div<{ $variant?: 'peaks' | 'audio' }>`
   }
 `;
 
-const LoadingStatus = styled.div`
-  padding: 0.5rem 1rem;
-  background: var(--ifm-color-primary-contrast-background, #e7f5ff);
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--ifm-color-primary-dark, #0066cc);
-  margin-bottom: 1rem;
-`;
-
-const PreviewContainer = styled.div`
-  padding: 1rem;
-  background: var(--ifm-background-surface-color, #f8f9fa);
-  border: 1px solid var(--ifm-color-emphasis-300, #dee2e6);
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-`;
-
-const TrackPreview = styled.div`
-  margin-bottom: 1rem;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const TrackLabel = styled.div`
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  color: var(--ifm-font-color-base, #1a1a2e);
-`;
-
-const WaveformContainer = styled.div`
-  position: relative;
-  height: 64px;
-  background: #1a1a2e;
-  border-radius: 4px;
-  overflow: hidden;
-`;
+// Removed preview-related styled components - progressive loading shows tracks directly
 
 interface BBCPeaksData {
   data: Int8Array | Int16Array;
@@ -170,133 +132,68 @@ interface BBCPeaksData {
 /**
  * WaveformData Example
  *
- * Demonstrates fast waveform display using BBC pre-computed peaks.
- * BBC peaks load almost instantly (~50KB files) while full audio
- * buffers load in the background (~3MB files).
+ * Demonstrates fully progressive loading with BBC pre-computed peaks.
+ * Each track appears as soon as its peaks load (~50KB), then audio
+ * loads in the background (~3MB). No waiting for all tracks!
  *
- * When waveformData is provided to clips, it's used INSTEAD of computing
- * peaks from the audio buffer - supporting dynamic zoom via resample().
+ * Key features demonstrated:
+ * - Progressive peaks: each track appears as its peaks file loads
+ * - Progressive audio: tracks become playable as audio loads
+ * - loadedCount/totalCount: real-time progress tracking
  */
 export function WaveformDataExample() {
   const { theme } = useDocusaurusTheme();
   const [bbcPeaks, setBbcPeaks] = useState<Map<string, BBCPeaksData>>(new Map());
-  const [peaksLoaded, setPeaksLoaded] = useState(false);
 
-  // Load BBC peaks first (faster - pre-computed waveform data)
+  // Load BBC peaks PROGRESSIVELY - each track appears as its peaks load!
   useEffect(() => {
-    const loadPeaks = async () => {
+    // Load each track's peaks independently (not Promise.all)
+    trackConfigs.forEach(async (config) => {
       try {
-        const peaksMap = new Map<string, BBCPeaksData>();
+        const waveformData = await loadWaveformData(config.peaksSrc);
+        const peaks = waveformDataToPeaks(waveformData, 0);
+        const metadata = await getWaveformDataMetadata(config.peaksSrc);
 
-        await Promise.all(
-          trackConfigs.map(async (config) => {
-            const waveformData = await loadWaveformData(config.peaksSrc);
-            const peaks = waveformDataToPeaks(waveformData, 0);
-            const metadata = await getWaveformDataMetadata(config.peaksSrc);
-
-            peaksMap.set(config.name, {
-              data: peaks.data,
-              bits: peaks.bits,
-              length: peaks.length,
-              sampleRate: peaks.sampleRate,
-              waveformData, // Store for passing to clips
-              metadata: {
-                channels: metadata.channels,
-                duration: metadata.duration,
-                samplesPerPixel: metadata.samplesPerPixel,
-              },
-            });
-          })
-        );
-
-        setBbcPeaks(peaksMap);
-        setPeaksLoaded(true);
+        // Update state for THIS track immediately - triggers re-render
+        setBbcPeaks(prev => {
+          const newMap = new Map(prev);
+          newMap.set(config.name, {
+            data: peaks.data,
+            bits: peaks.bits,
+            length: peaks.length,
+            sampleRate: peaks.sampleRate,
+            waveformData,
+            metadata: {
+              channels: metadata.channels,
+              duration: metadata.duration,
+              samplesPerPixel: metadata.samplesPerPixel,
+            },
+          });
+          return newMap;
+        });
       } catch (error) {
-        console.error('Error loading BBC peaks:', error);
+        console.error(`Error loading peaks for ${config.name}:`, error);
       }
-    };
-
-    loadPeaks();
+    });
   }, []);
 
-  // Memoize audio configs for useAudioTracks - include waveformData when available
+  // Build audio configs - only include tracks that have peaks loaded
   const audioConfigs = useMemo(() =>
-    trackConfigs.map(config => ({
-      src: config.audioSrc,
-      name: config.name,
-      waveformData: bbcPeaks.get(config.name)?.waveformData,
-    })),
+    trackConfigs
+      .filter(config => bbcPeaks.has(config.name)) // Only tracks with peaks ready
+      .map(config => ({
+        src: config.audioSrc,
+        name: config.name,
+        waveformData: bbcPeaks.get(config.name)?.waveformData,
+      })),
   [bbcPeaks]);
 
-  // Load audio tracks (slower - full audio files)
-  // Only start loading after peaks are ready so waveformData can be attached
-  const { tracks, loading: audioLoading, error: audioError } = useAudioTracks(
-    peaksLoaded ? audioConfigs : []
+  // Load audio tracks with PROGRESSIVE LOADING enabled!
+  // Tracks appear one-by-one as they load, with waveforms shown immediately from peaks
+  const { tracks, loading: audioLoading, error: audioError, loadedCount, totalCount } = useAudioTracks(
+    audioConfigs, // Configs added progressively as peaks load
+    { progressive: true } // Audio also loads progressively
   );
-
-  // Device pixel ratio for crisp rendering
-  const devicePixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
-
-  // Show BBC peaks preview while audio loads
-  if (audioLoading && peaksLoaded) {
-    return (
-      <Container>
-        <StatsContainer>
-          <StatBox $variant="peaks">
-            <strong>{totalPeaksSize} KB</strong>
-            <span>BBC Peaks (loaded)</span>
-          </StatBox>
-          <StatBox $variant="audio">
-            <strong>{(totalAudioSize / 1000).toFixed(1)} MB</strong>
-            <span>Audio (loading...)</span>
-          </StatBox>
-          <StatBox>
-            <strong>{Math.round(totalAudioSize / totalPeaksSize)}x</strong>
-            <span>smaller</span>
-          </StatBox>
-        </StatsContainer>
-
-        <PreviewContainer>
-          <h4 style={{ margin: '0 0 1rem 0' }}>Preview (BBC Pre-computed Peaks)</h4>
-          {trackConfigs.map((config) => {
-            const peaks = bbcPeaks.get(config.name);
-            if (!peaks) return null;
-
-            return (
-              <TrackPreview key={config.name}>
-                <TrackLabel>{config.name}</TrackLabel>
-                <WaveformContainer>
-                  <div style={{ width: peaks.length, height: 64, position: 'relative' }}>
-                    <Channel
-                      index={0}
-                      data={peaks.data}
-                      bits={peaks.bits}
-                      length={peaks.length}
-                      waveHeight={64}
-                      devicePixelRatio={devicePixelRatio}
-                      waveOutlineColor={theme?.waveOutlineColor || '#005BBB'}
-                      waveFillColor={theme?.waveFillColor || '#F4D35E'}
-                    />
-                  </div>
-                </WaveformContainer>
-              </TrackPreview>
-            );
-          })}
-        </PreviewContainer>
-      </Container>
-    );
-  }
-
-  // Show loading state if peaks haven't loaded yet
-  if (!peaksLoaded) {
-    return (
-      <Container>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          Loading waveform data...
-        </div>
-      </Container>
-    );
-  }
 
   if (audioError) {
     return (
@@ -323,6 +220,13 @@ export function WaveformDataExample() {
           <strong>{Math.round(totalAudioSize / totalPeaksSize)}x</strong>
           <span>smaller</span>
         </StatBox>
+        {/* Show loading progress using loadedCount/totalCount */}
+        {audioLoading && (
+          <StatBox $variant="audio">
+            <strong>{loadedCount} / {totalCount}</strong>
+            <span>Tracks loaded</span>
+          </StatBox>
+        )}
       </StatsContainer>
 
       <WaveformPlaylistProvider

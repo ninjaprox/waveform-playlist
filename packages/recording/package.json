@@ -1,6 +1,6 @@
 {
   "name": "@waveform-playlist/recording",
-  "version": "5.0.0-alpha.4",
+  "version": "5.0.0-alpha.5",
   "description": "Audio recording support for waveform-playlist using AudioWorklet",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -49,11 +49,11 @@
   "dependencies": {
     "@waveform-playlist/core": "workspace:*",
     "@waveform-playlist/playout": "workspace:*",
-    "@waveform-playlist/ui-components": "workspace:*",
-    "tone": "^15.0.4"
+    "@waveform-playlist/ui-components": "workspace:*"
   },
   "peerDependencies": {
     "react": "^18.0.0",
-    "styled-components": "^6.0.0"
+    "styled-components": "^6.0.0",
+    "tone": "^15.0.0"
   }
 }

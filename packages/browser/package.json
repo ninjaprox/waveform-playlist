@@ -1,6 +1,6 @@
 {
   "name": "@waveform-playlist/browser",
-  "version": "5.0.0-alpha.4",
+  "version": "5.0.0-alpha.5",
   "description": "Browser bundle for waveform-playlist with React",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -62,11 +62,13 @@
     "@waveform-playlist/recording": "workspace:*",
     "@waveform-playlist/ui-components": "workspace:*",
     "@waveform-playlist/webaudio-peaks": "workspace:*",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "styled-components": "^6.1.8",
-    "tone": "15.1.22",
     "uuid": "^13.0.0",
     "waveform-data": "^4.5.2"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "styled-components": "^6.0.0",
+    "tone": "^15.0.0"
   }
 }

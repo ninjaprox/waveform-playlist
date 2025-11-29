@@ -5,6 +5,7 @@ import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import type { DragHandleProps as BaseDragHandleProps } from './ClipHeader';
 
 export const CLIP_BOUNDARY_WIDTH = 8; // Width of the draggable boundary in pixels
+export const CLIP_BOUNDARY_WIDTH_TOUCH = 24; // Larger touch target for mobile (minimum 44px recommended, but 24px works well for trim handles)
 
 type BoundaryEdge = 'left' | 'right';
 
@@ -12,6 +13,7 @@ interface BoundaryContainerProps {
   readonly $edge: BoundaryEdge;
   readonly $isDragging?: boolean;
   readonly $isHovered?: boolean;
+  readonly $touchOptimized?: boolean;
 }
 
 const BoundaryContainer = styled.div<BoundaryContainerProps>`
@@ -19,11 +21,12 @@ const BoundaryContainer = styled.div<BoundaryContainerProps>`
   ${props => props.$edge === 'left' ? 'left: 0;' : 'right: 0;'}
   top: 0;
   bottom: 0;
-  width: ${CLIP_BOUNDARY_WIDTH}px;
+  width: ${props => props.$touchOptimized ? CLIP_BOUNDARY_WIDTH_TOUCH : CLIP_BOUNDARY_WIDTH}px;
   cursor: col-resize;
   user-select: none;
   z-index: 105; /* Above waveform, below header */
   pointer-events: auto; /* Re-enable pointer events (parent ClipContainer has pointer-events: none) */
+  touch-action: none; /* Prevent browser scroll during drag on touch devices */
 
   /* Invisible by default, visible on hover */
   background: ${props =>
@@ -81,6 +84,11 @@ export interface ClipBoundaryProps {
   clipIndex: number;
   edge: BoundaryEdge;
   dragHandleProps?: DragHandleProps;
+  /**
+   * Enable larger touch targets for mobile devices.
+   * When true, boundary width increases from 8px to 24px for easier touch targeting.
+   */
+  touchOptimized?: boolean;
 }
 
 /**
@@ -89,6 +97,8 @@ export interface ClipBoundaryProps {
  * Renders at the left or right edge of a clip.
  * Drag to trim the clip (adjust offset and duration).
  * Supports bidirectional trimming (trim in and out).
+ *
+ * On mobile (touchOptimized=true), boundaries are wider for easier targeting.
  */
 export const ClipBoundary: FunctionComponent<ClipBoundaryProps> = ({
   clipId,
@@ -96,6 +106,7 @@ export const ClipBoundary: FunctionComponent<ClipBoundaryProps> = ({
   clipIndex,
   edge,
   dragHandleProps,
+  touchOptimized = false,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
@@ -114,6 +125,7 @@ export const ClipBoundary: FunctionComponent<ClipBoundaryProps> = ({
       $edge={edge}
       $isDragging={isDragging}
       $isHovered={isHovered}
+      $touchOptimized={touchOptimized}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       {...listeners}

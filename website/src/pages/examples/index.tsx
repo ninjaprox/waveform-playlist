@@ -15,6 +15,7 @@ import {
   LightningIcon,
   InfinityIcon,
   HeadphonesIcon,
+  DeviceMobileIcon,
 } from '@phosphor-icons/react';
 import styles from './examples.module.css';
 
@@ -103,6 +104,13 @@ const examples = [
     path: 'stereo',
     category: 'foundation',
     icon: <HeadphonesIcon weight="light" />,
+  },
+  {
+    title: 'Mobile Multi-Clip',
+    description: 'Touch-optimized. Swipe to scroll, hold to drag.',
+    path: 'mobile-multi-clip',
+    category: 'mobile',
+    icon: <DeviceMobileIcon weight="light" />,
   },
 ];
 
@@ -216,6 +224,7 @@ export default function Examples(): React.ReactElement {
     { id: 'playback', title: 'Playback', subtitle: 'Feel the flow' },
     { id: 'advanced', title: 'Advanced', subtitle: 'Push the limits' },
     { id: 'tools', title: 'Tools', subtitle: 'Precision instruments' },
+    { id: 'mobile', title: 'Smaller Screens', subtitle: 'Big vision, compact canvas' },
   ];
 
   return (

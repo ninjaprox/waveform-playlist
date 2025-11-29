@@ -17,6 +17,7 @@ export { useClipDragHandlers } from './useClipDragHandlers';
 export { useAnnotationDragHandlers } from './useAnnotationDragHandlers';
 
 export { useDragSensors } from './useDragSensors';
+export type { DragSensorOptions } from './useDragSensors';
 
 export { useClipSplitting } from './useClipSplitting';
 export type { UseClipSplittingOptions, UseClipSplittingResult } from './useClipSplitting';

@@ -68,6 +68,8 @@ export interface ClipProps {
   fadeOut?: Fade; // Fade out effect
   sampleRate?: number; // Sample rate for converting fade duration to pixels
   showFades?: boolean; // Show fade in/out overlays
+  // Mobile optimization
+  touchOptimized?: boolean; // Enable larger touch targets for mobile devices
 }
 
 /**
@@ -98,6 +100,7 @@ export const Clip: FunctionComponent<ClipProps> = ({
   fadeOut,
   sampleRate = 44100,
   showFades = false,
+  touchOptimized = false,
 }) => {
   // Calculate horizontal position based on start sample
   // Use Math.floor to always snap to pixel boundaries
@@ -202,6 +205,7 @@ export const Clip: FunctionComponent<ClipProps> = ({
             trackIndex={trackIndex}
             clipIndex={clipIndex}
             edge="left"
+            touchOptimized={touchOptimized}
             dragHandleProps={{
               attributes: leftBoundaryAttributes,
               listeners: leftBoundaryListeners,
@@ -214,6 +218,7 @@ export const Clip: FunctionComponent<ClipProps> = ({
             trackIndex={trackIndex}
             clipIndex={clipIndex}
             edge="right"
+            touchOptimized={touchOptimized}
             dragHandleProps={{
               attributes: rightBoundaryAttributes,
               listeners: rightBoundaryListeners,

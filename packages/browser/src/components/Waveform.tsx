@@ -48,6 +48,12 @@ export interface WaveformProps {
   showClipHeaders?: boolean; // Show headers on clips for visual organization
   interactiveClips?: boolean; // Enable dragging/trimming interactions on clips (requires @dnd-kit setup)
   showFades?: boolean; // Show fade in/out overlays on clips
+  /**
+   * Enable mobile-optimized touch interactions.
+   * When true, increases touch target sizes for clip boundaries.
+   * Use with useDragSensors({ touchOptimized: true }) for best results.
+   */
+  touchOptimized?: boolean;
   // Live recording state for real-time waveform preview
   recordingState?: {
     isRecording: boolean;
@@ -72,6 +78,7 @@ export const Waveform: React.FC<WaveformProps> = ({
   showClipHeaders = false,
   interactiveClips = false,
   showFades = false,
+  touchOptimized = false,
   recordingState,
 }) => {
   // Get theme from context (typed as WaveformPlaylistTheme)
@@ -399,6 +406,7 @@ export const Waveform: React.FC<WaveformProps> = ({
                             fadeOut={clip.fadeOut}
                             sampleRate={sampleRate}
                             showFades={showFades}
+                            touchOptimized={touchOptimized}
                             onMouseDown={(e) => {
                               // Only select track if clicking on the waveform, not on draggable elements
                               const target = e.target as HTMLElement;

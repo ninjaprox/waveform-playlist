@@ -26,6 +26,7 @@ const HeaderContainer = styled.div<HeaderContainerProps>`
   z-index: 110;
   flex-shrink: 0;
   pointer-events: auto; /* Re-enable pointer events (parent ClipContainer has pointer-events: none) */
+  touch-action: ${props => props.$interactive ? 'none' : 'auto'}; /* Prevent browser scroll during drag on touch devices */
 
   ${props => props.$interactive && `
     &:hover {

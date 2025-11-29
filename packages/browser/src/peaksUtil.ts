@@ -8,23 +8,21 @@ import extractPeaks, { type PeakData } from '@waveform-playlist/webaudio-peaks';
  * @param samplesPerPixel - Number of samples per pixel
  * @param isMono - Whether to merge channels to mono
  * @param bits - Bit depth for peak data (8 or 16)
- * @param offset - Time offset in seconds (for trimming)
- * @param duration - Duration in seconds (for trimming)
+ * @param offsetSamples - Start offset in samples (for trimming)
+ * @param durationSamples - Duration in samples (for trimming)
  */
 export function generatePeaks(
   audioBuffer: AudioBuffer,
   samplesPerPixel: number = 1000,
   isMono: boolean = true,
   bits: 8 | 16 = 8,
-  offset: number = 0,
-  duration?: number
+  offsetSamples: number = 0,
+  durationSamples?: number
 ): PeakData {
-  // Convert time-based offset and duration to sample indices
-  const sampleRate = audioBuffer.sampleRate;
-  const cueIn = Math.floor(offset * sampleRate);
-  const cueOut = duration !== undefined
-    ? Math.floor((offset + duration) * sampleRate)
+  // Calculate cueOut from offset + duration (both in samples)
+  const cueOut = durationSamples !== undefined
+    ? offsetSamples + durationSamples
     : undefined;
 
-  return extractPeaks(audioBuffer, samplesPerPixel, isMono, cueIn, cueOut, bits);
+  return extractPeaks(audioBuffer, samplesPerPixel, isMono, offsetSamples, cueOut, bits);
 }

@@ -592,17 +592,13 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
         }
 
         // Fall back to generating peaks from audioBuffer
-        const sampleRate = clip.audioBuffer.sampleRate;
-        const offsetSeconds = clip.offsetSamples / sampleRate;
-        const durationSeconds = clip.durationSamples / sampleRate;
-
         const peaks = generatePeaks(
           clip.audioBuffer,
           samplesPerPixel,
           mono,
           bits,
-          offsetSeconds,
-          durationSeconds
+          clip.offsetSamples,
+          clip.durationSamples
         );
 
         return {

@@ -5,6 +5,7 @@ import { type Track, type ClipTrack, type Fade } from '@waveform-playlist/core';
 import { type TimeFormat, type WaveformPlaylistTheme, defaultTheme } from '@waveform-playlist/ui-components';
 import { start as toneStart, getContext } from 'tone';
 import { generatePeaks } from './peaksUtil';
+import { extractPeaksFromWaveformData } from './waveformDataLoader';
 import type { PeakData } from '@waveform-playlist/webaudio-peaks';
 import { parseAeneas, type AnnotationData } from '@waveform-playlist/annotations';
 import { useTimeFormat, useZoomControls, useMasterVolume } from './hooks';
@@ -563,15 +564,45 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     // Generate peaks for each clip in each track
     const allTrackPeaks: TrackClipPeaks[] = tracks.map((track) => {
       const clipPeaks: ClipPeaks[] = track.clips.map((clip) => {
-        // Generate peaks with trimming based on clip's offset and duration
+        // Check if clip has pre-computed waveform data
+        if (clip.waveformData) {
+          // Use waveform-data.js to resample and slice as needed
+          // Pass sample values directly for accuracy
+          const extractedPeaks = extractPeaksFromWaveformData(
+            clip.waveformData as any, // Cast to WaveformData type
+            samplesPerPixel,
+            0, // channel index
+            clip.offsetSamples,
+            clip.durationSamples
+          );
+
+          return {
+            clipId: clip.id,
+            trackName: track.name,
+            peaks: {
+              length: extractedPeaks.length,
+              data: [extractedPeaks.data], // Wrap in array for channel compatibility
+              bits: extractedPeaks.bits,
+            },
+            startSample: clip.startSample,
+            durationSamples: clip.durationSamples,
+            fadeIn: clip.fadeIn,
+            fadeOut: clip.fadeOut,
+          };
+        }
+
+        // Fall back to generating peaks from audioBuffer
         const sampleRate = clip.audioBuffer.sampleRate;
+        const offsetSeconds = clip.offsetSamples / sampleRate;
+        const durationSeconds = clip.durationSamples / sampleRate;
+
         const peaks = generatePeaks(
           clip.audioBuffer,
           samplesPerPixel,
           mono,
           bits,
-          clip.offsetSamples / sampleRate,        // Time offset into the audio file (in seconds)
-          clip.durationSamples / sampleRate       // Duration of the clip (in seconds)
+          offsetSeconds,
+          durationSeconds
         );
 
         return {

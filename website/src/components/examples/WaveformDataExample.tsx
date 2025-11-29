@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
+import type WaveformData from 'waveform-data';
 import {
   WaveformPlaylistProvider,
   Waveform,
@@ -158,6 +159,7 @@ interface BBCPeaksData {
   bits: 8 | 16;
   length: number;
   sampleRate: number;
+  waveformData: WaveformData; // Keep original for passing to clips
   metadata: {
     channels: number;
     duration: number;
@@ -171,24 +173,16 @@ interface BBCPeaksData {
  * Demonstrates fast waveform display using BBC pre-computed peaks.
  * BBC peaks load almost instantly (~50KB files) while full audio
  * buffers load in the background (~3MB files).
+ *
+ * When waveformData is provided to clips, it's used INSTEAD of computing
+ * peaks from the audio buffer - supporting dynamic zoom via resample().
  */
 export function WaveformDataExample() {
   const { theme } = useDocusaurusTheme();
   const [bbcPeaks, setBbcPeaks] = useState<Map<string, BBCPeaksData>>(new Map());
   const [peaksLoaded, setPeaksLoaded] = useState(false);
 
-  // Memoize audio configs for useAudioTracks
-  const audioConfigs = useMemo(() =>
-    trackConfigs.map(config => ({
-      src: config.audioSrc,
-      name: config.name,
-    })),
-  []);
-
-  // Load audio tracks (slower - full audio files)
-  const { tracks, loading: audioLoading, error: audioError } = useAudioTracks(audioConfigs);
-
-  // Load BBC peaks (faster - pre-computed waveform data)
+  // Load BBC peaks first (faster - pre-computed waveform data)
   useEffect(() => {
     const loadPeaks = async () => {
       try {
@@ -205,6 +199,7 @@ export function WaveformDataExample() {
               bits: peaks.bits,
               length: peaks.length,
               sampleRate: peaks.sampleRate,
+              waveformData, // Store for passing to clips
               metadata: {
                 channels: metadata.channels,
                 duration: metadata.duration,
@@ -223,6 +218,21 @@ export function WaveformDataExample() {
 
     loadPeaks();
   }, []);
+
+  // Memoize audio configs for useAudioTracks - include waveformData when available
+  const audioConfigs = useMemo(() =>
+    trackConfigs.map(config => ({
+      src: config.audioSrc,
+      name: config.name,
+      waveformData: bbcPeaks.get(config.name)?.waveformData,
+    })),
+  [bbcPeaks]);
+
+  // Load audio tracks (slower - full audio files)
+  // Only start loading after peaks are ready so waveformData can be attached
+  const { tracks, loading: audioLoading, error: audioError } = useAudioTracks(
+    peaksLoaded ? audioConfigs : []
+  );
 
   // Device pixel ratio for crisp rendering
   const devicePixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio : 1;

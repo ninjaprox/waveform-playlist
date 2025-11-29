@@ -12,6 +12,35 @@
 import { Fade } from './index';
 
 /**
+ * WaveformData object from waveform-data.js library.
+ * Supports resample() and slice() for dynamic zoom levels.
+ * See: https://github.com/bbc/waveform-data.js
+ */
+export interface WaveformDataObject {
+  /** Sample rate of the original audio */
+  readonly sample_rate: number;
+  /** Number of audio samples per pixel */
+  readonly scale: number;
+  /** Length of waveform data in pixels */
+  readonly length: number;
+  /** Bit depth (8 or 16) */
+  readonly bits: number;
+  /** Duration in seconds */
+  readonly duration: number;
+  /** Number of channels */
+  readonly channels: number;
+  /** Get channel data */
+  channel: (index: number) => {
+    min_array: () => number[];
+    max_array: () => number[];
+  };
+  /** Resample to different scale */
+  resample: (options: { scale: number } | { width: number }) => WaveformDataObject;
+  /** Slice a portion of the waveform */
+  slice: (options: { startTime: number; endTime: number } | { startIndex: number; endIndex: number }) => WaveformDataObject;
+}
+
+/**
  * Generic effects function type for track-level audio processing.
  *
  * The actual implementation receives Tone.js audio nodes. Using generic types
@@ -78,6 +107,14 @@ export interface AudioClip {
 
   /** Optional color for visual distinction */
   color?: string;
+
+  /**
+   * Pre-computed waveform data from waveform-data.js library.
+   * When provided, the library will use this instead of computing peaks from the audioBuffer.
+   * Supports resampling to different zoom levels and slicing for clip trimming.
+   * Load with: `const waveformData = await loadWaveformData('/path/to/peaks.dat')`
+   */
+  waveformData?: WaveformDataObject;
 }
 
 /**
@@ -154,6 +191,8 @@ export interface CreateClipOptions {
   color?: string;
   fadeIn?: Fade;
   fadeOut?: Fade;
+  /** Pre-computed waveform data from waveform-data.js (e.g., from BBC audiowaveform) */
+  waveformData?: WaveformDataObject;
 }
 
 /**
@@ -169,6 +208,8 @@ export interface CreateClipOptionsSeconds {
   color?: string;
   fadeIn?: Fade;
   fadeOut?: Fade;
+  /** Pre-computed waveform data from waveform-data.js (e.g., from BBC audiowaveform) */
+  waveformData?: WaveformDataObject;
 }
 
 /**
@@ -199,6 +240,7 @@ export function createClip(options: CreateClipOptions): AudioClip {
     color,
     fadeIn,
     fadeOut,
+    waveformData,
   } = options;
 
   return {
@@ -212,6 +254,7 @@ export function createClip(options: CreateClipOptions): AudioClip {
     color,
     fadeIn,
     fadeOut,
+    waveformData,
   };
 }
 
@@ -230,6 +273,7 @@ export function createClipFromSeconds(options: CreateClipOptionsSeconds): AudioC
     color,
     fadeIn,
     fadeOut,
+    waveformData,
   } = options;
 
   const sampleRate = audioBuffer.sampleRate;
@@ -244,6 +288,7 @@ export function createClipFromSeconds(options: CreateClipOptionsSeconds): AudioC
     color,
     fadeIn,
     fadeOut,
+    waveformData,
   });
 }
 

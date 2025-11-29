@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ClipTrack, createTrack, createClipFromSeconds, type Fade, type TrackEffectsFunction } from '@waveform-playlist/core';
+import { ClipTrack, createTrack, createClipFromSeconds, type Fade, type TrackEffectsFunction, type WaveformDataObject } from '@waveform-playlist/core';
 import * as Tone from 'tone';
 
 /**
@@ -21,6 +21,8 @@ export interface AudioTrackConfig {
   // Fade support
   fadeIn?: Fade;       // Fade in configuration
   fadeOut?: Fade;      // Fade out configuration
+  // Pre-computed waveform data (BBC audiowaveform format)
+  waveformData?: WaveformDataObject;  // Use instead of computing peaks from audio
 }
 
 /**
@@ -102,6 +104,7 @@ export function useAudioTracks(configs: AudioTrackConfig[]) {
             name: config.name || `Track ${index + 1}`,
             fadeIn: config.fadeIn,
             fadeOut: config.fadeOut,
+            waveformData: config.waveformData,  // Pre-computed BBC peaks
           });
 
           // Validate clip values

@@ -76,37 +76,71 @@ audiowaveform -i audio.mp3 -o peaks-16bit.dat -z 256 -b 16`}
             background: 'var(--ifm-code-background)',
             padding: '1rem',
             borderRadius: '4px',
-            overflow: 'auto'
+            overflow: 'auto',
+            fontSize: '0.8rem',
           }}>
-{`import {
-  loadWaveformData,
-  waveformDataToPeaks,
-  getWaveformDataMetadata,
+{`import React, { useState, useEffect, useMemo } from 'react';
+import type WaveformData from 'waveform-data';
+import {
+  WaveformPlaylistProvider,
+  Waveform,
+  PlayButton,
+  PauseButton,
+  StopButton,
   useAudioTracks,
+  loadWaveformData,
 } from '@waveform-playlist/browser';
 
 const trackConfigs = [
   { name: 'Kick', audioSrc: '/audio/kick.opus', peaksSrc: '/peaks/kick.dat' },
   { name: 'Bass', audioSrc: '/audio/bass.opus', peaksSrc: '/peaks/bass.dat' },
-  { name: 'Synth', audioSrc: '/audio/synth.opus', peaksSrc: '/peaks/synth.dat' },
 ];
 
-// Load peaks in parallel (fast, ~50KB each)
-const peaksPromises = trackConfigs.map(async (config) => {
-  const waveformData = await loadWaveformData(config.peaksSrc);
-  const peaks = waveformDataToPeaks(waveformData, 0); // channel 0
-  const metadata = await getWaveformDataMetadata(config.peaksSrc);
-  return { name: config.name, peaks, metadata };
-});
-const peaksData = await Promise.all(peaksPromises);
+function WaveformDataExample() {
+  const [waveformDataMap, setWaveformDataMap] = useState<Map<string, WaveformData>>(new Map());
+  const [peaksLoaded, setPeaksLoaded] = useState(false);
 
-// Load audio in parallel (slower, ~1MB each) - with useAudioTracks hook
-const { tracks, loading } = useAudioTracks(
-  trackConfigs.map(c => ({ src: c.audioSrc, name: c.name }))
-);
+  // 1. Load BBC peaks first (fast - ~50KB each)
+  useEffect(() => {
+    Promise.all(
+      trackConfigs.map(async (config) => {
+        const waveformData = await loadWaveformData(config.peaksSrc);
+        return { name: config.name, waveformData };
+      })
+    ).then(results => {
+      const map = new Map(results.map(r => [r.name, r.waveformData]));
+      setWaveformDataMap(map);
+      setPeaksLoaded(true);
+    });
+  }, []);
 
-// Show instant waveform preview while audio loads
-// Once audio is ready, use full WaveformPlaylistProvider`}
+  // 2. Build audio configs with waveformData attached
+  const audioConfigs = useMemo(() =>
+    trackConfigs.map(config => ({
+      src: config.audioSrc,
+      name: config.name,
+      waveformData: waveformDataMap.get(config.name), // Attach pre-computed peaks!
+    })),
+  [waveformDataMap]);
+
+  // 3. Load audio (slower - ~1MB each). Only start after peaks ready.
+  const { tracks, loading: audioLoading } = useAudioTracks(
+    peaksLoaded ? audioConfigs : []
+  );
+
+  if (!peaksLoaded || audioLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // waveformData is now attached to each clip - the library uses it
+  // instead of computing peaks from audio. Supports zoom via resample().
+  return (
+    <WaveformPlaylistProvider tracks={tracks} samplesPerPixel={1024}>
+      <PlayButton /> <PauseButton /> <StopButton />
+      <Waveform />
+    </WaveformPlaylistProvider>
+  );
+}`}
           </pre>
         </div>
 

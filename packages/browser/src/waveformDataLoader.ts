@@ -112,3 +112,57 @@ export async function getWaveformDataMetadata(src: string): Promise<{
     bits: waveformData.bits as 8 | 16,
   };
 }
+
+/**
+ * Extract peaks from a WaveformData object at a specific scale (samplesPerPixel)
+ * and optionally slice to a sample range.
+ *
+ * @param waveformData - WaveformData instance from waveform-data.js
+ * @param samplesPerPixel - Target samples per pixel (will resample if different)
+ * @param channelIndex - Channel index (default: 0)
+ * @param offsetSamples - Optional start offset in samples (for clip trimming)
+ * @param durationSamples - Optional duration in samples (for clip trimming)
+ * @returns Peaks data ready for rendering
+ */
+export function extractPeaksFromWaveformData(
+  waveformData: WaveformData,
+  samplesPerPixel: number,
+  channelIndex: number = 0,
+  offsetSamples?: number,
+  durationSamples?: number
+): { data: Int8Array | Int16Array; bits: 8 | 16; length: number } {
+  let processedData = waveformData;
+
+  // Slice if offset/duration specified (using index-based slicing for sample accuracy)
+  if (offsetSamples !== undefined && durationSamples !== undefined) {
+    // Convert samples to waveform data indices
+    // waveformData.scale is the samples per pixel of the source data
+    const sourceScale = waveformData.scale;
+    const startIndex = Math.floor(offsetSamples / sourceScale);
+    const endIndex = Math.ceil((offsetSamples + durationSamples) / sourceScale);
+    processedData = processedData.slice({ startIndex, endIndex });
+  }
+
+  // Resample to target scale if different
+  if (processedData.scale !== samplesPerPixel) {
+    processedData = processedData.resample({ scale: samplesPerPixel });
+  }
+
+  // Convert to our peaks format
+  const channel = processedData.channel(channelIndex);
+  const bits = processedData.bits as 8 | 16;
+  const minArray = channel.min_array();
+  const maxArray = channel.max_array();
+  const length = minArray.length;
+
+  const peaks = bits === 8
+    ? new Int8Array(length * 2)
+    : new Int16Array(length * 2);
+
+  for (let i = 0; i < length; i++) {
+    peaks[i * 2] = minArray[i];
+    peaks[i * 2 + 1] = maxArray[i];
+  }
+
+  return { data: peaks, bits, length };
+}

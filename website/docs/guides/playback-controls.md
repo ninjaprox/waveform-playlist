@@ -202,8 +202,10 @@ Waveform Playlist uses an Audacity-style loop system with a separate loop region
 
 - Define a loop region independently from your playback selection
 - Start playback before the loop region - it will loop when the cursor enters and reaches the end of the region
-- Keep the loop region visible even when looping is disabled
 - Toggle looping on/off without losing the loop region
+- Create and adjust loop regions visually in the timescale area
+
+The loop region is displayed only in the timescale (ruler) area, keeping the tracks area clean for waveform visualization and selection.
 
 ### Two-Button Workflow
 
@@ -246,8 +248,8 @@ Toggles the looping behavior.
 ```
 
 **Behavior:**
-- Disabled when no loop region exists
 - Shows "Loop Off" when disabled, "Loop On" when enabled
+- If no loop region exists when enabling, creates a default loop region (first 10s or 25% of duration)
 - When enabled, playback loops when the cursor enters and reaches the end of the loop region
 
 ### Programmatic Control
@@ -321,9 +323,13 @@ function LoopExample() {
 
 **Workflow:**
 1. Click and drag on the waveform to create a selection
-2. Click "Set Loop" to create a loop region from the selection
+2. Click "Set Loop" to create a loop region from the selection (or drag in the timescale)
 3. Click "Loop On" to enable looping
 4. Press Play - when the cursor reaches the loop region, it will loop
+
+**Selection + Loop Interaction:**
+- With a selection and **no loop**: Play starts at selection start and stops at selection end
+- With a selection and **loop enabled**: Play starts at selection start and continues, looping when it reaches the loop region
 
 ## Selection Playback
 

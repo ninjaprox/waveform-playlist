@@ -9,6 +9,8 @@ import {
   FastForwardButton,
   SkipBackwardButton,
   SkipForwardButton,
+  LoopButton,
+  SetLoopRegionButton,
 } from '@waveform-playlist/browser';
 
 // A simple decorator that provides the WaveformPlaylistProvider context
@@ -59,6 +61,8 @@ export const AllControls: StoryObj = {
       <FastForwardButton />
       <SkipBackwardButton />
       <SkipForwardButton />
+      <SetLoopRegionButton />
+      <LoopButton />
     </div>
   ),
 };
@@ -92,4 +96,28 @@ export const CustomSkipAmount: StoryObj = {
       <SkipForwardButton skipAmount={10} />
     </div>
   ),
+};
+
+export const LoopControls: StoryObj = {
+  render: () => (
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <SetLoopRegionButton />
+      <LoopButton />
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Loop controls follow an Audacity-style workflow:
+
+1. **SetLoopRegionButton** - Creates a loop region from current selection, or clears existing loop region
+2. **LoopButton** - Toggles looping behavior on/off
+
+The loop region is displayed only in the timescale area. If LoopButton is clicked without a loop region,
+it creates a default loop region (first 10s or 25% of duration).
+        `,
+      },
+    },
+  },
 };

@@ -219,13 +219,14 @@ Toggles loop mode for the loop region.
 ```
 
 **Behavior:**
-- Disabled when no loop region exists (use SetLoopRegionButton first)
 - Shows "Loop Off" when disabled, "Loop On" when enabled
+- If no loop region exists when enabling, creates a default loop region (first 10s or 25% of duration)
 - When enabled, playback loops when the cursor enters and reaches the end of the loop region
+- Loop region is displayed in the timescale area and can be dragged to adjust
 
 **Workflow:**
 1. Create a selection by clicking and dragging on the waveform
-2. Click SetLoopRegionButton to create a loop region from the selection
+2. Click SetLoopRegionButton to create a loop region from the selection (or drag in the timescale)
 3. Click LoopButton to enable looping
 4. Play - when the cursor reaches the loop region, it will loop
 

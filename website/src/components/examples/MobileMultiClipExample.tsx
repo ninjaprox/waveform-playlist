@@ -12,6 +12,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import type WaveformData from 'waveform-data';
 import { DndContext } from '@dnd-kit/core';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { getGlobalAudioContext } from '@waveform-playlist/playout';
@@ -22,6 +23,7 @@ import {
   usePlaylistControls,
   useClipDragHandlers,
   useDragSensors,
+  loadWaveformData,
   Waveform,
   PlayButton,
   PauseButton,
@@ -98,11 +100,23 @@ const Instructions = styled.div`
   }
 `;
 
-// Simplified audio files for mobile - fewer tracks
+// Simplified audio files for mobile - fewer tracks (with BBC peaks)
 const audioFiles = [
-  { id: 'kick', src: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/01_Kick.opus' },
-  { id: 'bass', src: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/08_Bass.opus' },
-  { id: 'synth', src: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/09_Synth1_Unmodulated.opus' },
+  {
+    id: 'kick',
+    src: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/01_Kick.opus',
+    peaksSrc: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/01_Kick.dat',
+  },
+  {
+    id: 'bass',
+    src: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/08_Bass.opus',
+    peaksSrc: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/08_Bass.dat',
+  },
+  {
+    id: 'synth',
+    src: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/09_Synth1_Unmodulated.opus',
+    peaksSrc: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/09_Synth1_Unmodulated.dat',
+  },
 ];
 
 // Simplified track configuration - 3 tracks for mobile
@@ -201,36 +215,42 @@ export function MobileMultiClipExample() {
 
         const audioContext = getGlobalAudioContext();
 
-        // Load all audio files
+        // Load all audio files and BBC peaks in parallel
         const fileLoadPromises = audioFiles.map(async (file) => {
-          const response = await fetch(file.src);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch ${file.src}: ${response.statusText}`);
+          // Load audio and peaks in parallel
+          const [audioResponse, waveformData] = await Promise.all([
+            fetch(file.src),
+            loadWaveformData(file.peaksSrc),
+          ]);
+
+          if (!audioResponse.ok) {
+            throw new Error(`Failed to fetch ${file.src}: ${audioResponse.statusText}`);
           }
 
-          const arrayBuffer = await response.arrayBuffer();
+          const arrayBuffer = await audioResponse.arrayBuffer();
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-          return { id: file.id, buffer: audioBuffer };
+          return { id: file.id, buffer: audioBuffer, waveformData };
         });
 
         const loadedFiles = await Promise.all(fileLoadPromises);
-        const fileBuffers = new Map(loadedFiles.map(f => [f.id, f.buffer]));
+        const fileBuffers = new Map(loadedFiles.map(f => [f.id, { buffer: f.buffer, waveformData: f.waveformData }]));
 
-        // Create tracks
+        // Create tracks with BBC peaks attached to clips
         const loadedTracks = trackConfigs.map((trackConfig) => {
           const clips = trackConfig.clips.map((clipConfig) => {
-            const audioBuffer = fileBuffers.get(clipConfig.fileId);
-            if (!audioBuffer) {
+            const fileData = fileBuffers.get(clipConfig.fileId);
+            if (!fileData) {
               throw new Error(`Audio file not found for ID: ${clipConfig.fileId}`);
             }
 
             return createClipFromSeconds({
-              audioBuffer,
+              audioBuffer: fileData.buffer,
               startTime: clipConfig.startTime,
               duration: clipConfig.duration,
               offset: clipConfig.offset,
               name: `${trackConfig.name} ${clipConfig.offset}-${clipConfig.offset + clipConfig.duration}s`,
+              waveformData: fileData.waveformData as WaveformData, // Attach BBC peaks!
             });
           });
 

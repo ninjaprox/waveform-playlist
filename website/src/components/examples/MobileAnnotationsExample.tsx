@@ -25,6 +25,7 @@ import {
   ZoomOutButton,
   AudioPosition,
   ContinuousPlayCheckbox,
+  LinkEndpointsCheckbox,
   Waveform,
   usePlaylistData,
   usePlaylistState,
@@ -35,7 +36,7 @@ import {
 } from '@waveform-playlist/browser';
 import { useDocusaurusTheme } from '../../hooks/useDocusaurusTheme';
 
-// Shorter annotation data for mobile - first 6 lines of Shakespeare's Sonnet 1
+// Full annotation data - Shakespeare's Sonnet 1
 const mobileAnnotations = [
   {
     "begin": "0.000",
@@ -79,6 +80,69 @@ const mobileAnnotations = [
     "language": "eng",
     "lines": ["But thou contracted to thine own bright eyes,"]
   },
+  {
+    "begin": "18.600",
+    "end": "22.800",
+    "id": "f000007",
+    "language": "eng",
+    "lines": ["Feed'st thy light's flame with self-substantial fuel,"]
+  },
+  {
+    "begin": "22.800",
+    "end": "25.680",
+    "id": "f000008",
+    "language": "eng",
+    "lines": ["Making a famine where abundance lies,"]
+  },
+  {
+    "begin": "25.680",
+    "end": "31.240",
+    "id": "f000009",
+    "language": "eng",
+    "lines": ["Thy self thy foe, to thy sweet self too cruel:"]
+  },
+  {
+    "begin": "31.240",
+    "end": "34.280",
+    "id": "f000010",
+    "language": "eng",
+    "lines": ["Thou that art now the world's fresh ornament,"]
+  },
+  {
+    "begin": "34.280",
+    "end": "36.960",
+    "id": "f000011",
+    "language": "eng",
+    "lines": ["And only herald to the gaudy spring,"]
+  },
+  {
+    "begin": "36.960",
+    "end": "40.680",
+    "id": "f000012",
+    "language": "eng",
+    "lines": ["Within thine own bud buriest thy content,"]
+  },
+  {
+    "begin": "40.680",
+    "end": "44.560",
+    "id": "f000013",
+    "language": "eng",
+    "lines": ["And tender churl mak'st waste in niggarding:"]
+  },
+  {
+    "begin": "44.560",
+    "end": "48.080",
+    "id": "f000014",
+    "language": "eng",
+    "lines": ["Pity the world, or else this glutton be,"]
+  },
+  {
+    "begin": "48.080",
+    "end": "53.240",
+    "id": "f000015",
+    "language": "eng",
+    "lines": ["To eat the world's due, by the grave and thee."]
+  }
 ];
 
 // Simplified annotation actions for mobile (larger touch targets)
@@ -228,7 +292,7 @@ const MobileAnnotationsContent: React.FC<MobileAnnotationsContentProps> = ({ tra
           <ul>
             <li><strong>Play annotation:</strong> Tap an annotation box</li>
             <li><strong>Resize:</strong> Touch and hold boundary (250ms), then drag</li>
-            <li><strong>Linked boundaries:</strong> Adjacent annotations stay connected</li>
+            <li><strong>Link Endpoints:</strong> Toggle to keep adjacent annotations connected</li>
             <li><strong>Scroll:</strong> Swipe left/right on the waveform</li>
           </ul>
         </Instructions>
@@ -257,6 +321,7 @@ const MobileAnnotationsContent: React.FC<MobileAnnotationsContentProps> = ({ tra
 
           <ControlGroup>
             <ContinuousPlayCheckbox />
+            <LinkEndpointsCheckbox />
           </ControlGroup>
         </Controls>
 
@@ -349,7 +414,7 @@ export function MobileAnnotationsExample() {
       mono
       waveHeight={100}
       automaticScroll={false}
-      controls={{ show: true, width: 80 }}
+      controls={{ show: false }}
       theme={theme}
       timescale
       barWidth={4}

@@ -82,19 +82,31 @@ audiowaveform -i audio.mp3 -o peaks-16bit.dat -z 256 -b 16`}
   loadWaveformData,
   waveformDataToPeaks,
   getWaveformDataMetadata,
+  useAudioTracks,
 } from '@waveform-playlist/browser';
 
-// Load and convert BBC peaks
-const waveformData = await loadWaveformData('/path/to/peaks.dat');
-const peaks = waveformDataToPeaks(waveformData, 0); // channel 0
+const trackConfigs = [
+  { name: 'Kick', audioSrc: '/audio/kick.opus', peaksSrc: '/peaks/kick.dat' },
+  { name: 'Bass', audioSrc: '/audio/bass.opus', peaksSrc: '/peaks/bass.dat' },
+  { name: 'Synth', audioSrc: '/audio/synth.opus', peaksSrc: '/peaks/synth.dat' },
+];
 
-// Use with Channel component
-<Channel
-  data={peaks.data}
-  bits={peaks.bits}
-  length={peaks.length}
-  waveHeight={64}
-/>`}
+// Load peaks in parallel (fast, ~50KB each)
+const peaksPromises = trackConfigs.map(async (config) => {
+  const waveformData = await loadWaveformData(config.peaksSrc);
+  const peaks = waveformDataToPeaks(waveformData, 0); // channel 0
+  const metadata = await getWaveformDataMetadata(config.peaksSrc);
+  return { name: config.name, peaks, metadata };
+});
+const peaksData = await Promise.all(peaksPromises);
+
+// Load audio in parallel (slower, ~1MB each) - with useAudioTracks hook
+const { tracks, loading } = useAudioTracks(
+  trackConfigs.map(c => ({ src: c.audioSrc, name: c.name }))
+);
+
+// Show instant waveform preview while audio loads
+// Once audio is ready, use full WaveformPlaylistProvider`}
           </pre>
         </div>
 

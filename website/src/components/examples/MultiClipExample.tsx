@@ -112,9 +112,12 @@ const trackConfigs = [
 interface PlaylistWithDragProps {
   tracks: ClipTrack[];
   onTracksChange: (tracks: ClipTrack[]) => void;
+  loading?: boolean;
+  loadedCount?: number;
+  totalCount?: number;
 }
 
-const PlaylistWithDrag: React.FC<PlaylistWithDragProps> = ({ tracks, onTracksChange }) => {
+const PlaylistWithDrag: React.FC<PlaylistWithDragProps> = ({ tracks, onTracksChange, loading, loadedCount, totalCount }) => {
   const { samplesPerPixel, sampleRate } = usePlaylistData();
   const { setSelectedTrackId } = usePlaylistControls();
 
@@ -167,6 +170,7 @@ const PlaylistWithDrag: React.FC<PlaylistWithDragProps> = ({ tracks, onTracksCha
           <PauseButton />
           <StopButton />
           <LoopButton />
+          {loading && <span style={{ fontSize: '0.875rem', color: 'var(--ifm-color-emphasis-600)' }}>Loading: {loadedCount}/{totalCount}</span>}
         </ControlGroup>
         <ControlGroup>
           <ZoomInButton />
@@ -188,92 +192,104 @@ const PlaylistWithDrag: React.FC<PlaylistWithDragProps> = ({ tracks, onTracksCha
   );
 };
 
+// Helper to get required file IDs for a track
+const getRequiredFileIds = (trackConfig: typeof trackConfigs[0]): string[] => {
+  return [...new Set(trackConfig.clips.map(clip => clip.fileId))];
+};
+
+// Helper to create a track when all its required files are loaded
+const createTrackFromConfig = (
+  trackConfig: typeof trackConfigs[0],
+  fileBuffers: Map<string, AudioBuffer>
+): ClipTrack => {
+  const clips = trackConfig.clips.map((clipConfig) => {
+    const audioBuffer = fileBuffers.get(clipConfig.fileId);
+    if (!audioBuffer) {
+      throw new Error(`Audio file not found for ID: ${clipConfig.fileId}`);
+    }
+
+    return createClipFromSeconds({
+      audioBuffer,
+      startTime: clipConfig.startTime,
+      duration: clipConfig.duration,
+      offset: clipConfig.offset,
+      name: `${trackConfig.name} ${clipConfig.offset}-${clipConfig.offset + clipConfig.duration}s`,
+    });
+  });
+
+  return createTrack({
+    name: trackConfig.name,
+    clips,
+    muted: false,
+    soloed: false,
+    volume: 1,
+    pan: 0,
+  });
+};
+
 export function MultiClipExample() {
   const { theme } = useDocusaurusTheme();
   const [tracks, setTracks] = useState<ClipTrack[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedFiles, setLoadedFiles] = useState<Map<string, AudioBuffer>>(new Map());
   const [error, setError] = useState<Error | null>(null);
+  const [loadedCount, setLoadedCount] = useState(0);
 
+  // Load audio files PROGRESSIVELY - each file loads independently
   useEffect(() => {
     let cancelled = false;
+    const audioContext = getGlobalAudioContext();
 
-    const loadTracks = async () => {
+    // Load each file independently (not Promise.all)
+    audioFiles.forEach(async (file) => {
       try {
-        setLoading(true);
-        setError(null);
+        const response = await fetch(file.src);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${file.src}: ${response.statusText}`);
+        }
 
-        const audioContext = getGlobalAudioContext();
-
-        // Load all audio files
-        const fileLoadPromises = audioFiles.map(async (file) => {
-          const response = await fetch(file.src);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch ${file.src}: ${response.statusText}`);
-          }
-
-          const arrayBuffer = await response.arrayBuffer();
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-          return { id: file.id, buffer: audioBuffer };
-        });
-
-        const loadedFiles = await Promise.all(fileLoadPromises);
-        const fileBuffers = new Map(loadedFiles.map(f => [f.id, f.buffer]));
-
-        // Create tracks
-        const loadedTracks = trackConfigs.map((trackConfig) => {
-          const clips = trackConfig.clips.map((clipConfig) => {
-            const audioBuffer = fileBuffers.get(clipConfig.fileId);
-            if (!audioBuffer) {
-              throw new Error(`Audio file not found for ID: ${clipConfig.fileId}`);
-            }
-
-            return createClipFromSeconds({
-              audioBuffer,
-              startTime: clipConfig.startTime,
-              duration: clipConfig.duration,
-              offset: clipConfig.offset,
-              name: `${trackConfig.name} ${clipConfig.offset}-${clipConfig.offset + clipConfig.duration}s`,
-            });
-          });
-
-          return createTrack({
-            name: trackConfig.name,
-            clips,
-            muted: false,
-            soloed: false,
-            volume: 1,
-            pan: 0,
-          });
-        });
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
         if (!cancelled) {
-          setTracks(loadedTracks);
-          setLoading(false);
+          // Update loaded files map for THIS file immediately
+          setLoadedFiles(prev => {
+            const newMap = new Map(prev);
+            newMap.set(file.id, audioBuffer);
+            return newMap;
+          });
+          setLoadedCount(prev => prev + 1);
         }
       } catch (err) {
         if (!cancelled) {
-          console.error('Failed to load tracks:', err);
+          console.error(`Failed to load ${file.id}:`, err);
           setError(err as Error);
-          setLoading(false);
         }
       }
-    };
-
-    loadTracks();
+    });
 
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
-        Loading audio tracks...
-      </div>
-    );
-  }
+  // Build tracks progressively as files load
+  useEffect(() => {
+    // For each track config, check if all required files are loaded
+    const newTracks: ClipTrack[] = [];
+
+    for (const trackConfig of trackConfigs) {
+      const requiredFileIds = getRequiredFileIds(trackConfig);
+      const allFilesLoaded = requiredFileIds.every(id => loadedFiles.has(id));
+
+      if (allFilesLoaded) {
+        newTracks.push(createTrackFromConfig(trackConfig, loadedFiles));
+      }
+    }
+
+    setTracks(newTracks);
+  }, [loadedFiles]);
+
+  const loading = loadedCount < audioFiles.length;
 
   if (error) {
     return (
@@ -296,7 +312,7 @@ export function MultiClipExample() {
       barWidth={4}
       barGap={2}
     >
-      <PlaylistWithDrag tracks={tracks} onTracksChange={setTracks} />
+      <PlaylistWithDrag tracks={tracks} onTracksChange={setTracks} loading={loading} loadedCount={loadedCount} totalCount={audioFiles.length} />
     </WaveformPlaylistProvider>
   );
 }

@@ -106,18 +106,8 @@ function PlaybackShortcuts() {
 export function StemTracksExample() {
   const { theme } = useDocusaurusTheme();
 
-  // Load audio tracks and convert to ClipTrack format
-  const { tracks, loading, error } = useAudioTracks(audioConfigs);
-
-  if (loading) {
-    return (
-      <Container>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          Loading audio tracks...
-        </div>
-      </Container>
-    );
-  }
+  // Load audio tracks PROGRESSIVELY - tracks appear as they load!
+  const { tracks, loading, error, loadedCount, totalCount } = useAudioTracks(audioConfigs, { progressive: true });
 
   if (error) {
     return (
@@ -149,6 +139,7 @@ export function StemTracksExample() {
             <PlayButton />
             <PauseButton />
             <StopButton />
+            {loading && <span style={{ fontSize: '0.875rem', color: 'var(--ifm-color-emphasis-600)' }}>Loading: {loadedCount}/{totalCount}</span>}
           </ControlGroup>
 
           <ControlGroup>

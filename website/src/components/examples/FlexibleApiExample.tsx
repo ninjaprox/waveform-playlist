@@ -555,29 +555,16 @@ export function FlexibleApiExample() {
     { src: '/waveform-playlist/media/audio/AlbertKader_Ubiquitous/11_Synth2.opus', name: 'Synth 2' },
   ], []);
 
-  const { tracks: loadedTracks, loading, error } = useAudioTracks(audioConfigs);
+  // Load audio tracks PROGRESSIVELY - tracks appear as they load!
+  const { tracks: loadedTracks, loading, error, loadedCount, totalCount } = useAudioTracks(audioConfigs, { progressive: true });
   const [tracks, setTracks] = useState<ClipTrack[]>([]);
 
-  // Initialize tracks state when loading completes
+  // Update tracks state as they load progressively
   useEffect(() => {
-    if (loadedTracks.length > 0 && tracks.length === 0) {
+    if (loadedTracks.length > 0) {
       setTracks(loadedTracks);
     }
-  }, [loadedTracks, tracks.length]);
-
-  if (loading) {
-    return (
-      <Theme appearance={isDark ? 'dark' : 'light'} accentColor="blue" grayColor="slate" radius="medium">
-        <Container>
-          <Card>
-            <Flex justify="center" align="center" style={{ padding: '3rem' }}>
-              <Text size="3">Loading audio tracks...</Text>
-            </Flex>
-          </Card>
-        </Container>
-      </Theme>
-    );
-  }
+  }, [loadedTracks]);
 
   if (error) {
     return (
@@ -593,14 +580,14 @@ export function FlexibleApiExample() {
     );
   }
 
-  // Wait for tracks state to be initialized
-  if (tracks.length === 0) {
+  // Show loading progress while tracks are being loaded
+  if (tracks.length === 0 && loading) {
     return (
       <Theme appearance={isDark ? 'dark' : 'light'} accentColor="blue" grayColor="slate" radius="medium">
         <Container>
           <Card>
             <Flex justify="center" align="center" style={{ padding: '3rem' }}>
-              <Text size="3">Initializing tracks...</Text>
+              <Text size="3">Loading tracks: {loadedCount}/{totalCount}...</Text>
             </Flex>
           </Card>
         </Container>

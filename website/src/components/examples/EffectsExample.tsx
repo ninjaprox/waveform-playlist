@@ -462,6 +462,9 @@ interface EffectsControlsProps {
   trackCount: number;
   createOfflineMasterEffects: () => any;
   tracks: ClipTrack[];
+  isLoading?: boolean;
+  loadedCount?: number;
+  totalCount?: number;
 }
 
 const EffectsControls: React.FC<EffectsControlsProps> = ({
@@ -474,6 +477,9 @@ const EffectsControls: React.FC<EffectsControlsProps> = ({
   trackCount,
   createOfflineMasterEffects,
   tracks,
+  isLoading,
+  loadedCount,
+  totalCount,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -662,6 +668,7 @@ const EffectsControls: React.FC<EffectsControlsProps> = ({
           <ZoomOutButton />
           <MasterVolumeControl />
           <AutomaticScrollCheckbox />
+          {isLoading && <span style={{ fontSize: '0.875rem', color: 'var(--ifm-color-emphasis-600)' }}>Loading: {loadedCount}/{totalCount}</span>}
         </ControlsRow>
         <VisualizerWrapper>
           <FrequencyVisualizer analyserRef={analyserRef} isDarkMode={isDarkMode} />
@@ -805,14 +812,16 @@ export function EffectsExample() {
     },
   ], []);
 
-  // Load initial audio tracks
-  const { tracks: loadedTracks, loading, error } = useAudioTracks(audioConfigs);
+  // Load initial audio tracks PROGRESSIVELY - tracks appear as they load!
+  const { tracks: loadedTracks, loading, error, loadedCount, totalCount } = useAudioTracks(audioConfigs, { progressive: true });
 
-  // Update local state when initial tracks load
+  // Update local state as tracks load progressively
   useEffect(() => {
-    if (!loading && loadedTracks.length > 0) {
+    if (loadedTracks.length > 0) {
       setTracks(loadedTracks);
-      setIsLoading(false);
+      if (!loading) {
+        setIsLoading(false);
+      }
     }
     if (error) {
       setLoadError(error);
@@ -867,16 +876,6 @@ export function EffectsExample() {
     }));
   }, [tracks, getTrackEffectsFunction]);
 
-  if (isLoading) {
-    return (
-      <Container>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          Loading audio tracks...
-        </div>
-      </Container>
-    );
-  }
-
   if (loadError) {
     return (
       <Container>
@@ -914,6 +913,9 @@ export function EffectsExample() {
           trackCount={tracks.length}
           createOfflineMasterEffects={createOfflineEffectsFunction}
           tracks={tracks}
+          isLoading={loading}
+          loadedCount={loadedCount}
+          totalCount={totalCount}
         />
       </WaveformPlaylistProvider>
     </Container>

@@ -297,7 +297,7 @@ interface FlexibleApiContentProps {
 
 // Main Example Content Component - Using individual hooks with Radix UI
 const FlexibleApiContent: React.FC<FlexibleApiContentProps> = ({ tracks, onTracksChange }) => {
-  const { play, pause, stop, seekTo, setMasterVolume, setTimeFormat, setAutomaticScroll, setLoopEnabled, setLoopRegionFromSelection, clearLoopRegion, zoomIn, zoomOut } = usePlaylistControls();
+  const { play, pause, stop, seekTo, setMasterVolume, setTimeFormat, setAutomaticScroll, setLoopEnabled, setLoopRegion, zoomIn, zoomOut } = usePlaylistControls();
   const { currentTimeRef } = usePlaybackAnimation();
   const { duration, masterVolume, timeFormat, sampleRate, samplesPerPixel } = usePlaylistData();
   const { isAutomaticScroll, selectionStart, selectionEnd, isLoopEnabled, loopStart, loopEnd } = usePlaylistState();
@@ -385,22 +385,18 @@ const FlexibleApiContent: React.FC<FlexibleApiContentProps> = ({ tracks, onTrack
               Fast Forward
             </Button>
             <Button
-              onClick={() => loopStart !== loopEnd ? clearLoopRegion() : setLoopRegionFromSelection()}
-              variant={loopStart !== loopEnd ? "solid" : "soft"}
-              color={loopStart !== loopEnd ? "blue" : "gray"}
-              size="2"
-              disabled={selectionStart === selectionEnd && loopStart === loopEnd}
-              title={loopStart !== loopEnd ? 'Clear loop region' : (selectionStart !== selectionEnd ? 'Set loop region from selection' : 'Create a selection first')}
-            >
-              {loopStart !== loopEnd ? 'Clear Loop' : 'Set Loop'}
-            </Button>
-            <Button
-              onClick={() => setLoopEnabled(!isLoopEnabled)}
+              onClick={() => {
+                if (!isLoopEnabled && loopStart === loopEnd) {
+                  // Create a default loop region when enabling loop without one
+                  const defaultEnd = Math.min(10, duration * 0.25);
+                  setLoopRegion(0, Math.max(1, defaultEnd));
+                }
+                setLoopEnabled(!isLoopEnabled);
+              }}
               variant={isLoopEnabled ? "solid" : "soft"}
               color={isLoopEnabled ? "green" : "gray"}
               size="2"
-              disabled={loopStart === loopEnd}
-              title={loopStart !== loopEnd ? (isLoopEnabled ? 'Disable loop' : 'Enable loop') : 'Set a loop region first'}
+              title={isLoopEnabled ? 'Disable loop' : 'Enable loop'}
             >
               <ArrowsClockwiseIcon size={16} weight={isLoopEnabled ? "fill" : "light"} />
               {isLoopEnabled ? 'Loop On' : 'Loop Off'}

@@ -9,7 +9,6 @@ import {
   PlayButton,
   PauseButton,
   StopButton,
-  SetLoopRegionButton,
   LoopButton,
   MasterVolumeControl,
   TimeFormatSelect,
@@ -658,7 +657,6 @@ const EffectsControls: React.FC<EffectsControlsProps> = ({
           <PlayButton />
           <PauseButton />
           <StopButton />
-          <SetLoopRegionButton />
           <LoopButton />
           <ZoomInButton />
           <ZoomOutButton />

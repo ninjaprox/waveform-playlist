@@ -142,20 +142,26 @@ export const SkipForwardButton: React.FC<{ skipAmount?: number; className?: stri
 
 export const LoopButton: React.FC<{ className?: string }> = ({ className }) => {
   const { isLoopEnabled, loopStart, loopEnd } = usePlaylistState();
-  const { setLoopEnabled } = usePlaylistControls();
+  const { setLoopEnabled, setLoopRegion } = usePlaylistControls();
+  const { duration } = usePlaylistData();
 
   const hasValidLoopRegion = loopStart !== loopEnd && loopEnd > loopStart;
 
   const handleClick = () => {
+    if (!isLoopEnabled && !hasValidLoopRegion) {
+      // Create a default loop region when enabling loop without one
+      // Default to first 10 seconds or 25% of duration, whichever is smaller
+      const defaultEnd = Math.min(10, duration * 0.25);
+      setLoopRegion(0, Math.max(1, defaultEnd)); // At least 1 second
+    }
     setLoopEnabled(!isLoopEnabled);
   };
 
   return (
     <BaseControlButton
       onClick={handleClick}
-      disabled={!hasValidLoopRegion}
       className={className}
-      title={hasValidLoopRegion ? (isLoopEnabled ? 'Disable loop' : 'Enable loop') : 'Set a loop region first'}
+      title={isLoopEnabled ? 'Disable loop' : 'Enable loop'}
     >
       {isLoopEnabled ? 'Loop On' : 'Loop Off'}
     </BaseControlButton>

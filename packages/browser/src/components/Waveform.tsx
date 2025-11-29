@@ -6,7 +6,7 @@ import {
   Clip,
   Playhead,
   Selection,
-  LoopRegion,
+  TimescaleLoopRegion,
   PlaylistInfoContext,
   TrackControlsContext,
   DevicePixelRatioProvider,
@@ -114,6 +114,7 @@ export const Waveform: React.FC<WaveformProps> = ({
     setScrollContainer,
     setSelectedTrackId,
     setCurrentTime,
+    setLoopRegion,
   } = usePlaylistControls();
   const {
     audioBuffers,
@@ -295,13 +296,34 @@ export const Waveform: React.FC<WaveformProps> = ({
             scrollContainerRef={handleScrollContainerRef}
             timescale={
               timeScaleHeight > 0 ? (
-                <StyledTimeScale
-                  duration={displayDuration * 1000}
-                  marker={10000}
-                  bigStep={5000}
-                  secondStep={1000}
-                  renderTimestamp={renderTimestamp}
-                />
+                <>
+                  <StyledTimeScale
+                    duration={displayDuration * 1000}
+                    marker={10000}
+                    bigStep={5000}
+                    secondStep={1000}
+                    renderTimestamp={renderTimestamp}
+                  />
+                  {/* Draggable loop region in timescale - click to create, drag to resize */}
+                  <TimescaleLoopRegion
+                    startPosition={
+                      (Math.min(loopStart, loopEnd) * sampleRate) / samplesPerPixel
+                    }
+                    endPosition={
+                      (Math.max(loopStart, loopEnd) * sampleRate) / samplesPerPixel
+                    }
+                    markerColor={theme.loopMarkerColor}
+                    regionColor={theme.loopRegionColor}
+                    minPosition={0}
+                    maxPosition={tracksFullWidth}
+                    controlsOffset={controls.show ? controls.width : 0}
+                    onLoopRegionChange={(startPixels, endPixels) => {
+                      const startSeconds = (startPixels * samplesPerPixel) / sampleRate;
+                      const endSeconds = (endPixels * samplesPerPixel) / sampleRate;
+                      setLoopRegion(startSeconds, endSeconds);
+                    }}
+                  />
+                </>
               ) : undefined
             }
           >
@@ -493,21 +515,6 @@ export const Waveform: React.FC<WaveformProps> = ({
                     );
                   })}
                 </AnnotationBoxesWrapper>
-              )}
-              {/* Loop region overlay - render before selection so selection appears on top */}
-              {loopStart !== loopEnd && (
-                <LoopRegion
-                  startPosition={
-                    (Math.min(loopStart, loopEnd) * sampleRate) / samplesPerPixel +
-                    (controls.show ? controls.width : 0)
-                  }
-                  endPosition={
-                    (Math.max(loopStart, loopEnd) * sampleRate) / samplesPerPixel +
-                    (controls.show ? controls.width : 0)
-                  }
-                  regionColor={theme.loopRegionColor}
-                  markerColor={theme.loopMarkerColor}
-                />
               )}
               {selectionStart !== selectionEnd && (
                 <Selection

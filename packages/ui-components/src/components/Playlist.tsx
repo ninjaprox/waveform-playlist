@@ -31,7 +31,8 @@ const TimescaleWrapper = styled.div.attrs<TimescaleWrapperProps>((props) => ({
 }))<TimescaleWrapperProps>`
   background: ${(props) => props.$backgroundColor || 'white'};
   width: 100%;
-  overflow: visible;
+  position: relative;
+  overflow: hidden; /* Constrain loop region to timescale area */
 `;
 
 interface TracksContainerProps {

@@ -414,7 +414,7 @@ export function MobileAnnotationsExample() {
       mono
       waveHeight={100}
       automaticScroll={false}
-      controls={{ show: false }}
+      controls={{ show: false, width: 0 }}
       theme={theme}
       timescale
       barWidth={4}

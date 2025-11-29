@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { XIcon } from '@phosphor-icons/react';
 import JSZip from 'jszip';
-import { createTrack, type ClipTrack } from '@waveform-playlist/core';
+import { createTrack, createClipFromSeconds, type ClipTrack } from '@waveform-playlist/core';
 import {
   WaveformPlaylistProvider,
   Waveform,
@@ -573,17 +573,15 @@ const EffectsControls: React.FC<EffectsControlsProps> = ({
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
+        const clip = createClipFromSeconds({
+          audioBuffer,
+          startTime: 0,
+          name: file.name,
+        });
+
         const newTrack = createTrack({
           name: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
-          clips: [{
-            id: `clip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            audioBuffer,
-            startSample: 0,
-            durationSamples: audioBuffer.length,
-            offsetSamples: 0,
-            gain: 1.0,
-            name: file.name,
-          }],
+          clips: [clip],
           muted: false,
           soloed: false,
           volume: 1.0,
@@ -625,17 +623,15 @@ const EffectsControls: React.FC<EffectsControlsProps> = ({
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
+        const clip = createClipFromSeconds({
+          audioBuffer,
+          startTime: 0,
+          name: file.name,
+        });
+
         const newTrack = createTrack({
           name: file.name.replace(/\.[^/.]+$/, ''),
-          clips: [{
-            id: `clip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            audioBuffer,
-            startSample: 0,
-            durationSamples: audioBuffer.length,
-            offsetSamples: 0,
-            gain: 1.0,
-            name: file.name,
-          }],
+          clips: [clip],
           muted: false,
           soloed: false,
           volume: 1.0,

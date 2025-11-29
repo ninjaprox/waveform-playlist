@@ -16,7 +16,7 @@ import { Theme, Button, Flex, Card, Text, Separator } from '@radix-ui/themes';
 import '@radix-ui/themes/styles.css';
 import { DndContext } from '@dnd-kit/core';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
-import { createTrack, type ClipTrack } from '@waveform-playlist/core';
+import { createTrack, createClipFromSeconds, type ClipTrack } from '@waveform-playlist/core';
 import {
   WaveformPlaylistProvider,
   Waveform,
@@ -251,17 +251,15 @@ const RecordingControlsInner: React.FC<RecordingControlsInnerProps> = ({
       const arrayBuffer = await file.arrayBuffer();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
+      const clip = createClipFromSeconds({
+        audioBuffer,
+        startTime: 0,
+        name: file.name,
+      });
+
       const newTrack = createTrack({
         name: file.name,
-        clips: [{
-          id: `clip-${Date.now()}`,
-          audioBuffer,
-          startSample: 0,
-          durationSamples: audioBuffer.length,
-          offsetSamples: 0,
-          gain: 1.0,
-          name: file.name,
-        }],
+        clips: [clip],
         muted: false,
         soloed: false,
         volume: 1.0,
@@ -284,17 +282,15 @@ const RecordingControlsInner: React.FC<RecordingControlsInnerProps> = ({
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
+        const clip = createClipFromSeconds({
+          audioBuffer,
+          startTime: 0,
+          name: file.name,
+        });
+
         const newTrack = createTrack({
           name: file.name,
-          clips: [{
-            id: `clip-${Date.now()}`,
-            audioBuffer,
-            startSample: 0,
-            durationSamples: audioBuffer.length,
-            offsetSamples: 0,
-            gain: 1.0,
-            name: file.name,
-          }],
+          clips: [clip],
           muted: false,
           soloed: false,
           volume: 1.0,

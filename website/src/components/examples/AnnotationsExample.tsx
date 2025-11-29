@@ -335,7 +335,7 @@ const SuccessButton = styled(ActionButton)`
 
 interface AnnotationsAppContentProps {
   tracks: ClipTrack[];
-  onTracksChange: (tracks: ClipTrack[]) => void;
+  onTracksChange: React.Dispatch<React.SetStateAction<ClipTrack[]>>;
   onAnnotationsLoaded: (annotations: any[]) => void;
   onClearAll: () => void;
   /** Default duration for new annotations in seconds (default: 3.0) */
@@ -501,45 +501,46 @@ const AnnotationsAppContent: React.FC<AnnotationsAppContentProps> = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [addAnnotationAtPlayhead]);
 
-  // Load audio files
+  // Load audio files PROGRESSIVELY - each track appears as it loads
   const loadAudioFiles = async (files: File[]) => {
     setIsLoadingAudio(true);
-    try {
-      const audioContext = Tone.getContext().rawContext as AudioContext;
-      const audioFiles = Array.from(files).filter((file) =>
-        file.type.startsWith('audio/')
-      );
+    const audioContext = Tone.getContext().rawContext as AudioContext;
+    const audioFiles = Array.from(files).filter((file) =>
+      file.type.startsWith('audio/')
+    );
 
-      const newTracks: ClipTrack[] = await Promise.all(
-        audioFiles.map(async (file) => {
-          const arrayBuffer = await file.arrayBuffer();
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    // Load each file independently (not Promise.all) so tracks appear one by one
+    audioFiles.forEach(async (file) => {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-          const clip = createClipFromSeconds({
-            audioBuffer,
-            startTime: 0,
-            duration: audioBuffer.duration,
-            offset: 0,
-            name: file.name.replace(/\.[^/.]+$/, ''),
-          });
+        const clip = createClipFromSeconds({
+          audioBuffer,
+          startTime: 0,
+          duration: audioBuffer.duration,
+          offset: 0,
+          name: file.name.replace(/\.[^/.]+$/, ''),
+        });
 
-          return createTrack({
-            name: file.name.replace(/\.[^/.]+$/, ''),
-            clips: [clip],
-            muted: false,
-            soloed: false,
-            volume: 1,
-            pan: 0,
-          });
-        })
-      );
+        const newTrack = createTrack({
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          clips: [clip],
+          muted: false,
+          soloed: false,
+          volume: 1,
+          pan: 0,
+        });
 
-      onTracksChange([...tracks, ...newTracks]);
-    } catch (error) {
-      console.error('Error loading audio files:', error);
-    } finally {
-      setIsLoadingAudio(false);
-    }
+        // Add this track immediately - use callback form to get latest tracks
+        onTracksChange(prevTracks => [...prevTracks, newTrack]);
+      } catch (error) {
+        console.error('Error loading audio file:', file.name, error);
+      }
+    });
+
+    // Clear loading state after a short delay (files load asynchronously)
+    setTimeout(() => setIsLoadingAudio(false), 500);
   };
 
   // Handle file drop

@@ -125,11 +125,7 @@ function WaveformVariant({
     []
   );
 
-  const { tracks, loading, error } = useAudioTracks(audioConfigs);
-
-  if (loading) {
-    return <div style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>Loading...</div>;
-  }
+  const { tracks, loading, error } = useAudioTracks(audioConfigs, { progressive: true });
 
   if (error) {
     return <div style={{ padding: '1rem', color: 'red' }}>Error: {error}</div>;
@@ -148,6 +144,7 @@ function WaveformVariant({
       <Controls>
         <PlayButton />
         <StopButton />
+        {loading && <span style={{ fontSize: '0.875rem', color: '#666' }}>Loading...</span>}
       </Controls>
       <Waveform />
     </WaveformPlaylistProvider>

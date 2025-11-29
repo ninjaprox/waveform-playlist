@@ -93,19 +93,7 @@ function FadePlayer({ fadeType, title, description }: FadePlayerProps) {
     },
   ], [fadeType, title]);
 
-  const { tracks, loading, error } = useAudioTracks(audioConfigs);
-
-  if (loading) {
-    return (
-      <FadeCard>
-        <FadeTitle>{title}</FadeTitle>
-        <FadeDescription>{description}</FadeDescription>
-        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--ifm-font-color-secondary)' }}>
-          Loading...
-        </div>
-      </FadeCard>
-    );
-  }
+  const { tracks, loading, error } = useAudioTracks(audioConfigs, { progressive: true });
 
   if (error) {
     return (
@@ -136,6 +124,7 @@ function FadePlayer({ fadeType, title, description }: FadePlayerProps) {
             />
             Show Fades
           </Checkbox>
+          {loading && <span style={{ fontSize: '0.875rem', color: 'var(--ifm-font-color-secondary)' }}>Loading...</span>}
         </Controls>
         <WaveformWrapper>
           <Waveform showFades={showFades} />

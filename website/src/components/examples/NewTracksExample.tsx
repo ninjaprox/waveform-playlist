@@ -122,47 +122,48 @@ export function NewTracksExample() {
     [tracks]
   );
 
-  // Add files as tracks
+  // Add files as tracks - PROGRESSIVELY (each track appears as it loads)
   const addFiles = async (files: File[]) => {
     setIsLoading(true);
-    try {
-      const audioContext = Tone.getContext().rawContext as AudioContext;
+    const audioContext = Tone.getContext().rawContext as AudioContext;
 
-      const newTracks: ClipTrack[] = await Promise.all(
-        files.map(async (file) => {
-          // Read file as ArrayBuffer
-          const arrayBuffer = await file.arrayBuffer();
+    // Load each file independently (not Promise.all) so tracks appear one by one
+    files.forEach(async (file) => {
+      try {
+        // Read file as ArrayBuffer
+        const arrayBuffer = await file.arrayBuffer();
 
-          // Decode to AudioBuffer
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        // Decode to AudioBuffer
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-          // Create clip with the audio buffer
-          const clip = createClipFromSeconds({
-            audioBuffer,
-            startTime: 0,
-            duration: audioBuffer.duration,
-            offset: 0,
-            name: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
-          });
+        // Create clip with the audio buffer
+        const clip = createClipFromSeconds({
+          audioBuffer,
+          startTime: 0,
+          duration: audioBuffer.duration,
+          offset: 0,
+          name: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+        });
 
-          // Create track with single clip
-          return createTrack({
-            name: file.name.replace(/\.[^/.]+$/, ''),
-            clips: [clip],
-            muted: false,
-            soloed: false,
-            volume: 1,
-            pan: 0,
-          });
-        })
-      );
+        // Create track with single clip
+        const newTrack = createTrack({
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          clips: [clip],
+          muted: false,
+          soloed: false,
+          volume: 1,
+          pan: 0,
+        });
 
-      setTracks([...tracks, ...newTracks]);
-    } catch (error) {
-      console.error('Error loading audio files:', error);
-    } finally {
-      setIsLoading(false);
-    }
+        // Add this track immediately - triggers re-render
+        setTracks(prev => [...prev, newTrack]);
+      } catch (error) {
+        console.error('Error loading audio file:', file.name, error);
+      }
+    });
+
+    // Clear loading state after a short delay (files load asynchronously)
+    setTimeout(() => setIsLoading(false), 500);
   };
 
   // Remove a track

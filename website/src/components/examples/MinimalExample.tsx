@@ -101,18 +101,8 @@ export function MinimalExample() {
     },
   ], []);
 
-  // Load audio tracks and convert to ClipTrack format
-  const { tracks, loading, error } = useAudioTracks(audioConfigs);
-
-  if (loading) {
-    return (
-      <Container>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          Loading audio...
-        </div>
-      </Container>
-    );
-  }
+  // Load audio tracks progressively
+  const { tracks, loading, error } = useAudioTracks(audioConfigs, { progressive: true });
 
   if (error) {
     return (
@@ -131,6 +121,7 @@ export function MinimalExample() {
         <PauseButton />
         <StopButton />
         <AudioPosition />
+        {loading && <span style={{ fontSize: '0.875rem', color: 'var(--ifm-color-emphasis-600)' }}>Loading...</span>}
       </Controls>
 
       <Waveform />

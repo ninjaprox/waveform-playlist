@@ -51,18 +51,8 @@ export function StereoExample() {
     },
   ], []);
 
-  // Load audio tracks
-  const { tracks, loading, error } = useAudioTracks(audioConfigs);
-
-  if (loading) {
-    return (
-      <Container>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          Loading stereo audio...
-        </div>
-      </Container>
-    );
-  }
+  // Load audio tracks progressively - tracks appear as they load!
+  const { tracks, loading, error, loadedCount, totalCount } = useAudioTracks(audioConfigs, { progressive: true });
 
   if (error) {
     return (
@@ -88,6 +78,7 @@ export function StereoExample() {
         <PauseButton />
         <StopButton />
         <AudioPosition />
+        {loading && <span style={{ fontSize: '0.875rem', color: 'var(--ifm-color-emphasis-600)' }}>Loading: {loadedCount}/{totalCount}</span>}
       </Controls>
 
       <Waveform />

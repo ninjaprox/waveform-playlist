@@ -15,6 +15,22 @@ export {
   usePlaylistData,
 } from './WaveformPlaylistContext';
 export type { WaveformPlaylistContextValue, WaveformTrack, TrackState } from './WaveformPlaylistContext';
+
+// Export MediaElement-based provider (single-track with playback rate control)
+export {
+  MediaElementPlaylistProvider,
+  useMediaElementAnimation,
+  useMediaElementState,
+  useMediaElementControls,
+  useMediaElementData,
+} from './MediaElementPlaylistContext';
+export type {
+  MediaElementTrackConfig,
+  MediaElementAnimationContextValue,
+  MediaElementStateContextValue,
+  MediaElementControlsContextValue,
+  MediaElementDataContextValue,
+} from './MediaElementPlaylistContext';
 export {
   useClipDragHandlers,
   useAnnotationDragHandlers,
@@ -93,9 +109,11 @@ export {
   DownloadAnnotationsButton,
   ExportWavButton,
   Waveform,
+  MediaElementWaveform,
 } from './components';
 export type { ExportWavButtonProps } from './components/ExportControls';
 export type { WaveformProps } from './components/Waveform';
+export type { MediaElementWaveformProps } from './components/MediaElementWaveform';
 
 // Re-export TimeFormat type from ui-components for convenience
 export type { TimeFormat } from '@waveform-playlist/ui-components';

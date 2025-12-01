@@ -58,6 +58,7 @@
     "@waveform-playlist/annotations": "workspace:*",
     "@waveform-playlist/core": "workspace:*",
     "@waveform-playlist/loaders": "workspace:*",
+    "@waveform-playlist/media-element-playout": "workspace:*",
     "@waveform-playlist/playout": "workspace:*",
     "@waveform-playlist/recording": "workspace:*",
     "@waveform-playlist/ui-components": "workspace:*",

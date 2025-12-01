@@ -4,6 +4,7 @@ export * from './ContextualControls';
 export * from './AnnotationControls';
 export * from './ExportControls';
 export * from './Waveform';
+export * from './MediaElementWaveform';
 
 // Re-export WaveformPlaylistProvider and types from context
 export { WaveformPlaylistProvider, useWaveformPlaylist, type WaveformTrack } from '../WaveformPlaylistContext';

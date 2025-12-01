@@ -75,6 +75,9 @@ importers:
       '@waveform-playlist/loaders':
         specifier: workspace:*
         version: link:../loaders
+      '@waveform-playlist/media-element-playout':
+        specifier: workspace:*
+        version: link:../media-element-playout
       '@waveform-playlist/playout':
         specifier: workspace:*
         version: link:../playout
@@ -152,6 +155,19 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+
+  packages/media-element-playout:
+    dependencies:
+      '@waveform-playlist/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      tsup:
+        specifier: ^8.0.1
+        version: 8.5.1(typescript@5.6.3)
+      typescript:
+        specifier: ^5.3.3
+        version: 5.6.3
 
   packages/playout:
     dependencies:
@@ -14007,6 +14023,50 @@ packages:
       tinyglobby: 0.2.15
       tree-kill: 1.2.2
       typescript: 5.9.3
+    transitivePeerDependencies:
+      - jiti
+      - supports-color
+      - tsx
+      - yaml
+    dev: true
+
+  /tsup@8.5.1(typescript@5.6.3):
+    resolution: {integrity: sha512-xtgkqwdhpKWr3tKPmCkvYmS9xnQK3m3XgxZHwSUjvfTjp7YfXe5tT3GgWi0F2N+ZSMsOeWeZFh7ZZFg5iPhing==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      '@microsoft/api-extractor': ^7.36.0
+      '@swc/core': ^1
+      postcss: ^8.4.12
+      typescript: '>=4.5.0'
+    peerDependenciesMeta:
+      '@microsoft/api-extractor':
+        optional: true
+      '@swc/core':
+        optional: true
+      postcss:
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      bundle-require: 5.1.0(esbuild@0.27.0)
+      cac: 6.7.14
+      chokidar: 4.0.3
+      consola: 3.4.2
+      debug: 4.4.3
+      esbuild: 0.27.0
+      fix-dts-default-cjs-exports: 1.0.1
+      joycon: 3.1.1
+      picocolors: 1.1.1
+      postcss-load-config: 6.0.1(postcss@8.5.6)
+      resolve-from: 5.0.0
+      rollup: 4.53.2
+      source-map: 0.7.6
+      sucrase: 3.35.0
+      tinyexec: 0.3.2
+      tinyglobby: 0.2.15
+      tree-kill: 1.2.2
+      typescript: 5.6.3
     transitivePeerDependencies:
       - jiti
       - supports-color

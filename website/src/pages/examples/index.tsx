@@ -16,6 +16,7 @@ import {
   InfinityIcon,
   HeadphonesIcon,
   DeviceMobileIcon,
+  GaugeIcon,
 } from '@phosphor-icons/react';
 import styles from './examples.module.css';
 
@@ -55,6 +56,13 @@ const examples = [
     path: 'fades',
     category: 'playback',
     icon: <WaveTriangleIcon weight="light" />,
+  },
+  {
+    title: 'Media Element',
+    description: 'Stream audio. Control speed. Pitch preserved.',
+    path: 'media-element',
+    category: 'playback',
+    icon: <GaugeIcon weight="light" />,
   },
   {
     title: 'Effects',

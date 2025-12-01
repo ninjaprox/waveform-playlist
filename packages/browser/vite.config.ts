@@ -26,7 +26,14 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'mjs' : 'js'}`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'styled-components', 'tone'],
+      external: [
+          'react',
+          'react-dom',
+          'react/jsx-runtime',
+          'react/jsx-dev-runtime',
+          'styled-components',
+          'tone',
+        ],
       output: {
         exports: 'named',
         globals: {

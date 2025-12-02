@@ -10,10 +10,10 @@ Waveform Playlist v5 is currently in pre-release. Install with the `@next` tag t
 
 ## Package Manager
 
-Install the main package and its required peer dependency:
+Install the main package and its required peer dependencies:
 
 ```bash npm2yarn
-npm install @waveform-playlist/browser@next tone
+npm install @waveform-playlist/browser@next tone @dnd-kit/core @dnd-kit/modifiers
 ```
 
 If you already have React and styled-components in your project, you're ready to go!
@@ -23,7 +23,7 @@ If you already have React and styled-components in your project, you're ready to
 Waveform Playlist requires the following peer dependencies:
 
 ```bash npm2yarn
-npm install react react-dom styled-components tone
+npm install react react-dom styled-components tone @dnd-kit/core @dnd-kit/modifiers
 ```
 
 | Package | Version | Purpose |
@@ -32,6 +32,8 @@ npm install react react-dom styled-components tone
 | `react-dom` | ^18.0.0 | React DOM rendering |
 | `styled-components` | ^6.0.0 | CSS-in-JS styling |
 | `tone` | ^15.0.0 | Web Audio framework |
+| `@dnd-kit/core` | ^6.0.0 | Drag and drop for clip/annotation editing |
+| `@dnd-kit/modifiers` | ^9.0.0 | Drag modifiers (horizontal axis constraint) |
 
 ## Additional Packages
 

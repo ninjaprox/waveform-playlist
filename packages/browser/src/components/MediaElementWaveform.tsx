@@ -1,4 +1,6 @@
 import React, { useRef, useState, useCallback, useMemo } from 'react';
+import { DndContext } from '@dnd-kit/core';
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import {
   Playlist,
   Track as TrackComponent,
@@ -25,6 +27,7 @@ import {
   useMediaElementControls,
   useMediaElementData,
 } from '../MediaElementPlaylistContext';
+import { useAnnotationDragHandlers } from '../hooks/useAnnotationDragHandlers';
 import { AnimatedMediaElementPlayhead } from './AnimatedMediaElementPlayhead';
 import { ChannelWithMediaElementProgress } from './ChannelWithMediaElementProgress';
 
@@ -42,6 +45,13 @@ export interface MediaElementWaveformProps {
    * Use this to customize the appearance of each annotation (e.g., add furigana).
    */
   renderAnnotationItem?: (props: RenderAnnotationItemProps) => React.ReactNode;
+  /** Whether annotation boundaries can be edited by dragging. Defaults to false. */
+  editable?: boolean;
+  /**
+   * Callback when annotations are updated (e.g., boundaries dragged).
+   * Called with the full updated annotations array.
+   */
+  onAnnotationUpdate?: (annotations: { id: string; start: number; end: number; lines: string[] }[]) => void;
   className?: string;
 }
 
@@ -61,6 +71,8 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
   annotationTextHeight,
   getAnnotationBoxLabel,
   renderAnnotationItem,
+  editable = false,
+  onAnnotationUpdate,
   className,
 }) => {
   const theme = useTheme() as import('@waveform-playlist/ui-components').WaveformPlaylistTheme;
@@ -68,7 +80,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
   // MediaElement context hooks
   const { isPlaying, currentTimeRef } = useMediaElementAnimation();
   const { annotations, activeAnnotationId, continuousPlay } = useMediaElementState();
-  const { play, seekTo, setActiveAnnotationId } = useMediaElementControls();
+  const { play, seekTo, setActiveAnnotationId, setAnnotations } = useMediaElementControls();
   const {
     duration,
     peaksDataArray,
@@ -97,6 +109,22 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
     setActiveAnnotationId(annotation.id);
     play(annotation.start);
   }, [setActiveAnnotationId, play]);
+
+  // Handle annotation boundary updates
+  const handleAnnotationUpdate = useCallback((updatedAnnotations: any[]) => {
+    setAnnotations(updatedAnnotations);
+    onAnnotationUpdate?.(updatedAnnotations);
+  }, [setAnnotations, onAnnotationUpdate]);
+
+  // Drag handlers for annotation boundary editing
+  const { onDragStart, onDragMove, onDragEnd } = useAnnotationDragHandlers({
+    annotations,
+    onAnnotationsChange: handleAnnotationUpdate,
+    samplesPerPixel,
+    sampleRate,
+    duration,
+    linkEndpoints: true,
+  });
 
   // Mouse handlers for click-to-seek
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -254,29 +282,36 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
               );
             })}
             {annotations.length > 0 && (
-              <AnnotationBoxesWrapper height={30} width={tracksFullWidth}>
-                {annotations.map((annotation, index) => {
-                  const startPosition = (annotation.start * sampleRate) / samplesPerPixel;
-                  const endPosition = (annotation.end * sampleRate) / samplesPerPixel;
-                  const label = getAnnotationBoxLabel
-                    ? getAnnotationBoxLabel(annotation)
-                    : annotation.id;
-                  return (
-                    <AnnotationBox
-                      key={annotation.id}
-                      annotationId={annotation.id}
-                      annotationIndex={index}
-                      startPosition={startPosition}
-                      endPosition={endPosition}
-                      label={label}
-                      color="#ff9800"
-                      isActive={annotation.id === activeAnnotationId}
-                      onClick={() => handleAnnotationClick(annotation)}
-                      editable={false}
-                    />
-                  );
-                })}
-              </AnnotationBoxesWrapper>
+              <DndContext
+                onDragStart={onDragStart}
+                onDragMove={onDragMove}
+                onDragEnd={onDragEnd}
+                modifiers={editable ? [restrictToHorizontalAxis] : []}
+              >
+                <AnnotationBoxesWrapper height={30} width={tracksFullWidth}>
+                  {annotations.map((annotation, index) => {
+                    const startPosition = (annotation.start * sampleRate) / samplesPerPixel;
+                    const endPosition = (annotation.end * sampleRate) / samplesPerPixel;
+                    const label = getAnnotationBoxLabel
+                      ? getAnnotationBoxLabel(annotation)
+                      : annotation.id;
+                    return (
+                      <AnnotationBox
+                        key={annotation.id}
+                        annotationId={annotation.id}
+                        annotationIndex={index}
+                        startPosition={startPosition}
+                        endPosition={endPosition}
+                        label={label}
+                        color="#ff9800"
+                        isActive={annotation.id === activeAnnotationId}
+                        onClick={() => handleAnnotationClick(annotation)}
+                        editable={editable}
+                      />
+                    );
+                  })}
+                </AnnotationBoxesWrapper>
+              </DndContext>
             )}
             {selectionStart !== selectionEnd && (
               <Selection
@@ -302,10 +337,10 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
             annotations={annotations}
             activeAnnotationId={activeAnnotationId ?? undefined}
             shouldScrollToActive={true}
-            editable={false}
-            annotationListConfig={{ linkEndpoints: false, continuousPlay }}
+            editable={editable}
+            annotationListConfig={{ linkEndpoints: true, continuousPlay }}
             height={annotationTextHeight}
-            onAnnotationUpdate={() => {}}
+            onAnnotationUpdate={handleAnnotationUpdate}
             renderAnnotationItem={renderAnnotationItem}
           />
         )}

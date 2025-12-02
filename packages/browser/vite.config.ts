@@ -27,6 +27,8 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+          '@dnd-kit/core',
+          '@dnd-kit/modifiers',
           'react',
           'react-dom',
           'react/jsx-runtime',

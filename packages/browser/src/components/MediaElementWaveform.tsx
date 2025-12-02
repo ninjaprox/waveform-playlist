@@ -17,6 +17,7 @@ import {
   AnnotationBox,
   AnnotationText,
 } from '@waveform-playlist/annotations';
+import type { RenderAnnotationItemProps } from '@waveform-playlist/annotations';
 import type { Peaks } from '@waveform-playlist/webaudio-peaks';
 import {
   useMediaElementAnimation,
@@ -27,11 +28,20 @@ import {
 import { AnimatedMediaElementPlayhead } from './AnimatedMediaElementPlayhead';
 import { ChannelWithMediaElementProgress } from './ChannelWithMediaElementProgress';
 
+// Re-export RenderAnnotationItemProps for convenience
+export type { RenderAnnotationItemProps } from '@waveform-playlist/annotations';
+
 export interface MediaElementWaveformProps {
   /** Height in pixels for the annotation text list */
   annotationTextHeight?: number;
   /** Custom function to generate the label shown on annotation boxes */
   getAnnotationBoxLabel?: (annotation: { id: string; start: number; end: number; lines: string[] }) => string;
+  /**
+   * Custom render function for annotation items in the text list.
+   * When provided, completely replaces the default annotation item rendering.
+   * Use this to customize the appearance of each annotation (e.g., add furigana).
+   */
+  renderAnnotationItem?: (props: RenderAnnotationItemProps) => React.ReactNode;
   className?: string;
 }
 
@@ -50,6 +60,7 @@ export interface MediaElementWaveformProps {
 export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
   annotationTextHeight,
   getAnnotationBoxLabel,
+  renderAnnotationItem,
   className,
 }) => {
   const theme = useTheme() as import('@waveform-playlist/ui-components').WaveformPlaylistTheme;
@@ -295,6 +306,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
             annotationListConfig={{ linkEndpoints: false, continuousPlay }}
             height={annotationTextHeight}
             onAnnotationUpdate={() => {}}
+            renderAnnotationItem={renderAnnotationItem}
           />
         )}
       </PlaylistInfoContext.Provider>

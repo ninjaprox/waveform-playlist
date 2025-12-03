@@ -129,6 +129,8 @@ export interface AnnotationTextProps {
   annotations: AnnotationData[];
   activeAnnotationId?: string;
   shouldScrollToActive?: boolean;
+  /** Where to position the active annotation when scrolling: 'center', 'start', 'end', or 'nearest'. Defaults to 'center'. */
+  scrollActivePosition?: ScrollLogicalPosition;
   editable?: boolean;
   controls?: AnnotationAction[];
   annotationListConfig?: AnnotationActionOptions;
@@ -147,6 +149,7 @@ const AnnotationTextComponent: FunctionComponent<AnnotationTextProps> = ({
   annotations,
   activeAnnotationId,
   shouldScrollToActive = false,
+  scrollActivePosition = 'center',
   editable = false,
   controls = [],
   annotationListConfig,
@@ -183,12 +186,12 @@ const AnnotationTextComponent: FunctionComponent<AnnotationTextProps> = ({
     if (activeAnnotationId && activeAnnotationRef.current && shouldScrollToActive) {
       activeAnnotationRef.current.scrollIntoView({
         behavior: 'smooth',
-        block: 'nearest',
+        block: scrollActivePosition,
       });
     }
 
     prevActiveIdRef.current = activeAnnotationId;
-  }, [activeAnnotationId, shouldScrollToActive]);
+  }, [activeAnnotationId, shouldScrollToActive, scrollActivePosition]);
 
   const formatTime = (seconds: number): string => {
     if (isNaN(seconds) || !isFinite(seconds)) {

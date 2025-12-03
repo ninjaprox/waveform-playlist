@@ -46,6 +46,7 @@ export interface MediaElementStateContextValue {
   annotations: AnnotationData[];
   activeAnnotationId: string | null;
   playbackRate: number;
+  isAutomaticScroll: boolean;
 }
 
 // Context values for controls
@@ -58,6 +59,9 @@ export interface MediaElementControlsContextValue {
   setContinuousPlay: (enabled: boolean) => void;
   setAnnotations: (annotations: AnnotationData[]) => void;
   setActiveAnnotationId: (id: string | null) => void;
+  setAutomaticScroll: (enabled: boolean) => void;
+  setScrollContainer: (element: HTMLDivElement | null) => void;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 // Context values for playlist data
@@ -96,6 +100,8 @@ export interface MediaElementPlaylistProviderProps {
   timescale?: boolean;
   /** Initial playback rate (0.5 to 2.0) */
   playbackRate?: number;
+  /** Enable automatic scroll to keep playhead centered */
+  automaticScroll?: boolean;
   /** Theme configuration */
   theme?: Partial<WaveformPlaylistTheme>;
   /** Track controls configuration */
@@ -140,6 +146,7 @@ export const MediaElementPlaylistProvider: React.FC<
   waveHeight = 100,
   timescale = false,
   playbackRate: initialPlaybackRate = 1,
+  automaticScroll = false,
   theme: userTheme,
   controls = { show: false, width: 0 },
   annotationList,
@@ -165,6 +172,7 @@ export const MediaElementPlaylistProvider: React.FC<
     annotationList?.isContinuousPlay ?? false
   );
   const [samplesPerPixel] = useState(initialSamplesPerPixel);
+  const [isAutomaticScroll, setIsAutomaticScroll] = useState(automaticScroll);
 
   // Refs
   const playoutRef = useRef<MediaElementPlayout | null>(null);
@@ -172,11 +180,18 @@ export const MediaElementPlaylistProvider: React.FC<
   const animationFrameRef = useRef<number | null>(null);
   const continuousPlayRef = useRef<boolean>(continuousPlay);
   const activeAnnotationIdRef = useRef<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const isAutomaticScrollRef = useRef<boolean>(automaticScroll);
+  const samplesPerPixelRef = useRef<number>(initialSamplesPerPixel);
 
   // Sync refs
   useEffect(() => {
     continuousPlayRef.current = continuousPlay;
   }, [continuousPlay]);
+
+  useEffect(() => {
+    isAutomaticScrollRef.current = isAutomaticScroll;
+  }, [isAutomaticScroll]);
 
   // Custom setter for activeAnnotationId
   const setActiveAnnotationId = useCallback((value: string | null) => {
@@ -187,6 +202,11 @@ export const MediaElementPlaylistProvider: React.FC<
   const setContinuousPlay = useCallback((value: boolean) => {
     continuousPlayRef.current = value;
     setContinuousPlayState(value);
+  }, []);
+
+  // Memoize setScrollContainer callback
+  const setScrollContainer = useCallback((element: HTMLDivElement | null) => {
+    scrollContainerRef.current = element;
   }, []);
 
   // Get sample rate from waveform data
@@ -315,6 +335,21 @@ export const MediaElementPlaylistProvider: React.FC<
         }
       }
 
+      // Handle automatic scroll - continuously center the playhead
+      if (isAutomaticScrollRef.current && scrollContainerRef.current) {
+        const container = scrollContainerRef.current;
+        const pixelPosition = (time * sampleRate) / samplesPerPixelRef.current;
+        const containerWidth = container.clientWidth;
+
+        // Calculate visual position of playhead (includes controls offset)
+        const controlWidth = controls.show ? controls.width : 0;
+        const visualPosition = pixelPosition + controlWidth;
+
+        // Continuously scroll to keep playhead centered
+        const targetScrollLeft = Math.max(0, visualPosition - containerWidth / 2);
+        container.scrollLeft = targetScrollLeft;
+      }
+
       if (time >= duration) {
         playoutRef.current?.stop();
         setIsPlaying(false);
@@ -326,7 +361,7 @@ export const MediaElementPlaylistProvider: React.FC<
     };
 
     animationFrameRef.current = requestAnimationFrame(updateTime);
-  }, [duration, annotations, setActiveAnnotationId]);
+  }, [duration, annotations, setActiveAnnotationId, sampleRate, controls]);
 
   const stopAnimationLoop = useCallback(() => {
     if (animationFrameRef.current) {
@@ -407,8 +442,9 @@ export const MediaElementPlaylistProvider: React.FC<
       annotations,
       activeAnnotationId,
       playbackRate,
+      isAutomaticScroll,
     }),
-    [continuousPlay, annotations, activeAnnotationId, playbackRate]
+    [continuousPlay, annotations, activeAnnotationId, playbackRate, isAutomaticScroll]
   );
 
   const controlsValue: MediaElementControlsContextValue = useMemo(
@@ -421,8 +457,13 @@ export const MediaElementPlaylistProvider: React.FC<
       setContinuousPlay,
       setAnnotations,
       setActiveAnnotationId,
+      setAutomaticScroll: (enabled: boolean) => {
+        setIsAutomaticScroll(enabled);
+      },
+      setScrollContainer,
+      scrollContainerRef,
     }),
-    [play, pause, stop, seekTo, setPlaybackRate, setContinuousPlay, setActiveAnnotationId]
+    [play, pause, stop, seekTo, setPlaybackRate, setContinuousPlay, setActiveAnnotationId, setScrollContainer]
   );
 
   const dataValue: MediaElementDataContextValue = useMemo(

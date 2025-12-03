@@ -56,6 +56,8 @@ export interface MediaElementWaveformProps {
    * Called with the full updated annotations array.
    */
   onAnnotationUpdate?: OnAnnotationUpdateFn;
+  /** Where to position the active annotation when auto-scrolling: 'center', 'start', 'end', or 'nearest'. Defaults to 'center'. */
+  scrollActivePosition?: ScrollLogicalPosition;
   className?: string;
 }
 
@@ -77,6 +79,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
   renderAnnotationItem,
   editable = false,
   onAnnotationUpdate,
+  scrollActivePosition = 'center',
   className,
 }) => {
   const theme = useTheme() as import('@waveform-playlist/ui-components').WaveformPlaylistTheme;
@@ -84,7 +87,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
   // MediaElement context hooks
   const { isPlaying, currentTimeRef } = useMediaElementAnimation();
   const { annotations, activeAnnotationId, continuousPlay } = useMediaElementState();
-  const { play, seekTo, setActiveAnnotationId, setAnnotations } = useMediaElementControls();
+  const { play, seekTo, setActiveAnnotationId, setAnnotations, setScrollContainer } = useMediaElementControls();
   const {
     duration,
     peaksDataArray,
@@ -102,8 +105,14 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
   const [selectionEnd, setSelectionEnd] = useState(0);
   const [isSelecting, setIsSelecting] = useState(false);
 
-  // Local ref for scroll container
+  // Local ref for scroll container - also register with context for auto-scroll
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Callback to register scroll container with context
+  const handleScrollContainerRef = useCallback((el: HTMLDivElement | null) => {
+    scrollContainerRef.current = el;
+    setScrollContainer(el);
+  }, [setScrollContainer]);
 
   // Calculate dimensions
   const tracksFullWidth = Math.floor((duration * sampleRate) / samplesPerPixel);
@@ -217,7 +226,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
           onTracksMouseDown={handleMouseDown}
           onTracksMouseMove={handleMouseMove}
           onTracksMouseUp={handleMouseUp}
-          scrollContainerRef={(el) => { scrollContainerRef.current = el; }}
+          scrollContainerRef={handleScrollContainerRef}
           isSelecting={isSelecting}
           timescale={
             timeScaleHeight > 0 ? (
@@ -341,6 +350,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
             annotations={annotations}
             activeAnnotationId={activeAnnotationId ?? undefined}
             shouldScrollToActive={true}
+            scrollActivePosition={scrollActivePosition}
             editable={editable}
             annotationListConfig={{ linkEndpoints: true, continuousPlay }}
             height={annotationTextHeight}

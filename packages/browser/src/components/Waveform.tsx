@@ -57,6 +57,8 @@ export interface WaveformProps {
    * Default: annotation.id
    */
   getAnnotationBoxLabel?: GetAnnotationBoxLabelFn;
+  /** Where to position the active annotation when auto-scrolling: 'center', 'start', 'end', or 'nearest'. Defaults to 'center'. */
+  scrollActivePosition?: ScrollLogicalPosition;
   className?: string;
   showClipHeaders?: boolean; // Show headers on clips for visual organization
   interactiveClips?: boolean; // Enable dragging/trimming interactions on clips (requires @dnd-kit setup)
@@ -89,6 +91,7 @@ export const Waveform: React.FC<WaveformProps> = ({
   annotationTextHeight,
   renderAnnotationItem,
   getAnnotationBoxLabel,
+  scrollActivePosition = 'center',
   className,
   showClipHeaders = false,
   interactiveClips = false,
@@ -580,6 +583,7 @@ export const Waveform: React.FC<WaveformProps> = ({
               annotations={annotations}
               activeAnnotationId={activeAnnotationId ?? undefined}
               shouldScrollToActive={true}
+              scrollActivePosition={scrollActivePosition}
               editable={annotationsEditable}
               controls={annotationsEditable ? annotationControls : undefined}
               annotationListConfig={{ linkEndpoints, continuousPlay }}

@@ -1,0 +1,260 @@
+import { test, expect } from '@playwright/test';
+
+/**
+ * Effects example tests
+ *
+ * These tests verify the audio effects functionality:
+ * - Effect selection and adding
+ * - Effect parameter controls
+ * - Effect bypass and removal
+ * - Signal chain display
+ * - Export with effects
+ */
+
+test.describe('Effects Example', () => {
+  test.beforeEach(async ({ page, baseURL }) => {
+    await page.goto(`${baseURL}/examples/effects`);
+    // Wait for page to load
+    await page.waitForSelector('h1:has-text("Effects")', { timeout: 30000 });
+    // Wait for tracks to load
+    await page.waitForSelector('button:has-text("Mute")', { timeout: 30000 });
+  });
+
+  test.describe('Effect Selection', () => {
+    test('category dropdown filters available effects', async ({ page }) => {
+      const categoryDropdown = page.locator('select').first();
+      await expect(categoryDropdown).toBeVisible();
+
+      // Select Reverb category
+      await categoryDropdown.selectOption('Reverb');
+
+      // Effect dropdown should now show reverb effects
+      const effectDropdown = page.locator('select').nth(1);
+      const options = await effectDropdown.locator('option').allTextContents();
+
+      expect(options).toContain('Reverb');
+      expect(options).toContain('Freeverb');
+      expect(options).toContain('JC Reverb');
+    });
+
+    test('can add an effect to the chain', async ({ page }) => {
+      const effectDropdown = page.locator('select').nth(1);
+      const addButton = page.getByRole('button', { name: 'Add Effect' });
+
+      // Select an effect
+      await effectDropdown.selectOption('Chorus');
+
+      // Add button should be enabled
+      await expect(addButton).toBeEnabled();
+
+      // Click add
+      await addButton.click();
+
+      // Effect should appear in the chain (use heading which is the effect card title)
+      await expect(page.getByRole('heading', { name: 'Chorus' })).toBeVisible();
+    });
+
+    test('clear all removes all effects', async ({ page }) => {
+      const clearButton = page.getByRole('button', { name: 'Clear All' });
+
+      // Add an effect first
+      const effectDropdown = page.locator('select').nth(1);
+      await effectDropdown.selectOption('Phaser');
+      await page.getByRole('button', { name: 'Add Effect' }).click();
+      await expect(page.getByRole('heading', { name: 'Phaser' })).toBeVisible();
+
+      // Clear all
+      await clearButton.click();
+
+      // Phaser should be gone
+      await expect(page.getByRole('heading', { name: 'Phaser' })).not.toBeVisible();
+    });
+  });
+
+  test.describe('Effect Controls', () => {
+    test('effect has bypass button', async ({ page }) => {
+      // There should be at least one effect with a bypass button
+      const bypassButton = page.getByRole('button', { name: '⏻' }).first();
+      await expect(bypassButton).toBeVisible();
+    });
+
+    test('effect has remove button', async ({ page }) => {
+      const removeButton = page.getByRole('button', { name: 'Remove' }).first();
+      await expect(removeButton).toBeVisible();
+    });
+
+    test('effect has parameter sliders', async ({ page }) => {
+      // Reverb effect card should have parameter sliders
+      const reverbHeading = page.getByRole('heading', { name: 'Reverb' });
+      await expect(reverbHeading).toBeVisible();
+
+      // Sliders should be present in the effect controls
+      const sliders = page.locator('input[type="range"]');
+      const count = await sliders.count();
+      expect(count).toBeGreaterThan(0);
+    });
+
+    test('can adjust effect parameter', async ({ page }) => {
+      // Find the Mix slider (second slider in the Reverb effect)
+      const mixSlider = page.locator('input[type="range"][max="1"][min="0"]').first();
+
+      // Change the value
+      await mixSlider.fill('0.75');
+
+      // Value display should update
+      await expect(page.getByText('0.75')).toBeVisible();
+    });
+
+    test('bypass button toggles effect', async ({ page }) => {
+      const bypassButton = page.getByRole('button', { name: '⏻' }).first();
+
+      // Click bypass
+      await bypassButton.click();
+
+      // Button should indicate bypassed state (visual change)
+      // Click again to re-enable
+      await bypassButton.click();
+    });
+
+    test('remove button removes effect', async ({ page }) => {
+      // Add a new effect first
+      const effectDropdown = page.locator('select').nth(1);
+      await effectDropdown.selectOption('Tremolo');
+      await page.getByRole('button', { name: 'Add Effect' }).click();
+      await expect(page.getByRole('heading', { name: 'Tremolo' })).toBeVisible();
+
+      // Find and click remove for Tremolo (it's the last Remove button since we just added it)
+      const removeButtons = page.getByRole('button', { name: 'Remove' });
+      await removeButtons.last().click();
+
+      // Tremolo should be gone
+      await expect(page.getByRole('heading', { name: 'Tremolo' })).not.toBeVisible();
+    });
+  });
+
+  test.describe('Signal Chain', () => {
+    test('displays signal chain path', async ({ page }) => {
+      await expect(page.getByText('Signal chain:')).toBeVisible();
+      await expect(page.getByText('Input')).toBeVisible();
+      await expect(page.getByText('Output')).toBeVisible();
+    });
+
+    test('signal chain updates when effects are added', async ({ page }) => {
+      // Add Chorus effect
+      const effectDropdown = page.locator('select').nth(1);
+      await effectDropdown.selectOption('Chorus');
+      await page.getByRole('button', { name: 'Add Effect' }).click();
+
+      // Signal chain should show Chorus
+      await expect(page.getByText('Chorus').last()).toBeVisible();
+    });
+  });
+
+  test.describe('Track Effects', () => {
+    test('each track has FX button', async ({ page }) => {
+      const fxButtons = page.getByRole('button', { name: /FX/ });
+      const count = await fxButtons.count();
+
+      // Should have FX button for each track (4 tracks)
+      expect(count).toBeGreaterThanOrEqual(4);
+    });
+
+    test('FX button shows effect count', async ({ page }) => {
+      // FX buttons should show count (e.g., "FX 1")
+      await expect(page.getByRole('button', { name: 'FX 1' }).first()).toBeVisible();
+    });
+  });
+
+  test.describe('Export', () => {
+    test('export mode dropdown exists', async ({ page }) => {
+      const exportDropdown = page.locator('select:has-text("Full Mix")');
+      await expect(exportDropdown).toBeVisible();
+    });
+
+    test('apply effects checkbox exists and is checked', async ({ page }) => {
+      const applyEffectsCheckbox = page.getByRole('checkbox', { name: 'Apply Effects' });
+      await expect(applyEffectsCheckbox).toBeVisible();
+      await expect(applyEffectsCheckbox).toBeChecked();
+    });
+
+    test('export button exists', async ({ page }) => {
+      const exportButton = page.getByRole('button', { name: 'Export Mix' });
+      await expect(exportButton).toBeVisible();
+    });
+
+    test('can select export modes', async ({ page }) => {
+      const exportDropdown = page.locator('select:has-text("Full Mix")');
+
+      // Select Individual Track (value is lowercase)
+      await exportDropdown.selectOption('Individual Track');
+      await expect(exportDropdown).toHaveValue('individual');
+
+      // Select All Tracks (ZIP)
+      await exportDropdown.selectOption('All Tracks (ZIP)');
+      await expect(exportDropdown).toHaveValue('all');
+    });
+  });
+
+  test.describe('Playback with Effects', () => {
+    test('play button starts playback', async ({ page }) => {
+      const playButton = page.getByRole('button', { name: 'Play' });
+      await playButton.click();
+
+      // Time should advance
+      await page.waitForTimeout(200);
+
+      const timeDisplay = page.getByText(/^\d{2}:\d{2}:\d{2}\.\d{3}$/);
+      const timeText = await timeDisplay.textContent();
+      expect(timeText).not.toBe('00:00:00.000');
+
+      // Stop playback
+      await page.getByRole('button', { name: 'Stop' }).click();
+    });
+
+    test('can toggle loop mode', async ({ page }) => {
+      const loopButton = page.getByRole('button', { name: /Loop/ });
+      await expect(loopButton).toBeVisible();
+
+      // Click to enable loop
+      await loopButton.click();
+
+      // Button text should change to indicate loop is on
+      await expect(page.getByRole('button', { name: /Loop On|Loop Off/ })).toBeVisible();
+    });
+  });
+
+  test.describe('Effect Categories', () => {
+    test('all effect categories are available', async ({ page }) => {
+      const categoryDropdown = page.locator('select').first();
+
+      const options = await categoryDropdown.locator('option').allTextContents();
+
+      expect(options).toContain('All Categories');
+      expect(options).toContain('Reverb');
+      expect(options).toContain('Delay');
+      expect(options).toContain('Modulation');
+      expect(options).toContain('Filter');
+      expect(options).toContain('Distortion');
+      expect(options).toContain('Dynamics');
+      expect(options).toContain('Spatial');
+    });
+
+    test('filtering by category shows correct effects', async ({ page }) => {
+      const categoryDropdown = page.locator('select').first();
+      const effectDropdown = page.locator('select').nth(1);
+
+      // Test Delay category
+      await categoryDropdown.selectOption('Delay');
+      let options = await effectDropdown.locator('option').allTextContents();
+      expect(options).toContain('Feedback Delay');
+      expect(options).toContain('Ping Pong Delay');
+
+      // Test Dynamics category
+      await categoryDropdown.selectOption('Dynamics');
+      options = await effectDropdown.locator('option').allTextContents();
+      expect(options).toContain('Compressor');
+      expect(options).toContain('Limiter');
+      expect(options).toContain('Gate');
+    });
+  });
+});

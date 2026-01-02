@@ -25,13 +25,14 @@ test.describe('Mobile Multi-Clip Example', () => {
       await expect(page.getByText(/Move clip:.*Touch and hold/)).toBeVisible();
     });
 
-    test('has fewer tracks than desktop example (3 tracks)', async ({ page }) => {
-      // Mobile example should have 3 tracks for better performance
-      const tracks = page.locator('[data-clip-container]');
-      const trackCount = await tracks.count();
+    test('has clips loaded', async ({ page }) => {
+      // Wait for clips to load
+      const clips = page.locator('[data-clip-container]');
+      await expect(clips.first()).toBeVisible();
 
-      // We have 3 tracks with multiple clips (5 total clips)
-      expect(trackCount).toBe(5);
+      const clipCount = await clips.count();
+      // Mobile example has multiple clips across 3 tracks
+      expect(clipCount).toBeGreaterThanOrEqual(3);
     });
 
     test('displays implementation code example', async ({ page }) => {

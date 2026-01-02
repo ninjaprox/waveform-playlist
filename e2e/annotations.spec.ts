@@ -17,6 +17,8 @@ test.describe('Annotations Example', () => {
     await page.goto(`${baseURL}/examples/annotations`);
     // Wait for page to load
     await page.waitForSelector('h1:has-text("Annotations")', { timeout: 30000 });
+    // Wait for playlist to be ready (track loaded)
+    await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
     // Wait for annotations to load
     await page.waitForSelector('text=f000001', { timeout: 30000 });
   });

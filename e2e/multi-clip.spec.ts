@@ -15,10 +15,8 @@ test.describe('Multi-Clip Example', () => {
     await page.goto(`${baseURL}/examples/multi-clip`);
     // Wait for Docusaurus to hydrate - check for the page title
     await page.waitForSelector('h1:has-text("Multi-Clip")', { timeout: 30000 });
-    // Wait for all tracks to load - "Synth 2" is the last track with 3 clips
-    await page.waitForSelector('text=Synth 2', { timeout: 30000 });
-    // Wait a bit more for all clips to render boundaries
-    await page.waitForTimeout(500);
+    // Wait for playlist to be ready (all tracks loaded)
+    await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
   });
 
   test.describe('Playhead Positioning', () => {

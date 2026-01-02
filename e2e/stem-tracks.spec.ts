@@ -16,8 +16,8 @@ test.describe('Stem Tracks Example', () => {
     await page.goto(`${baseURL}/examples/stem-tracks`);
     // Wait for Docusaurus to hydrate
     await page.waitForSelector('h1:has-text("Stem Tracks")', { timeout: 30000 });
-    // Wait for tracks to load (waveforms render)
-    await page.waitForSelector('button:has-text("Mute")', { timeout: 30000 });
+    // Wait for playlist to be ready (all tracks loaded)
+    await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
   });
 
   test.describe('Playback Controls', () => {

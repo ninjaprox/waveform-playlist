@@ -207,6 +207,8 @@ export interface PlaylistDataContextValue {
   barGap: number;
   /** Width in pixels of progress bars. Defaults to barWidth + barGap (fills gaps). */
   progressBarWidth: number;
+  /** Whether the playlist has finished loading all tracks */
+  isReady: boolean;
 }
 
 // Create the 4 separate contexts
@@ -290,6 +292,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
   const [isLoopEnabled, setIsLoopEnabledState] = useState(false);
   const [loopStart, setLoopStartState] = useState(0);
   const [loopEnd, setLoopEndState] = useState(0);
+  const [isReady, setIsReady] = useState(false);
 
   // Refs
   const playoutRef = useRef<TonePlayout | null>(null);
@@ -402,6 +405,9 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
 
   // Load audio from clips (only when tracks change)
   useEffect(() => {
+    // Reset ready state when tracks change
+    setIsReady(false);
+
     if (tracks.length === 0) {
       // Clear state when all tracks are removed
       setAudioBuffers([]);
@@ -542,6 +548,17 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
         playout.applyInitialSoloState();
 
         playoutRef.current = playout;
+        setIsReady(true);
+
+        // Dispatch custom event for external listeners
+        const event = new CustomEvent('waveform-playlist:ready', {
+          detail: {
+            trackCount: tracks.length,
+            duration: maxDuration,
+          },
+        });
+        window.dispatchEvent(event);
+
         onReady?.();
       } catch (error) {
         console.error('Error loading audio:', error);
@@ -1114,6 +1131,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     barWidth,
     barGap,
     progressBarWidth,
+    isReady,
   };
 
   // Combined value for backwards compatibility

@@ -16,8 +16,8 @@ test.describe('Effects Example', () => {
     await page.goto(`${baseURL}/examples/effects`);
     // Wait for page to load
     await page.waitForSelector('h1:has-text("Effects")', { timeout: 30000 });
-    // Wait for all 4 tracks to load (Kick, Bass, HiHat, Synth)
-    await page.waitForSelector('text=Synth', { timeout: 30000 });
+    // Wait for playlist to be ready (all tracks loaded)
+    await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
   });
 
   test.describe('Effect Selection', () => {

@@ -16,8 +16,8 @@ test.describe('BBC Waveform Data Example', () => {
     await page.goto(`${baseURL}/examples/waveform-data`);
     // Wait for page to load
     await page.waitForSelector('h1:has-text("BBC Waveform Data")', { timeout: 30000 });
-    // Wait for all 4 tracks to load (Kick, Bass, Synth 1, Synth 2)
-    await page.waitForSelector('text=Synth 2', { timeout: 30000 });
+    // Wait for playlist to be ready (all tracks loaded)
+    await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
   });
 
   test.describe('Page Structure', () => {

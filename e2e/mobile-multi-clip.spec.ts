@@ -14,7 +14,8 @@ test.describe('Mobile Multi-Clip Example', () => {
   test.beforeEach(async ({ page, baseURL }) => {
     await page.goto(`${baseURL}/examples/mobile-multi-clip`);
     await page.waitForSelector('h1:has-text("Mobile Multi-Clip")', { timeout: 30000 });
-    await page.waitForSelector('[data-clip-container]', { timeout: 30000 });
+    // Wait for playlist to be ready (all tracks loaded)
+    await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
   });
 
   test.describe('Page Structure', () => {

@@ -151,6 +151,7 @@ export const Waveform: React.FC<WaveformProps> = ({
     playoutRef,
     barWidth,
     barGap,
+    isReady,
   } = usePlaylistData();
 
   const [isSelecting, setIsSelecting] = useState(false);
@@ -316,6 +317,7 @@ export const Waveform: React.FC<WaveformProps> = ({
             onTracksMouseUp={handleMouseUp}
             scrollContainerRef={handleScrollContainerRef}
             isSelecting={isSelecting}
+            data-playlist-state={isReady ? 'ready' : 'loading'}
             timescale={
               timeScaleHeight > 0 ? (
                 <>

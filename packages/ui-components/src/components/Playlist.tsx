@@ -82,6 +82,8 @@ export interface PlaylistProps {
   readonly scrollContainerRef?: (el: HTMLDivElement | null) => void;
   /** When true, selection is in progress - raises z-index to prevent clip boundary interference */
   readonly isSelecting?: boolean;
+  /** Data attribute indicating playlist loading state ('loading' | 'ready') */
+  readonly 'data-playlist-state'?: 'loading' | 'ready';
 }
 export const Playlist: FunctionComponent<PlaylistProps> = ({
   children,
@@ -98,9 +100,10 @@ export const Playlist: FunctionComponent<PlaylistProps> = ({
   onTracksMouseUp,
   scrollContainerRef,
   isSelecting,
+  'data-playlist-state': playlistState,
 }) => {
   return (
-    <Wrapper data-scroll-container="true" ref={scrollContainerRef}>
+    <Wrapper data-scroll-container="true" data-playlist-state={playlistState} ref={scrollContainerRef}>
       <ScrollContainer
         $backgroundColor={backgroundColor}
         $width={scrollContainerWidth}

@@ -14,8 +14,8 @@ test.describe('Mobile Annotations Example', () => {
   test.beforeEach(async ({ page, baseURL }) => {
     await page.goto(`${baseURL}/examples/mobile-annotations`);
     await page.waitForSelector('h1:has-text("Mobile Annotations")', { timeout: 30000 });
-    // Wait for waveform and annotations to load
-    await page.waitForSelector('canvas', { timeout: 30000 });
+    // Wait for playlist to be ready (track loaded)
+    await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
   });
 
   test.describe('Page Structure', () => {

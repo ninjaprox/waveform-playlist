@@ -251,6 +251,84 @@ if (error) {
 }
 ```
 
+## Detecting Load Completion
+
+The playlist dispatches a custom event and exposes state when all tracks finish loading. This is useful for showing loading indicators, enabling controls, or running E2E tests.
+
+### Custom Event (Recommended)
+
+Listen for the `waveform-playlist:ready` event on the window:
+
+```tsx
+useEffect(() => {
+  const handleReady = (event: CustomEvent) => {
+    console.log('Playlist ready!');
+    console.log('Tracks loaded:', event.detail.trackCount);
+    console.log('Duration:', event.detail.duration, 'seconds');
+  };
+
+  window.addEventListener('waveform-playlist:ready', handleReady);
+  return () => window.removeEventListener('waveform-playlist:ready', handleReady);
+}, []);
+```
+
+### React Hook
+
+Access the `isReady` state from the `usePlaylistData()` hook:
+
+```tsx
+import { usePlaylistData } from '@waveform-playlist/browser';
+
+function LoadingIndicator() {
+  const { isReady, tracks } = usePlaylistData();
+
+  if (!isReady) {
+    return <div>Loading tracks...</div>;
+  }
+
+  return <div>{tracks.length} tracks loaded</div>;
+}
+```
+
+### Data Attribute (CSS/Testing)
+
+The playlist container has a `data-playlist-state` attribute:
+
+```css
+/* Dim the playlist while loading */
+[data-playlist-state="loading"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+[data-playlist-state="ready"] {
+  opacity: 1;
+}
+```
+
+For E2E tests (Playwright, Cypress):
+
+```typescript
+// Playwright
+await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
+
+// Cypress
+cy.get('[data-playlist-state="ready"]', { timeout: 30000 });
+```
+
+### Provider Callback
+
+The `WaveformPlaylistProvider` also accepts an `onReady` callback:
+
+```tsx
+<WaveformPlaylistProvider
+  tracks={tracks}
+  onReady={() => console.log('All tracks loaded!')}
+>
+  <Waveform />
+</WaveformPlaylistProvider>
+```
+
 ## Performance Tips
 
 1. **Use pre-computed waveforms** for files over 5 minutes

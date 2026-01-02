@@ -65,7 +65,7 @@ These hooks access the playlist context provided by `WaveformPlaylistProvider`.
 
 ### usePlaylistData
 
-Access static playlist configuration and refs.
+Access static playlist configuration, refs, and loading state.
 
 ```typescript
 function usePlaylistData(): {
@@ -83,6 +83,9 @@ function usePlaylistData(): {
   // Refs for direct access
   playoutRef: RefObject<TonePlayout>;
   scrollContainerRef: RefObject<HTMLDivElement>;
+
+  // Loading state
+  isReady: boolean;  // True when all tracks are loaded
 };
 ```
 

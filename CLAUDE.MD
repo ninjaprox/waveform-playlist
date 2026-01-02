@@ -443,6 +443,39 @@ const analyser = context.createAnalyser();
 8. **Smooth Playback Animation** - Use `requestAnimationFrame` + direct DOM manipulation for 60fps updates (playhead, progress, time display)
 9. **Animation Loop Restart** - When restarting playback, cancel existing animation frames AND reset `currentTimeRef` to the new start position before calling `startAnimationLoop()`
 10. **Constraint-First Drag Handling** - When implementing boundary trimming, calculate constrained delta first, then apply uniformly to all affected properties (startSample, offsetSamples, durationSamples)
+11. **Playlist Loading Detection** - Use `data-playlist-state` attribute and `waveform-playlist:ready` custom event for reliable loading detection in CSS, E2E tests, and external integrations
+
+### Playlist Loading Detection
+
+**Problem:** Detecting when a playlist has finished loading all tracks for CSS styling, E2E testing, or external integrations.
+
+**Solution:** Three approaches available:
+
+1. **Data Attribute** (`data-playlist-state`) - For CSS and E2E tests:
+```css
+[data-playlist-state="loading"] { opacity: 0.5; }
+[data-playlist-state="ready"] { opacity: 1; }
+```
+```typescript
+// Playwright
+await page.waitForSelector('[data-playlist-state="ready"]', { timeout: 30000 });
+```
+
+2. **Custom Event** (`waveform-playlist:ready`) - For external integrations:
+```typescript
+window.addEventListener('waveform-playlist:ready', (event: CustomEvent) => {
+  console.log('Tracks loaded:', event.detail.trackCount);
+  console.log('Duration:', event.detail.duration);
+});
+```
+
+3. **React Hook** (`isReady` from `usePlaylistData()`) - For internal components:
+```typescript
+const { isReady, tracks } = usePlaylistData();
+if (!isReady) return <LoadingSpinner />;
+```
+
+**Applied in:** `WaveformPlaylistContext.tsx`, `Playlist.tsx`, all E2E tests
 
 ### Refs for Dynamic Audio Callbacks
 

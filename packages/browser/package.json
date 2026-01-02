@@ -1,6 +1,6 @@
 {
   "name": "@waveform-playlist/browser",
-  "version": "5.0.0-alpha.19",
+  "version": "5.0.0",
   "description": "Browser bundle for waveform-playlist with React",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

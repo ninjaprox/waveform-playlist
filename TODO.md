@@ -6,7 +6,7 @@ Multi-track audio editor roadmap for waveform-playlist.
 
 ---
 
-## 🎯 Current Focus: Alpha Release Preparation
+## 🎯 Current Focus: v5.0.0 Stable
 
 ### Must Have Before Release
 
@@ -104,7 +104,7 @@ Multi-track audio editor roadmap for waveform-playlist.
 
 ---
 
-## 🔮 Future Phases (Post-Alpha)
+## 🔮 Future Phases
 
 ### Phase 3.4-3.5: Copy/Paste & Multi-Select
 

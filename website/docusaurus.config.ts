@@ -184,9 +184,9 @@ const config: Config = {
 
   themeConfig: {
     announcementBar: {
-      id: 'v5_prerelease',
+      id: 'v5_release',
       content:
-        '🚧 <strong>v5 Pre-release</strong> — This documentation is for <code>@next</code>. For stable v4, see <a href="https://www.npmjs.com/package/waveform-playlist" target="_blank">waveform-playlist@4.x</a>',
+        '🎉 <strong>v5 Released!</strong> — A complete React rewrite with Tone.js. <a href="/waveform-playlist/docs/getting-started/installation">Get started →</a>',
       isCloseable: true,
     },
     // Social card image for Open Graph and Twitter

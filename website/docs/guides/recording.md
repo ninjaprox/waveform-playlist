@@ -11,7 +11,7 @@ Record audio directly from the microphone with level monitoring and waveform vis
 Install the recording package:
 
 ```bash npm2yarn
-npm install @waveform-playlist/recording@next
+npm install @waveform-playlist/recording
 ```
 
 ## Basic Recording

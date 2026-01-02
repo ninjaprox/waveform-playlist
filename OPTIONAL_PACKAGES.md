@@ -153,7 +153,7 @@ npm init -y
 ```json
 {
   "name": "@waveform-playlist/my-feature",
-  "version": "5.0.0-alpha.0",
+  "version": "5.0.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",

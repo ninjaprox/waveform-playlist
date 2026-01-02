@@ -31,9 +31,9 @@ When adding new examples or UI elements, maintain this aesthetic. The Flexible A
 
 **Source of Truth:** `TODO.md` contains the complete multi-track editing roadmap and recently completed work.
 
-**Current Phase:** Pre Launch - Alpha Release Preparation
+**Current Phase:** v5.0.0 Stable
 
-**Breaking Changes OK:** No backwards compatibility requirements until after launch. Feel free to change defaults, rename props, or restructure APIs to get them right before the initial release.
+**Semantic Versioning:** Now that v5 is released, follow semver for all changes. Breaking changes require a major version bump.
 
 **Key Milestones Completed:**
 - ✅ Phase 1: Foundation (React refactor, provider pattern, all core features)
@@ -45,17 +45,17 @@ When adding new examples or UI elements, maintain this aesthetic. The Flexible A
 
 ## Publishing Convention
 
-**Prerelease Tag:** Use `@next` for prerelease versions (following Tone.js, React, Next.js convention).
+**Stable Releases:** Publish without tag to update `@latest`.
 
 ```bash
-# Publish prerelease
-pnpm publish --tag next
+# Publish stable release
+pnpm publish
 
-# Users install prerelease with:
-npm install waveform-playlist@next
+# Users install with:
+npm install @waveform-playlist/browser
 ```
 
-After stable release, publish without tag to update `@latest`.
+**Prerelease Tag:** Use `@next` for prerelease versions when preparing future major releases.
 
 ---
 

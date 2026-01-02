@@ -4,8 +4,6 @@
 
 A multi-track audio editor and player built with React, Tone.js, and the Web Audio API. Features canvas-based waveform visualization, drag-and-drop clip editing, and professional audio effects.
 
-> **⚠️ v5 Alpha**: This is a complete React rewrite. For the stable v4 release, see [waveform-playlist@4.x](https://www.npmjs.com/package/waveform-playlist).
-
 ## Sponsors
 
 <p align="center">
@@ -36,7 +34,7 @@ A multi-track audio editor and player built with React, Tone.js, and the Web Aud
 ## Quick Start
 
 ```bash
-npm install @waveform-playlist/browser@next tone @dnd-kit/core @dnd-kit/modifiers
+npm install @waveform-playlist/browser tone @dnd-kit/core @dnd-kit/modifiers
 ```
 
 > **Note**: `tone`, `@dnd-kit/core`, and `@dnd-kit/modifiers` are peer dependencies and must be installed separately.
@@ -99,7 +97,7 @@ function App() {
 
 ## Packages
 
-All v5 packages are published under the `next` tag (install with `@next`):
+v5 packages:
 
 | Package | Description |
 |---------|-------------|

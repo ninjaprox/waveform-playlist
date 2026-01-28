@@ -51,6 +51,8 @@ export interface MediaElementWaveformProps {
   renderAnnotationItem?: (props: RenderAnnotationItemProps) => React.ReactNode;
   /** Whether annotation boundaries can be edited by dragging. Defaults to false. */
   editable?: boolean;
+  /** Whether dragging one annotation boundary also moves the adjacent annotation's boundary. Defaults to false. */
+  linkEndpoints?: boolean;
   /**
    * Callback when annotations are updated (e.g., boundaries dragged).
    * Called with the full updated annotations array.
@@ -80,6 +82,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
   getAnnotationBoxLabel,
   renderAnnotationItem,
   editable = false,
+  linkEndpoints: linkEndpointsProp = false,
   onAnnotationUpdate,
   scrollActivePosition = 'center',
   scrollActiveContainer = 'nearest',
@@ -139,7 +142,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
     samplesPerPixel,
     sampleRate,
     duration,
-    linkEndpoints: true,
+    linkEndpoints: linkEndpointsProp,
   });
 
   // Mouse handlers for click-to-seek
@@ -356,7 +359,7 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
             scrollActivePosition={scrollActivePosition}
             scrollActiveContainer={scrollActiveContainer}
             editable={editable}
-            annotationListConfig={{ linkEndpoints: true, continuousPlay }}
+            annotationListConfig={{ linkEndpoints: linkEndpointsProp, continuousPlay }}
             height={annotationTextHeight}
             onAnnotationUpdate={handleAnnotationUpdate}
             renderAnnotationItem={renderAnnotationItem}

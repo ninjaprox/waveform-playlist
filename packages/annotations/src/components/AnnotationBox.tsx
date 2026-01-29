@@ -76,16 +76,16 @@ interface ResizeHandleStyledProps {
   $isDragging?: boolean;
 }
 
-// ResizeHandles are now siblings of Box, positioned relative to Wrapper
-// Reduced from 30px/-15px to 16px/-8px to minimize overlap between adjacent annotations
+// ResizeHandles sit inside their annotation's bounds so adjacent annotations'
+// handles never overlap — each handle is independently grabbable.
 const ResizeHandle = styled.div<ResizeHandleStyledProps>`
   position: absolute;
   top: 0;
-  ${(props) => props.$position === 'left' ? 'left: -8px' : 'right: -8px'};
-  width: 16px;
+  ${(props) => props.$position === 'left' ? 'left: 0' : 'right: 0'};
+  width: 8px;
   height: 100%;
   cursor: ew-resize;
-  z-index: 120; /* Above ClickOverlay (z-index: 100) and AnnotationBoxesWrapper (z-index: 110) */
+  z-index: 120;
   background: ${(props) => props.$isDragging
     ? (props.theme?.annotationResizeHandleColor || 'rgba(0, 0, 0, 0.2)')
     : 'transparent'};

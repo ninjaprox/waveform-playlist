@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, type ReactNode } from 'react';
 import { ThemeProvider } from 'styled-components';
 import { TonePlayout, type EffectsFunction, type TrackEffectsFunction } from '@waveform-playlist/playout';
 import { type Track, type ClipTrack, type Fade } from '@waveform-playlist/core';
@@ -242,7 +242,10 @@ export interface WaveformPlaylistProviderProps {
   };
   effects?: EffectsFunction;
   onReady?: () => void;
+  /** @deprecated Use onAnnotationsChange instead */
   onAnnotationUpdate?: (annotations: AnnotationData[]) => void;
+  /** Callback when annotations are changed (drag, edit, etc.) */
+  onAnnotationsChange?: (annotations: AnnotationData[]) => void;
   /** Width in pixels of waveform bars. Default: 1 */
   barWidth?: number;
   /** Spacing in pixels between waveform bars. Default: 0 */
@@ -266,6 +269,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
   effects,
   onReady,
   onAnnotationUpdate: _onAnnotationUpdate,
+  onAnnotationsChange,
   barWidth = 1,
   barGap = 0,
   progressBarWidth: progressBarWidthProp,
@@ -273,8 +277,20 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
 }) => {
   // Default progressBarWidth to barWidth + barGap (fills gaps)
   const progressBarWidth = progressBarWidthProp ?? (barWidth + barGap);
+  // Annotations are derived from prop (single source of truth in parent)
+  const annotations = useMemo(() => {
+    if (!annotationList?.annotations) return [];
+    return annotationList.annotations.map((ann: any) => {
+      if (typeof ann.start === 'number') return ann;
+      return parseAeneas(ann);
+    });
+  }, [annotationList?.annotations]);
+
+  // Ref for animation loop (avoids restarting loop on annotation change)
+  const annotationsRef = useRef<AnnotationData[]>(annotations);
+  annotationsRef.current = annotations;
+
   // State
-  const [annotations, setAnnotations] = useState<AnnotationData[]>([]);
   const [activeAnnotationId, setActiveAnnotationIdState] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -658,22 +674,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     setPeaksDataArray(allTrackPeaks);
   }, [tracks, samplesPerPixel, mono]);
 
-  // Load annotations from annotationList prop
-  useEffect(() => {
-    if (annotationList?.annotations) {
-      // Parse Aeneas format annotations to AnnotationData format
-      const parsedAnnotations = annotationList.annotations.map((ann: any) => {
-        // If it's already in the correct format, use it
-        if (typeof ann.start === 'number') {
-          return ann;
-        }
-        // Otherwise parse from Aeneas format
-        return parseAeneas(ann);
-      });
-      setAnnotations(parsedAnnotations);
-    }
-  }, [annotationList]);
-
   // Animation loop
   const startAnimationLoop = useCallback(() => {
     // Cancel any existing animation frame before starting a new one
@@ -692,8 +692,9 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
       setCurrentTime(time);
 
       // Handle annotation playback based on continuous play mode
-      if (annotations.length > 0) {
-        const currentAnnotation = annotations.find(
+      const currentAnnotations = annotationsRef.current;
+      if (currentAnnotations.length > 0) {
+        const currentAnnotation = currentAnnotations.find(
           (ann) => time >= ann.start && time < ann.end
         );
 
@@ -709,7 +710,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
         } else {
           // Continuous play OFF: stop at end of current annotation
           if (activeAnnotationIdRef.current) {
-            const activeAnnotation = annotations.find(ann => ann.id === activeAnnotationIdRef.current);
+            const activeAnnotation = currentAnnotations.find(ann => ann.id === activeAnnotationIdRef.current);
             if (activeAnnotation && time >= activeAnnotation.end) {
               // Stop playback at end of current annotation
               if (playoutRef.current) {
@@ -797,7 +798,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
       animationFrameRef.current = requestAnimationFrame(updateTime);
     };
     animationFrameRef.current = requestAnimationFrame(updateTime);
-  }, [duration, audioBuffers, samplesPerPixel, annotations, continuousPlay]);
+  }, [duration, audioBuffers, samplesPerPixel, continuousPlay]);
 
   const stopAnimationLoop = useCallback(() => {
     if (animationFrameRef.current) {
@@ -1027,6 +1028,20 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
   const setScrollContainer = useCallback((element: HTMLDivElement | null) => {
     scrollContainerRef.current = element;
   }, []);
+
+  // Stable callback ref for onAnnotationsChange to avoid re-creating controls context
+  const onAnnotationsChangeRef = useRef(onAnnotationsChange);
+  onAnnotationsChangeRef.current = onAnnotationsChange;
+
+  const setAnnotations: React.Dispatch<React.SetStateAction<AnnotationData[]>> = useCallback(
+    (action) => {
+      const updated = typeof action === 'function'
+        ? action(annotationsRef.current)
+        : action;
+      onAnnotationsChangeRef.current?.(updated);
+    },
+    []
+  );
 
   const sampleRate = audioBuffers[0]?.sampleRate || 44100;
   const timeScaleHeight = timescale ? 30 : 0;

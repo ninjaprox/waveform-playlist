@@ -27,105 +27,105 @@ const examples = [
     description: 'Pure essence. No distractions.',
     path: 'minimal',
     category: 'foundation',
-    icon: <CircleNotchIcon weight="light" />,
+    icon: <CircleNotchIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Styling',
     description: 'Shape the waveform. Own the aesthetic.',
     path: 'styling',
     category: 'foundation',
-    icon: <PaletteIcon weight="light" />,
+    icon: <PaletteIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'New Tracks',
     description: 'Dynamic. Ever-evolving.',
     path: 'newtracks',
     category: 'foundation',
-    icon: <PlusCircleIcon weight="light" />,
+    icon: <PlusCircleIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Stem Tracks',
     description: 'Layers upon layers. The full spectrum.',
     path: 'stem-tracks',
     category: 'playback',
-    icon: <StackIcon weight="light" />,
+    icon: <StackIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Fades',
     description: 'Smooth transitions. Controlled energy.',
     path: 'fades',
     category: 'playback',
-    icon: <WaveTriangleIcon weight="light" />,
+    icon: <WaveTriangleIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Media Element',
     description: 'Stream audio. Control speed. Pitch preserved.',
     path: 'media-element',
     category: 'playback',
-    icon: <GaugeIcon weight="light" />,
+    icon: <GaugeIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Effects',
     description: 'Transform. Distort. Elevate.',
     path: 'effects',
     category: 'advanced',
-    icon: <SlidersHorizontalIcon weight="light" />,
+    icon: <SlidersHorizontalIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Recording',
     description: 'Capture the moment. Live.',
     path: 'recording',
     category: 'advanced',
-    icon: <MicrophoneIcon weight="light" />,
+    icon: <MicrophoneIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Multi-Clip',
     description: 'Arrange. Rearrange. Create.',
     path: 'multi-clip',
     category: 'advanced',
-    icon: <RowsIcon weight="light" />,
+    icon: <RowsIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Annotations',
     description: 'Mark the drops. Remember the builds.',
     path: 'annotations',
     category: 'tools',
-    icon: <TextAaIcon weight="light" />,
+    icon: <TextAaIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'BBC Waveform',
     description: 'Pre-computed peaks. Instant load.',
     path: 'waveform-data',
     category: 'tools',
-    icon: <LightningIcon weight="light" />,
+    icon: <LightningIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Flexible API',
     description: 'Total control. Unlimited possibilities.',
     path: 'flexible-api',
     category: 'tools',
-    icon: <InfinityIcon weight="light" />,
+    icon: <InfinityIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Stereo',
     description: 'Left and right. The full dimension.',
     path: 'stereo',
     category: 'foundation',
-    icon: <HeadphonesIcon weight="light" />,
+    icon: <HeadphonesIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Mobile Multi-Clip',
     description: 'Touch-optimized. Swipe to scroll, hold to drag.',
     path: 'mobile-multi-clip',
     category: 'mobile',
-    icon: <DeviceMobileIcon weight="light" />,
+    icon: <DeviceMobileIcon weight="light" aria-hidden="true" />,
   },
   {
     title: 'Mobile Annotations',
     description: 'Tap to play. Hold to resize boundaries.',
     path: 'mobile-annotations',
     category: 'mobile',
-    icon: <TextAaIcon weight="light" />,
+    icon: <TextAaIcon weight="light" aria-hidden="true" />,
   },
 ];
 
@@ -248,7 +248,13 @@ export default function Examples(): React.ReactElement {
       description="Interactive demos of Waveform Playlist - multi-track editing, effects, recording, annotations, and more"
     >
       <Head>
+        <meta property="og:title" content="Examples - Waveform Playlist" />
+        <meta property="og:description" content="Interactive demos of Waveform Playlist - multi-track editing, effects, recording, annotations, and more" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/waveform-playlist-examples.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Examples - Waveform Playlist" />
+        <meta name="twitter:description" content="Interactive demos of Waveform Playlist - multi-track editing, effects, recording, annotations, and more" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/waveform-playlist-examples.png" />
       </Head>
       {/* Hero Section */}

@@ -1,5 +1,6 @@
 ---
 sidebar_position: 5
+description: "Interactive demos of multitrack editing, effects, recording, annotations, and waveform visualization"
 ---
 
 # Examples

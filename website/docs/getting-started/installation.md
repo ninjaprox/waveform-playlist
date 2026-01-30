@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: "Install Waveform Playlist packages via npm or pnpm for React multitrack audio editing"
 ---
 
 # Installation

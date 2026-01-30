@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+description: "Manage audio tracks with mute, solo, volume, pan, and dynamic add/remove"
 ---
 
 # Track Management

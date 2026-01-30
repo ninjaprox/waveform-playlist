@@ -14,7 +14,13 @@ export default function MobileAnnotationsExamplePage(): React.ReactElement {
       description="Touch-optimized annotation editing for mobile devices"
     >
       <Head>
+        <meta property="og:title" content="Mobile Annotations - Waveform Playlist" />
+        <meta property="og:description" content="Touch-optimized annotation editing for mobile devices" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-mobile-annotations.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Mobile Annotations - Waveform Playlist" />
+        <meta name="twitter:description" content="Touch-optimized annotation editing for mobile devices" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-mobile-annotations.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </Head>

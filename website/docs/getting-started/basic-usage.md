@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: "Basic usage guide for creating a multitrack audio player with WaveformPlaylistProvider and React"
 ---
 
 # Basic Usage

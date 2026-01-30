@@ -1,5 +1,6 @@
 ---
 sidebar_position: 4
+description: "Apply fade-in and fade-out effects with linear, logarithmic, exponential, and S-curve types"
 ---
 
 # Fades

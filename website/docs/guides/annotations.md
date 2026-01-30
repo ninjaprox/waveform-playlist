@@ -1,5 +1,6 @@
 ---
 sidebar_position: 6
+description: "Create time-synced audio annotations with drag editing, keyboard navigation, and JSON export"
 ---
 
 # Annotations

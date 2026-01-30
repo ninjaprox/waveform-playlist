@@ -15,7 +15,13 @@ export default function MultiClipExamplePage(): React.ReactElement {
       description="Advanced multi-clip audio editing with drag & drop, clip splitting, trimming, and collision detection"
     >
       <Head>
+        <meta property="og:title" content="Multi-Clip Editing - Waveform Playlist" />
+        <meta property="og:description" content="Advanced multi-clip audio editing with drag &amp; drop, clip splitting, trimming, and collision detection" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-multi-clip.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Multi-Clip Editing - Waveform Playlist" />
+        <meta name="twitter:description" content="Advanced multi-clip audio editing with drag &amp; drop, clip splitting, trimming, and collision detection" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-multi-clip.png" />
       </Head>
       <main className="container margin-vert--lg">

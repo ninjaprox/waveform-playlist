@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 slug: /
+description: "Getting started with Waveform Playlist — a React multitrack audio editor with Web Audio API and Tone.js"
 ---
 
 # Introduction

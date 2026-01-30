@@ -15,7 +15,13 @@ export default function StylingExamplePage(): React.ReactElement {
       description="Customize waveform appearance with barWidth, barGap, gradients, and theme colors for dark mode support"
     >
       <Head>
+        <meta property="og:title" content="Styling Example - Waveform Playlist" />
+        <meta property="og:description" content="Customize waveform appearance with barWidth, barGap, gradients, and theme colors for dark mode support" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-styling.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Styling Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Customize waveform appearance with barWidth, barGap, gradients, and theme colors for dark mode support" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-styling.png" />
       </Head>
       <main className="container margin-vert--lg">

@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+description: "React hooks API reference for playback, state, controls, effects, recording, and export"
 ---
 
 # Hooks

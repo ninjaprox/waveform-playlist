@@ -15,7 +15,13 @@ export default function MinimalExamplePage(): React.ReactElement {
       description="Basic waveform display with playback controls - the simplest way to get started with Waveform Playlist"
     >
       <Head>
+        <meta property="og:title" content="Minimal Example - Waveform Playlist" />
+        <meta property="og:description" content="Basic waveform display with playback controls - the simplest way to get started with Waveform Playlist" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-minimal.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Minimal Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Basic waveform display with playback controls - the simplest way to get started with Waveform Playlist" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-minimal.png" />
       </Head>
       <main className="container margin-vert--lg">

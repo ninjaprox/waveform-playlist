@@ -15,7 +15,13 @@ export default function StemTracksExamplePage(): React.ReactElement {
       description="Multi-track audio player with independent volume, pan, mute and solo controls for each stem"
     >
       <Head>
+        <meta property="og:title" content="Stem Tracks Example - Waveform Playlist" />
+        <meta property="og:description" content="Multi-track audio player with independent volume, pan, mute and solo controls for each stem" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-stem-tracks.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Stem Tracks Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Multi-track audio player with independent volume, pan, mute and solo controls for each stem" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-stem-tracks.png" />
       </Head>
       <main className="container margin-vert--lg">

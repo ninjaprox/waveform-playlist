@@ -15,7 +15,13 @@ export default function EffectsExamplePage(): React.ReactElement {
       description="Apply 20+ real-time audio effects including reverb, delay, chorus, phaser, and distortion with Tone.js"
     >
       <Head>
+        <meta property="og:title" content="Effects Example - Waveform Playlist" />
+        <meta property="og:description" content="Apply 20+ real-time audio effects including reverb, delay, chorus, phaser, and distortion with Tone.js" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-effects.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Effects Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Apply 20+ real-time audio effects including reverb, delay, chorus, phaser, and distortion with Tone.js" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-effects.png" />
       </Head>
       <main className="container margin-vert--lg">

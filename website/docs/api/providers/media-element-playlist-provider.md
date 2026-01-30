@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: "MediaElementPlaylistProvider API — single-track HTMLAudioElement provider with pitch-preserving playback rate"
 ---
 
 # MediaElementPlaylistProvider

@@ -14,7 +14,13 @@ export default function AnnotationsExamplePage(): React.ReactElement {
       description="Time-synced audio annotations with regions, text labels, keyboard navigation, and JSON export for transcription"
     >
       <Head>
+        <meta property="og:title" content="Annotations Example - Waveform Playlist" />
+        <meta property="og:description" content="Time-synced audio annotations with regions, text labels, keyboard navigation, and JSON export for transcription" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-annotations.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Annotations Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Time-synced audio annotations with regions, text labels, keyboard navigation, and JSON export for transcription" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-annotations.png" />
       </Head>
       <main className="container margin-vert--lg">

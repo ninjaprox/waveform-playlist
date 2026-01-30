@@ -15,7 +15,13 @@ export default function RecordingExamplePage(): React.ReactElement {
       description="Multi-track audio recording with live waveform visualization, VU meter, and AudioWorklet processing"
     >
       <Head>
+        <meta property="og:title" content="Recording Example - Waveform Playlist" />
+        <meta property="og:description" content="Multi-track audio recording with live waveform visualization, VU meter, and AudioWorklet processing" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-recording.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Recording Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Multi-track audio recording with live waveform visualization, VU meter, and AudioWorklet processing" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-recording.png" />
       </Head>
       <main className="container margin-vert--lg">

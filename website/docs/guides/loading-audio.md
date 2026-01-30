@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: "Load audio files, AudioBuffers, and pre-computed waveform data into Waveform Playlist tracks"
 ---
 
 # Loading Audio

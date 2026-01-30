@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: "WaveformPlaylistProvider API — the root React context provider for multitrack Web Audio editing"
 ---
 
 # WaveformPlaylistProvider

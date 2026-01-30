@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: "React component API reference for Waveform, buttons, controls, and playhead components"
 ---
 
 # Components

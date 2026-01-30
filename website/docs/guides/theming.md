@@ -1,5 +1,6 @@
 ---
 sidebar_position: 8
+description: "Customize Waveform Playlist appearance with theme tokens, dark mode, and styled-components"
 ---
 
 # Theming

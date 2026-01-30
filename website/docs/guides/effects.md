@@ -1,5 +1,6 @@
 ---
 sidebar_position: 5
+description: "Add real-time audio effects like reverb, delay, chorus, and compression using Tone.js"
 ---
 
 # Audio Effects

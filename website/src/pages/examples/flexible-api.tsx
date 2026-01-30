@@ -16,7 +16,13 @@ export default function FlexibleApiExamplePage(): React.ReactElement {
       description="Build custom audio UI with the flexible hooks-based API - full control over rendering with any component library"
     >
       <Head>
+        <meta property="og:title" content="Flexible API Example - Waveform Playlist" />
+        <meta property="og:description" content="Build custom audio UI with the flexible hooks-based API - full control over rendering with any component library" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-flexible-api.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Flexible API Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Build custom audio UI with the flexible hooks-based API - full control over rendering with any component library" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-flexible-api.png" />
       </Head>
       <main className="container margin-vert--lg">

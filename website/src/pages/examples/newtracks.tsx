@@ -14,7 +14,13 @@ export default function NewTracksExamplePage(): React.ReactElement {
       description="Dynamically add and remove audio tracks at runtime - load files on demand and manage multi-track playlists"
     >
       <Head>
+        <meta property="og:title" content="New Tracks Example - Waveform Playlist" />
+        <meta property="og:description" content="Dynamically add and remove audio tracks at runtime - load files on demand and manage multi-track playlists" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-newtracks.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="New Tracks Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Dynamically add and remove audio tracks at runtime - load files on demand and manage multi-track playlists" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-newtracks.png" />
       </Head>
       <main className="container margin-vert--lg">

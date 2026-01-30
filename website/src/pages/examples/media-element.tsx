@@ -15,7 +15,13 @@ export default function MediaElementExamplePage(): React.ReactElement {
       description="Single-track playback with pitch-preserving playback rate control using HTMLAudioElement"
     >
       <Head>
+        <meta property="og:title" content="Media Element Playout Example - Waveform Playlist" />
+        <meta property="og:description" content="Single-track playback with pitch-preserving playback rate control using HTMLAudioElement" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-media-element.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Media Element Playout Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Single-track playback with pitch-preserving playback rate control using HTMLAudioElement" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-media-element.png" />
       </Head>
       <main className="container margin-vert--lg">

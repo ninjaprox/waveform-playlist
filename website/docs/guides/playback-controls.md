@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: "Add play, pause, stop, seek, volume, and zoom controls to your Waveform Playlist"
 ---
 
 # Playback Controls

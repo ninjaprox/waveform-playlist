@@ -15,7 +15,13 @@ export default function FadesExamplePage(): React.ReactElement {
       description="Compare audio fade curve types - linear, logarithmic, exponential, and S-curve with visual overlays"
     >
       <Head>
+        <meta property="og:title" content="Fades Example - Waveform Playlist" />
+        <meta property="og:description" content="Compare audio fade curve types - linear, logarithmic, exponential, and S-curve with visual overlays" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-fades.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Fades Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Compare audio fade curve types - linear, logarithmic, exponential, and S-curve with visual overlays" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-fades.png" />
       </Head>
       <main className="container margin-vert--lg">

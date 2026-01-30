@@ -79,6 +79,24 @@ const config: Config = {
         src: '//gc.zgo.at/count.js',
       },
     },
+    {
+      tagName: 'script',
+      attributes: {
+        type: 'application/ld+json',
+      },
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Waveform Playlist',
+        description: 'Multitrack Web Audio editor and player with canvas waveform visualizations',
+        url: 'https://naomiaro.github.io/waveform-playlist/',
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Web',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        programmingLanguage: 'TypeScript',
+        license: 'https://opensource.org/licenses/MIT',
+      }),
+    },
   ],
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -120,6 +138,11 @@ const config: Config = {
         blog: false, // Disable blog
         theme: {
           customCss: './src/css/custom.css',
+        },
+        sitemap: {
+          lastmod: 'date',
+          changefreq: 'weekly',
+          priority: 0.5,
         },
       } satisfies Preset.Options,
     ],

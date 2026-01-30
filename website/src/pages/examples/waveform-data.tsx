@@ -15,7 +15,13 @@ export default function WaveformDataExamplePage(): React.ReactElement {
       description="Instant waveform display with BBC audiowaveform pre-computed peaks - reduce load times from seconds to milliseconds"
     >
       <Head>
+        <meta property="og:title" content="BBC Waveform Data Example - Waveform Playlist" />
+        <meta property="og:description" content="Instant waveform display with BBC audiowaveform pre-computed peaks - reduce load times from seconds to milliseconds" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-waveform-data.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="BBC Waveform Data Example - Waveform Playlist" />
+        <meta name="twitter:description" content="Instant waveform display with BBC audiowaveform pre-computed peaks - reduce load times from seconds to milliseconds" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-waveform-data.png" />
       </Head>
       <main className="container margin-vert--lg">

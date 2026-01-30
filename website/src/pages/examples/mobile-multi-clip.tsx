@@ -15,7 +15,13 @@ export default function MobileMultiClipExamplePage(): React.ReactElement {
       description="Touch-optimized multi-clip audio editing for mobile devices"
     >
       <Head>
+        <meta property="og:title" content="Mobile Multi-Clip Editing - Waveform Playlist" />
+        <meta property="og:description" content="Touch-optimized multi-clip audio editing for mobile devices" />
         <meta property="og:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-mobile-multi-clip.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Mobile Multi-Clip Editing - Waveform Playlist" />
+        <meta name="twitter:description" content="Touch-optimized multi-clip audio editing for mobile devices" />
         <meta name="twitter:image" content="https://naomiaro.github.io/waveform-playlist/img/social/example-mobile-multi-clip.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </Head>

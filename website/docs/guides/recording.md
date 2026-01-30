@@ -1,5 +1,6 @@
 ---
 sidebar_position: 7
+description: "Record audio with AudioWorklet processing, live waveform preview, and VU metering"
 ---
 
 # Recording

@@ -41,16 +41,20 @@ Each track configuration supports these options:
 
 ```tsx
 interface AudioTrackConfig {
-  src: string;              // URL to audio file (required)
-  name?: string;            // Display name
-  startTime?: number;       // Start position in seconds (default: 0)
-  duration?: number;        // Clip duration in seconds (default: full audio)
-  offset?: number;          // Offset into source audio in seconds (default: 0)
+  src?: string;              // URL to audio file
+  audioBuffer?: AudioBuffer; // Pre-loaded AudioBuffer (skips fetch/decode)
+  name?: string;             // Display name
+  startTime?: number;        // Start position in seconds (default: 0)
+  duration?: number;         // Clip duration in seconds (default: full audio)
+  offset?: number;           // Offset into source audio in seconds (default: 0)
   waveformData?: WaveformDataObject; // Pre-computed waveform data from BBC audiowaveform
-  volume?: number;          // Initial volume 0-1 (default: 1)
-  muted?: boolean;          // Start muted (default: false)
-  soloed?: boolean;         // Start soloed (default: false)
-  pan?: number;             // Pan position -1 to 1 (default: 0)
+  volume?: number;           // Initial volume 0-1 (default: 1)
+  muted?: boolean;           // Start muted (default: false)
+  soloed?: boolean;          // Start soloed (default: false)
+  pan?: number;              // Pan position -1 to 1 (default: 0)
+  color?: string;            // Waveform color
+  fadeIn?: Fade;             // Fade in configuration
+  fadeOut?: Fade;            // Fade out configuration
 }
 ```
 

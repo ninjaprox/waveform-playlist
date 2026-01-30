@@ -34,25 +34,20 @@ function Controls() {
 
 These buttons automatically connect to the playlist context and update their state accordingly.
 
-## usePlaybackControls Hook
+## Custom Playback Controls
 
-For custom UI, use the `usePlaybackControls` hook:
+For custom UI, use `usePlaylistControls()` and `usePlaybackAnimation()`:
 
 ```tsx
-import { usePlaybackControls } from '@waveform-playlist/browser';
+import { usePlaylistControls, usePlaybackAnimation } from '@waveform-playlist/browser';
 
 function CustomControls() {
-  const {
-    play,
-    pause,
-    stop,
-    isPlaying,
-    isPaused,
-  } = usePlaybackControls();
+  const { play, pause, stop } = usePlaylistControls();
+  const { isPlaying } = usePlaybackAnimation();
 
   return (
     <div>
-      <button onClick={play} disabled={isPlaying}>
+      <button onClick={() => play()} disabled={isPlaying}>
         Play
       </button>
       <button onClick={pause} disabled={!isPlaying}>
@@ -61,7 +56,7 @@ function CustomControls() {
       <button onClick={stop}>
         Stop
       </button>
-      <span>Status: {isPlaying ? 'Playing' : isPaused ? 'Paused' : 'Stopped'}</span>
+      <span>Status: {isPlaying ? 'Playing' : 'Stopped'}</span>
     </div>
   );
 }
@@ -79,13 +74,13 @@ By default, clicking on the waveform seeks to that position.
 import { usePlaylistControls } from '@waveform-playlist/browser';
 
 function SeekControls() {
-  const { seek } = usePlaylistControls();
+  const { seekTo } = usePlaylistControls();
 
   return (
     <div>
-      <button onClick={() => seek(0)}>Go to Start</button>
-      <button onClick={() => seek(30)}>Go to 0:30</button>
-      <button onClick={() => seek(60)}>Go to 1:00</button>
+      <button onClick={() => seekTo(0)}>Go to Start</button>
+      <button onClick={() => seekTo(30)}>Go to 0:30</button>
+      <button onClick={() => seekTo(60)}>Go to 1:00</button>
     </div>
   );
 }
@@ -106,15 +101,16 @@ function PositionDisplay() {
 // Displays: "0:00.000 / 3:45.123"
 ```
 
-### usePlaylistState Hook
+### Programmatic Access
 
-Access position programmatically:
+Access current time from `usePlaybackAnimation()` and duration from `usePlaylistData()`:
 
 ```tsx
-import { usePlaylistState } from '@waveform-playlist/browser';
+import { usePlaybackAnimation, usePlaylistData } from '@waveform-playlist/browser';
 
 function CustomPosition() {
-  const { cursorPosition, duration } = usePlaylistState();
+  const { currentTime } = usePlaybackAnimation();
+  const { duration } = usePlaylistData();
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -124,7 +120,7 @@ function CustomPosition() {
 
   return (
     <span>
-      {formatTime(cursorPosition)} / {formatTime(duration)}
+      {formatTime(currentTime)} / {formatTime(duration)}
     </span>
   );
 }
@@ -168,15 +164,15 @@ Or control it programmatically:
 import { usePlaylistState, usePlaylistControls } from '@waveform-playlist/browser';
 
 function ContinuousPlayToggle() {
-  const { isContinuousPlay } = usePlaylistState();
-  const { setIsContinuousPlay } = usePlaylistControls();
+  const { continuousPlay } = usePlaylistState();
+  const { setContinuousPlay } = usePlaylistControls();
 
   return (
     <label>
       <input
         type="checkbox"
-        checked={isContinuousPlay}
-        onChange={(e) => setIsContinuousPlay(e.target.checked)}
+        checked={continuousPlay}
+        onChange={(e) => setContinuousPlay(e.target.checked)}
       />
       Loop
     </label>
@@ -336,20 +332,20 @@ function LoopExample() {
 Play only the selected region:
 
 ```tsx
-import { usePlaylistState, usePlaybackControls } from '@waveform-playlist/browser';
+import { usePlaylistState, usePlaylistControls } from '@waveform-playlist/browser';
 
 function PlaySelection() {
-  const { selection } = usePlaylistState();
-  const { play } = usePlaybackControls();
+  const { selectionStart, selectionEnd } = usePlaylistState();
+  const { play } = usePlaylistControls();
 
   const playSelectedRegion = () => {
-    if (selection.start !== selection.end) {
-      play(selection.start, selection.end);
+    if (selectionStart !== selectionEnd) {
+      play(selectionStart, selectionEnd - selectionStart);
     }
   };
 
   return (
-    <button onClick={playSelectedRegion} disabled={selection.start === selection.end}>
+    <button onClick={playSelectedRegion} disabled={selectionStart === selectionEnd}>
       Play Selection
     </button>
   );
@@ -371,10 +367,10 @@ function VolumeControl() {
 Or with a custom UI:
 
 ```tsx
-import { usePlaylistState, usePlaylistControls } from '@waveform-playlist/browser';
+import { usePlaylistData, usePlaylistControls } from '@waveform-playlist/browser';
 
 function CustomVolumeSlider() {
-  const { masterVolume } = usePlaylistState();
+  const { masterVolume } = usePlaylistData();
   const { setMasterVolume } = usePlaylistControls();
 
   return (

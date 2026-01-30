@@ -157,18 +157,24 @@ function useAudioTracks(configs: AudioConfig[]): {
 |------|------|-------------|
 | `configs` | `AudioConfig[]` | Array of audio configurations |
 
-### AudioConfig
+### AudioTrackConfig
 
 ```typescript
-interface AudioConfig {
-  src: string;              // URL to audio file (required)
-  name: string;             // Display name (required)
-  startTime?: number;       // Start position in seconds
-  waveformDataUrl?: string; // URL to BBC Peaks waveform data
-  gain?: number;            // Initial volume 0-1
-  muted?: boolean;          // Start muted
-  soloed?: boolean;         // Start soloed
-  pan?: number;             // Pan position -1 to 1
+interface AudioTrackConfig {
+  src?: string;              // URL to audio file
+  audioBuffer?: AudioBuffer; // Pre-loaded AudioBuffer (skips fetch/decode)
+  name?: string;             // Display name
+  startTime?: number;        // Start position in seconds
+  duration?: number;         // Clip duration in seconds
+  offset?: number;           // Offset into source audio in seconds
+  waveformData?: WaveformDataObject; // Pre-computed BBC audiowaveform data
+  volume?: number;           // Initial volume 0-1
+  muted?: boolean;           // Start muted
+  soloed?: boolean;          // Start soloed
+  pan?: number;              // Pan position -1 to 1
+  color?: string;            // Waveform color
+  fadeIn?: Fade;             // Fade in configuration
+  fadeOut?: Fade;            // Fade out configuration
 }
 ```
 
@@ -208,31 +214,19 @@ function usePlaylistState(): PlaylistState;
 ### Returns
 
 ```typescript
-interface PlaylistState {
-  // Tracks
-  tracks: ClipTrack[];
-  selectedTrackIndex: number | null;
-  selectedClipIndex: number | null;
-
-  // Playback
-  isPlaying: boolean;
-  isPaused: boolean;
-  cursorPosition: number;
-  duration: number;
-
-  // Selection
-  selection: { start: number; end: number };
-
-  // Display
-  samplesPerPixel: number;
-  waveHeight: number;
-  sampleRate: number;
-
-  // Settings
-  isContinuousPlay: boolean;
+interface PlaylistStateContextValue {
+  continuousPlay: boolean;
+  linkEndpoints: boolean;
+  annotationsEditable: boolean;
   isAutomaticScroll: boolean;
-  masterVolume: number;
-  timeFormat: string;
+  isLoopEnabled: boolean;
+  annotations: AnnotationData[];
+  activeAnnotationId: string | null;
+  selectionStart: number;
+  selectionEnd: number;
+  selectedTrackId: string | null;
+  loopStart: number;
+  loopEnd: number;
 }
 ```
 
@@ -240,13 +234,15 @@ interface PlaylistState {
 
 ```tsx
 function StatusBar() {
-  const { isPlaying, cursorPosition, duration, tracks } = usePlaylistState();
+  const { continuousPlay, selectedTrackId } = usePlaylistState();
+  const { isPlaying } = usePlaybackAnimation();
+  const { duration } = usePlaylistData();
 
   return (
     <div>
       <span>{isPlaying ? 'Playing' : 'Stopped'}</span>
-      <span>{cursorPosition.toFixed(2)} / {duration.toFixed(2)}</span>
-      <span>{tracks.length} tracks</span>
+      <span>Duration: {duration.toFixed(2)}s</span>
+      <span>Continuous: {continuousPlay ? 'On' : 'Off'}</span>
     </div>
   );
 }
@@ -267,29 +263,52 @@ function usePlaylistControls(): PlaylistControls;
 ### Returns
 
 ```typescript
-interface PlaylistControls {
+interface PlaylistControlsContextValue {
   // Playback
-  play: (start?: number, end?: number) => void;
+  play: (startTime?: number, playDuration?: number) => Promise<void>;
   pause: () => void;
   stop: () => void;
-  seek: (position: number) => void;
+  seekTo: (time: number) => void;
+  setCurrentTime: (time: number) => void;
+
+  // Track controls
+  setTrackMute: (trackIndex: number, muted: boolean) => void;
+  setTrackSolo: (trackIndex: number, soloed: boolean) => void;
+  setTrackVolume: (trackIndex: number, volume: number) => void;
+  setTrackPan: (trackIndex: number, pan: number) => void;
+
+  // Selection
+  setSelection: (start: number, end: number) => void;
+  setSelectedTrackId: (trackId: string | null) => void;
+
+  // Time format
+  setTimeFormat: (format: TimeFormat) => void;
+  formatTime: (seconds: number) => string;
 
   // Zoom
   zoomIn: () => void;
   zoomOut: () => void;
-  setSamplesPerPixel: (spp: number) => void;
 
-  // Tracks
-  addTrack: (track: ClipTrack) => void;
-  removeTrack: (index: number) => void;
-  moveTrack: (fromIndex: number, toIndex: number) => void;
-  selectTrack: (index: number | null) => void;
+  // Master volume
+  setMasterVolume: (volume: number) => void;
 
-  // Settings
-  setIsContinuousPlay: (value: boolean) => void;
-  setIsAutomaticScroll: (value: boolean) => void;
-  setMasterVolume: (value: number) => void;
-  setTimeFormat: (format: string) => void;
+  // Scroll
+  setAutomaticScroll: (enabled: boolean) => void;
+  setScrollContainer: (element: HTMLDivElement | null) => void;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
+
+  // Annotation controls
+  setContinuousPlay: (enabled: boolean) => void;
+  setLinkEndpoints: (enabled: boolean) => void;
+  setAnnotationsEditable: (enabled: boolean) => void;
+  setAnnotations: Dispatch<SetStateAction<AnnotationData[]>>;
+  setActiveAnnotationId: (id: string | null) => void;
+
+  // Loop controls
+  setLoopEnabled: (enabled: boolean) => void;
+  setLoopRegion: (start: number, end: number) => void;
+  setLoopRegionFromSelection: () => void;
+  clearLoopRegion: () => void;
 }
 ```
 
@@ -297,106 +316,14 @@ interface PlaylistControls {
 
 ```tsx
 function CustomControls() {
-  const { play, pause, stop, seek } = usePlaylistControls();
+  const { play, pause, stop, seekTo } = usePlaylistControls();
 
   return (
     <div>
       <button onClick={() => play()}>Play</button>
       <button onClick={() => pause()}>Pause</button>
       <button onClick={() => stop()}>Stop</button>
-      <button onClick={() => seek(0)}>Go to Start</button>
-    </div>
-  );
-}
-```
-
----
-
-## usePlaybackControls
-
-Focused hook for playback state and controls.
-
-### Signature
-
-```typescript
-function usePlaybackControls(): {
-  play: () => void;
-  pause: () => void;
-  stop: () => void;
-  isPlaying: boolean;
-  isPaused: boolean;
-};
-```
-
-### Example
-
-```tsx
-function PlayPauseButton() {
-  const { play, pause, isPlaying } = usePlaybackControls();
-
-  return (
-    <button onClick={isPlaying ? pause : play}>
-      {isPlaying ? 'Pause' : 'Play'}
-    </button>
-  );
-}
-```
-
----
-
-## useTrackControls
-
-Control an individual track.
-
-### Signature
-
-```typescript
-function useTrackControls(trackIndex: number): {
-  muted: boolean;
-  soloed: boolean;
-  volume: number;
-  pan: number;
-  setMuted: (value: boolean) => void;
-  setSoloed: (value: boolean) => void;
-  setVolume: (value: number) => void;
-  setPan: (value: number) => void;
-};
-```
-
-### Parameters
-
-| Name | Type | Description |
-|------|------|-------------|
-| `trackIndex` | `number` | Index of the track |
-
-### Example
-
-```tsx
-function TrackMixer({ trackIndex }: { trackIndex: number }) {
-  const { volume, pan, setVolume, setPan, muted, setMuted } =
-    useTrackControls(trackIndex);
-
-  return (
-    <div>
-      <button onClick={() => setMuted(!muted)}>
-        {muted ? 'Unmute' : 'Mute'}
-      </button>
-      <input
-        type="range"
-        min="0"
-        max="1"
-        step="0.01"
-        value={volume}
-        onChange={(e) => setVolume(parseFloat(e.target.value))}
-      />
-      <input
-        type="range"
-        min="-1"
-        max="1"
-        step="0.01"
-        value={pan}
-        onChange={(e) => setPan(parseFloat(e.target.value))}
-      />
+      <button onClick={() => seekTo(0)}>Go to Start</button>
     </div>
   );
 }
@@ -415,31 +342,25 @@ function useZoomControls(): {
   samplesPerPixel: number;
   zoomIn: () => void;
   zoomOut: () => void;
-  setSamplesPerPixel: (spp: number) => void;
   canZoomIn: boolean;
   canZoomOut: boolean;
 };
 ```
 
+Note: `useZoomControls` is an internal hook used by the provider. For zooming, use `zoomIn()` and `zoomOut()` from `usePlaylistControls()`, or the `ZoomInButton` / `ZoomOutButton` components.
+
 ### Example
 
 ```tsx
-function ZoomSlider() {
-  const { samplesPerPixel, setSamplesPerPixel, canZoomIn, canZoomOut } =
-    useZoomControls();
-
-  const zoomLevels = [256, 512, 1024, 2048, 4096];
-  const currentIndex = zoomLevels.indexOf(samplesPerPixel);
+function ZoomControls() {
+  const { zoomIn, zoomOut } = usePlaylistControls();
+  const { canZoomIn, canZoomOut, samplesPerPixel } = usePlaylistData();
 
   return (
     <div>
-      <button onClick={() => setSamplesPerPixel(zoomLevels[currentIndex - 1])} disabled={!canZoomIn}>
-        +
-      </button>
+      <button onClick={zoomIn} disabled={!canZoomIn}>+</button>
       <span>{samplesPerPixel} spp</span>
-      <button onClick={() => setSamplesPerPixel(zoomLevels[currentIndex + 1])} disabled={!canZoomOut}>
-        -
-      </button>
+      <button onClick={zoomOut} disabled={!canZoomOut}>-</button>
     </div>
   );
 }
@@ -476,12 +397,12 @@ function useTimeFormat(): {
 
 ```tsx
 function TimeDisplay() {
-  const { cursorPosition } = usePlaylistState();
+  const { currentTime } = usePlaybackAnimation();
   const { formatTime, setTimeFormat } = useTimeFormat();
 
   return (
     <div>
-      <span>{formatTime(cursorPosition)}</span>
+      <span>{formatTime(currentTime)}</span>
       <select onChange={(e) => setTimeFormat(e.target.value)}>
         <option value="thousandths">0:00.000</option>
         <option value="hh:mm:ss">0:00:00</option>
@@ -698,14 +619,15 @@ interface UseClipSplittingResult {
 
 ```tsx
 function SplitButton() {
-  const { tracks, selectedTrackId, selectedClipId } = usePlaylistState();
+  const { selectedTrackId } = usePlaylistState();
+  const { tracks } = usePlaylistData();
   const [localTracks, setLocalTracks] = useState(tracks);
 
   const { splitClipAtPlayhead, canSplit } = useClipSplitting({
     tracks: localTracks,
     onTracksChange: setLocalTracks,
     selectedTrackId,
-    selectedClipId,
+    selectedClipId: null, // Set from your own state if needed
   });
 
   return (
@@ -733,13 +655,16 @@ function useDynamicEffects(): UseDynamicEffectsReturn;
 ```typescript
 interface UseDynamicEffectsReturn {
   activeEffects: ActiveEffect[];
+  availableEffects: EffectDefinition[];
   addEffect: (effectId: string) => void;
   removeEffect: (instanceId: string) => void;
-  updateParameter: (instanceId: string, paramId: string, value: number) => void;
+  updateParameter: (instanceId: string, paramName: string, value: number | string | boolean) => void;
   toggleBypass: (instanceId: string) => void;
   reorderEffects: (fromIndex: number, toIndex: number) => void;
-  createEffectsFunction: () => EffectsFunction;
-  createOfflineEffectsFunction: () => EffectsFunction;
+  clearAllEffects: () => void;
+  masterEffects: EffectsFunction;
+  createOfflineEffectsFunction: () => EffectsFunction | undefined;
+  analyserRef: RefObject<any>;
 }
 
 interface ActiveEffect {
@@ -1052,15 +977,15 @@ const label = getShortcutLabel(shortcut);
 
 ### 1. Use Specific Hooks
 
-Prefer specific hooks over general ones:
+Prefer the split context hooks over the legacy combined hook:
 
 ```tsx
-// Better - only subscribes to playback state
-const { isPlaying, play, pause } = usePlaybackControls();
+// Better - only subscribes to playback animation state
+const { isPlaying } = usePlaybackAnimation();
+const { play, pause } = usePlaylistControls();
 
 // Less efficient - subscribes to all state
-const { isPlaying } = usePlaylistState();
-const { play, pause } = usePlaylistControls();
+const { isPlaying, play, pause } = useWaveformPlaylist();
 ```
 
 ### 2. Memoize Callbacks

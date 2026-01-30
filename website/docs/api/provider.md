@@ -111,42 +111,76 @@ Custom theme object. See [Theming Guide](/docs/guides/theming).
 >
 ```
 
-### Audio Configuration
+### Audio Effects
 
-#### `sampleRate`
+#### `effects`
+
+**Type:** `EffectsFunction`
+
+Master effects chain function from `useDynamicEffects()`.
+
+### Annotations
+
+#### `annotationList`
+
+**Type:** `{ annotations?: any[]; editable?: boolean; isContinuousPlay?: boolean; linkEndpoints?: boolean; controls?: any[] }`
+
+Annotation configuration. When using editable annotations, pair with `onAnnotationsChange`.
+
+#### `onAnnotationsChange`
+
+**Type:** `(annotations: AnnotationData[]) => void`
+
+Callback when annotations change. Required for editable annotations to persist.
+
+### Callbacks
+
+#### `onReady`
+
+**Type:** `() => void`
+
+Called when all tracks finish loading.
+
+### Waveform Rendering
+
+#### `barWidth`
 
 **Type:** `number`
-**Default:** `44100`
+**Default:** `1`
 
-Audio sample rate. Should match your audio files.
+Width in pixels of waveform bars.
 
-### Initial State
-
-#### `cursorPosition`
+#### `barGap`
 
 **Type:** `number`
 **Default:** `0`
 
-Initial cursor position in seconds.
+Spacing in pixels between waveform bars.
 
-#### `selection`
+#### `progressBarWidth`
 
-**Type:** `{ start: number; end: number }`
-**Default:** `{ start: 0, end: 0 }`
+**Type:** `number`
+**Default:** `barWidth + barGap`
 
-Initial selection range.
+Width in pixels of progress bars.
 
-#### `isContinuousPlay`
+#### `mono`
 
 **Type:** `boolean`
 **Default:** `false`
 
-Enable looping playback.
+Render mono waveforms.
 
-#### `isAutomaticScroll`
+#### `zoomLevels`
+
+**Type:** `number[]`
+
+Array of zoom levels in samples per pixel.
+
+#### `automaticScroll`
 
 **Type:** `boolean`
-**Default:** `true`
+**Default:** `false`
 
 Auto-scroll to keep playhead visible.
 
@@ -154,63 +188,83 @@ Auto-scroll to keep playhead visible.
 
 The provider exposes state and controls through React Context. Access them using the provided hooks.
 
+### Playback Animation (usePlaybackAnimation)
+
+```typescript
+interface PlaybackAnimationContextValue {
+  isPlaying: boolean;
+  currentTime: number;
+  currentTimeRef: RefObject<number>;
+  playbackStartTimeRef: RefObject<number>;
+  audioStartPositionRef: RefObject<number>;
+}
+```
+
 ### State (usePlaylistState)
 
 ```typescript
-interface PlaylistState {
-  // Tracks
-  tracks: ClipTrack[];
-  selectedTrackIndex: number | null;
-  selectedClipIndex: number | null;
-
-  // Playback
-  isPlaying: boolean;
-  isPaused: boolean;
-  cursorPosition: number;
-  duration: number;
-
-  // Selection
-  selection: { start: number; end: number };
-
-  // Display
-  samplesPerPixel: number;
-  waveHeight: number;
-  sampleRate: number;
-
-  // Settings
-  isContinuousPlay: boolean;
+interface PlaylistStateContextValue {
+  continuousPlay: boolean;
+  linkEndpoints: boolean;
+  annotationsEditable: boolean;
   isAutomaticScroll: boolean;
-  masterVolume: number;
-  timeFormat: string;
+  isLoopEnabled: boolean;
+  annotations: AnnotationData[];
+  activeAnnotationId: string | null;
+  selectionStart: number;
+  selectionEnd: number;
+  selectedTrackId: string | null;
+  loopStart: number;
+  loopEnd: number;
 }
 ```
 
 ### Controls (usePlaylistControls)
 
 ```typescript
-interface PlaylistControls {
-  // Playback
-  play: (start?: number, end?: number) => void;
+interface PlaylistControlsContextValue {
+  play: (startTime?: number, playDuration?: number) => Promise<void>;
   pause: () => void;
   stop: () => void;
-  seek: (position: number) => void;
-
-  // Zoom
+  seekTo: (time: number) => void;
+  setCurrentTime: (time: number) => void;
+  setTrackMute: (trackIndex: number, muted: boolean) => void;
+  setTrackSolo: (trackIndex: number, soloed: boolean) => void;
+  setTrackVolume: (trackIndex: number, volume: number) => void;
+  setTrackPan: (trackIndex: number, pan: number) => void;
+  setSelection: (start: number, end: number) => void;
+  setSelectedTrackId: (trackId: string | null) => void;
+  setTimeFormat: (format: TimeFormat) => void;
+  formatTime: (seconds: number) => string;
   zoomIn: () => void;
   zoomOut: () => void;
-  setSamplesPerPixel: (spp: number) => void;
+  setMasterVolume: (volume: number) => void;
+  setAutomaticScroll: (enabled: boolean) => void;
+  setContinuousPlay: (enabled: boolean) => void;
+  setLoopEnabled: (enabled: boolean) => void;
+  setLoopRegion: (start: number, end: number) => void;
+  setLoopRegionFromSelection: () => void;
+  clearLoopRegion: () => void;
+}
+```
 
-  // Tracks
-  addTrack: (track: ClipTrack) => void;
-  removeTrack: (index: number) => void;
-  moveTrack: (fromIndex: number, toIndex: number) => void;
-  selectTrack: (index: number | null) => void;
+### Data (usePlaylistData)
 
-  // Settings
-  setIsContinuousPlay: (value: boolean) => void;
-  setIsAutomaticScroll: (value: boolean) => void;
-  setMasterVolume: (value: number) => void;
-  setTimeFormat: (format: string) => void;
+```typescript
+interface PlaylistDataContextValue {
+  duration: number;
+  audioBuffers: AudioBuffer[];
+  peaksDataArray: TrackClipPeaks[];
+  trackStates: TrackState[];
+  tracks: ClipTrack[];
+  sampleRate: number;
+  waveHeight: number;
+  samplesPerPixel: number;
+  timeFormat: string;
+  masterVolume: number;
+  canZoomIn: boolean;
+  canZoomOut: boolean;
+  isReady: boolean;
 }
 ```
 
@@ -257,22 +311,34 @@ interface WaveformPlaylistProviderProps {
   samplesPerPixel?: number;
   waveHeight?: number;
   timescale?: boolean;
-  controls?: {
-    show: boolean;
-    width: number;
-  };
+  mono?: boolean;
+  zoomLevels?: number[];
+  automaticScroll?: boolean;
+  controls?: { show: boolean; width: number };
 
   // Theming
   theme?: Partial<WaveformPlaylistTheme>;
 
   // Audio
-  sampleRate?: number;
+  effects?: EffectsFunction;
 
-  // Initial state
-  cursorPosition?: number;
-  selection?: { start: number; end: number };
-  isContinuousPlay?: boolean;
-  isAutomaticScroll?: boolean;
+  // Annotations
+  annotationList?: {
+    annotations?: any[];
+    editable?: boolean;
+    isContinuousPlay?: boolean;
+    linkEndpoints?: boolean;
+    controls?: any[];
+  };
+
+  // Callbacks
+  onReady?: () => void;
+  onAnnotationsChange?: (annotations: AnnotationData[]) => void;
+
+  // Waveform rendering
+  barWidth?: number;
+  barGap?: number;
+  progressBarWidth?: number;
 }
 ```
 

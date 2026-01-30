@@ -218,54 +218,7 @@ Expands or narrows the stereo image.
 
 ## Usage
 
-### Basic Effect Hook
-
-```tsx
-import { useTrackReverb, useTrackAutoWah } from '@waveform-playlist/browser';
-
-function MyPlaylist() {
-  // Create effects with initial parameters
-  const reverbEffect = useTrackReverb(1.5); // 1.5s decay
-  const autoWahEffect = useTrackAutoWah({
-    baseFrequency: 100,
-    octaves: 6,
-    sensitivity: -20,
-  });
-
-  const tracks = [
-    { src: 'vocals.mp3', effects: autoWahEffect },
-    { src: 'guitar.mp3', effects: reverbEffect },
-  ];
-
-  return (
-    <WaveformPlaylistProvider tracks={tracks}>
-      <Waveform />
-    </WaveformPlaylistProvider>
-  );
-}
-```
-
-### Master Effects with Analyser
-
-```tsx
-import { useMasterAnalyser } from '@waveform-playlist/browser';
-
-function MyPlaylist() {
-  const { analyserRef, masterEffects } = useMasterAnalyser(256);
-
-  return (
-    <WaveformPlaylistProvider
-      tracks={tracks}
-      effects={masterEffects}
-    >
-      <FrequencyVisualizer analyserRef={analyserRef} />
-      <Waveform />
-    </WaveformPlaylistProvider>
-  );
-}
-```
-
-### Dynamic Effects (Add/Remove at Runtime)
+### Dynamic Master Effects (Add/Remove at Runtime)
 
 ```tsx
 import { useDynamicEffects, effectDefinitions } from '@waveform-playlist/browser';
@@ -281,7 +234,7 @@ function EffectsPanel() {
   } = useDynamicEffects();
 
   return (
-    <WaveformPlaylistProvider effects={masterEffects}>
+    <WaveformPlaylistProvider effects={masterEffects} tracks={tracks}>
       {/* Effect selector */}
       <select onChange={(e) => addEffect(e.target.value)}>
         <option value="">Add Effect...</option>

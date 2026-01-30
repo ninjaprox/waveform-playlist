@@ -26,48 +26,43 @@ The controls panel displays:
 - Volume slider
 - Pan slider
 
-## useTrackControls Hook
+## Programmatic Track Controls
 
-For custom track control UI:
+Use `usePlaylistControls()` and `usePlaylistData()` for custom track control UI:
 
 ```tsx
-import { useTrackControls } from '@waveform-playlist/browser';
+import { usePlaylistControls, usePlaylistData } from '@waveform-playlist/browser';
 
 function CustomTrackControls({ trackIndex }: { trackIndex: number }) {
-  const {
-    muted,
-    soloed,
-    volume,
-    pan,
-    setMuted,
-    setSoloed,
-    setVolume,
-    setPan,
-  } = useTrackControls(trackIndex);
+  const { setTrackMute, setTrackSolo, setTrackVolume, setTrackPan } = usePlaylistControls();
+  const { trackStates } = usePlaylistData();
+  const state = trackStates[trackIndex];
+
+  if (!state) return null;
 
   return (
     <div>
-      <button onClick={() => setMuted(!muted)}>
-        {muted ? 'Unmute' : 'Mute'}
+      <button onClick={() => setTrackMute(trackIndex, !state.muted)}>
+        {state.muted ? 'Unmute' : 'Mute'}
       </button>
-      <button onClick={() => setSoloed(!soloed)}>
-        {soloed ? 'Unsolo' : 'Solo'}
+      <button onClick={() => setTrackSolo(trackIndex, !state.soloed)}>
+        {state.soloed ? 'Unsolo' : 'Solo'}
       </button>
       <input
         type="range"
         min="0"
         max="1"
         step="0.01"
-        value={volume}
-        onChange={(e) => setVolume(parseFloat(e.target.value))}
+        value={state.volume}
+        onChange={(e) => setTrackVolume(trackIndex, parseFloat(e.target.value))}
       />
       <input
         type="range"
         min="-1"
         max="1"
         step="0.01"
-        value={pan}
-        onChange={(e) => setPan(parseFloat(e.target.value))}
+        value={state.pan}
+        onChange={(e) => setTrackPan(trackIndex, parseFloat(e.target.value))}
       />
     </div>
   );
@@ -81,16 +76,17 @@ function CustomTrackControls({ trackIndex }: { trackIndex: number }) {
 Muting a track silences it completely:
 
 ```tsx
-const { muted, setMuted } = useTrackControls(trackIndex);
+const { setTrackMute } = usePlaylistControls();
+const { trackStates } = usePlaylistData();
 
 // Toggle mute
-setMuted(!muted);
+setTrackMute(trackIndex, !trackStates[trackIndex].muted);
 
 // Mute track
-setMuted(true);
+setTrackMute(trackIndex, true);
 
 // Unmute track
-setMuted(false);
+setTrackMute(trackIndex, false);
 ```
 
 ### Solo
@@ -98,10 +94,11 @@ setMuted(false);
 Soloing a track mutes all other non-soloed tracks:
 
 ```tsx
-const { soloed, setSoloed } = useTrackControls(trackIndex);
+const { setTrackSolo } = usePlaylistControls();
+const { trackStates } = usePlaylistData();
 
 // Toggle solo
-setSoloed(!soloed);
+setTrackSolo(trackIndex, !trackStates[trackIndex].soloed);
 ```
 
 When multiple tracks are soloed, only those tracks are audible.
@@ -111,16 +108,10 @@ When multiple tracks are soloed, only those tracks are audible.
 Volume ranges from 0 (silent) to 1 (full volume):
 
 ```tsx
-const { volume, setVolume } = useTrackControls(trackIndex);
+const { setTrackVolume } = usePlaylistControls();
 
 // Set to 50% volume
-setVolume(0.5);
-
-// Fade out
-for (let v = volume; v >= 0; v -= 0.1) {
-  setVolume(v);
-  await delay(100);
-}
+setTrackVolume(trackIndex, 0.5);
 ```
 
 ## Pan Control
@@ -128,16 +119,16 @@ for (let v = volume; v >= 0; v -= 0.1) {
 Pan ranges from -1 (full left) to 1 (full right):
 
 ```tsx
-const { pan, setPan } = useTrackControls(trackIndex);
+const { setTrackPan } = usePlaylistControls();
 
 // Pan fully left
-setPan(-1);
+setTrackPan(trackIndex, -1);
 
 // Center
-setPan(0);
+setTrackPan(trackIndex, 0);
 
 // Pan fully right
-setPan(1);
+setTrackPan(trackIndex, 1);
 ```
 
 ## Track Selection
@@ -145,20 +136,21 @@ setPan(1);
 Select tracks for operations like deletion or effects:
 
 ```tsx
-import { usePlaylistState, usePlaylistControls } from '@waveform-playlist/browser';
+import { usePlaylistState, usePlaylistControls, usePlaylistData } from '@waveform-playlist/browser';
 
 function TrackSelector() {
-  const { tracks, selectedTrackIndex } = usePlaylistState();
-  const { selectTrack } = usePlaylistControls();
+  const { tracks } = usePlaylistData();
+  const { selectedTrackId } = usePlaylistState();
+  const { setSelectedTrackId } = usePlaylistControls();
 
   return (
     <ul>
-      {tracks.map((track, index) => (
+      {tracks.map((track) => (
         <li
-          key={index}
-          onClick={() => selectTrack(index)}
+          key={track.id}
+          onClick={() => setSelectedTrackId(track.id)}
           style={{
-            background: selectedTrackIndex === index ? '#e0e0ff' : 'transparent',
+            background: selectedTrackId === track.id ? '#e0e0ff' : 'transparent',
           }}
         >
           {track.name}
@@ -171,66 +163,43 @@ function TrackSelector() {
 
 ## Adding and Removing Tracks
 
-### Adding Tracks
+Track management (adding, removing, reordering) is handled by updating the `tracks` prop passed to `WaveformPlaylistProvider`. The provider does not have built-in `addTrack` / `removeTrack` / `moveTrack` methods — you manage tracks in your own state:
 
 ```tsx
-import { usePlaylistControls, useAudioTracks } from '@waveform-playlist/browser';
+import { WaveformPlaylistProvider, Waveform, useAudioTracks } from '@waveform-playlist/browser';
 
-function AddTrackButton() {
-  const { addTrack } = usePlaylistControls();
+function TrackManagementExample() {
+  const { tracks: initialTracks, loading } = useAudioTracks([
+    { src: '/audio/drums.mp3', name: 'Drums' },
+    { src: '/audio/bass.mp3', name: 'Bass' },
+  ]);
+  const [tracks, setTracks] = useState(initialTracks);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  // Update tracks when initial load completes
+  useEffect(() => {
+    if (!loading) setTracks(initialTracks);
+  }, [initialTracks, loading]);
 
-    const blobUrl = URL.createObjectURL(file);
-    const { tracks } = await useAudioTracks([
-      { src: blobUrl, name: file.name.replace(/\.[^/.]+$/, '') },
-    ]);
-
-    if (tracks.length > 0) {
-      addTrack(tracks[0]);
-    }
+  const removeTrack = (index: number) => {
+    setTracks((prev) => prev.filter((_, i) => i !== index));
   };
 
-  return <input type="file" accept="audio/*" onChange={handleFileSelect} />;
-}
-```
+  const moveTrack = (fromIndex: number, toIndex: number) => {
+    setTracks((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  };
 
-### Removing Tracks
-
-```tsx
-import { usePlaylistControls, usePlaylistState } from '@waveform-playlist/browser';
-
-function RemoveTrackButton() {
-  const { selectedTrackIndex } = usePlaylistState();
-  const { removeTrack } = usePlaylistControls();
+  if (loading) return <div>Loading...</div>;
 
   return (
-    <button
-      onClick={() => removeTrack(selectedTrackIndex)}
-      disabled={selectedTrackIndex === null}
-    >
-      Remove Selected Track
-    </button>
+    <WaveformPlaylistProvider tracks={tracks}>
+      <Waveform />
+    </WaveformPlaylistProvider>
   );
-}
-```
-
-## Track Reordering
-
-Reorder tracks by drag and drop or programmatically:
-
-```tsx
-import { usePlaylistControls } from '@waveform-playlist/browser';
-
-function TrackReorder() {
-  const { moveTrack } = usePlaylistControls();
-
-  // Move track from index 2 to index 0
-  const moveToTop = () => moveTrack(2, 0);
-
-  return <button onClick={moveToTop}>Move Track 3 to Top</button>;
 }
 ```
 
@@ -243,26 +212,26 @@ const { tracks, loading } = useAudioTracks([
   {
     src: '/audio/drums.mp3',
     name: 'Drums',
-    gain: 0.8,        // 80% volume
+    volume: 0.8,       // 80% volume
     muted: false,
     soloed: false,
-    pan: 0,           // Center
+    pan: 0,            // Center
   },
   {
     src: '/audio/bass.mp3',
     name: 'Bass',
-    gain: 1.0,        // Full volume
+    volume: 1.0,       // Full volume
     muted: false,
     soloed: false,
-    pan: -0.3,        // Slightly left
+    pan: -0.3,         // Slightly left
   },
   {
     src: '/audio/keys.mp3',
     name: 'Keys',
-    gain: 0.7,
-    muted: true,      // Start muted
+    volume: 0.7,
+    muted: true,       // Start muted
     soloed: false,
-    pan: 0.3,         // Slightly right
+    pan: 0.3,          // Slightly right
   },
 ]);
 ```
@@ -274,28 +243,29 @@ import {
   WaveformPlaylistProvider,
   Waveform,
   useAudioTracks,
-  usePlaylistState,
-  useTrackControls,
+  usePlaylistControls,
+  usePlaylistData,
 } from '@waveform-playlist/browser';
 
 function TrackControlRow({ trackIndex }: { trackIndex: number }) {
-  const { tracks } = usePlaylistState();
-  const { muted, soloed, volume, pan, setMuted, setSoloed, setVolume, setPan } =
-    useTrackControls(trackIndex);
-  const track = tracks[trackIndex];
+  const { trackStates } = usePlaylistData();
+  const { setTrackMute, setTrackSolo, setTrackVolume, setTrackPan } = usePlaylistControls();
+  const state = trackStates[trackIndex];
+
+  if (!state) return null;
 
   return (
     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.5rem' }}>
-      <span style={{ width: '100px' }}>{track.name}</span>
+      <span style={{ width: '100px' }}>{state.name}</span>
       <button
-        onClick={() => setMuted(!muted)}
-        style={{ background: muted ? '#ff6b6b' : '#e0e0e0' }}
+        onClick={() => setTrackMute(trackIndex, !state.muted)}
+        style={{ background: state.muted ? '#ff6b6b' : '#e0e0e0' }}
       >
         M
       </button>
       <button
-        onClick={() => setSoloed(!soloed)}
-        style={{ background: soloed ? '#ffd93d' : '#e0e0e0' }}
+        onClick={() => setTrackSolo(trackIndex, !state.soloed)}
+        style={{ background: state.soloed ? '#ffd93d' : '#e0e0e0' }}
       >
         S
       </button>
@@ -306,8 +276,8 @@ function TrackControlRow({ trackIndex }: { trackIndex: number }) {
           min="0"
           max="1"
           step="0.01"
-          value={volume}
-          onChange={(e) => setVolume(parseFloat(e.target.value))}
+          value={state.volume}
+          onChange={(e) => setTrackVolume(trackIndex, parseFloat(e.target.value))}
         />
       </label>
       <label>
@@ -317,8 +287,8 @@ function TrackControlRow({ trackIndex }: { trackIndex: number }) {
           min="-1"
           max="1"
           step="0.01"
-          value={pan}
-          onChange={(e) => setPan(parseFloat(e.target.value))}
+          value={state.pan}
+          onChange={(e) => setTrackPan(trackIndex, parseFloat(e.target.value))}
         />
       </label>
     </div>

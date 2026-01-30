@@ -39,10 +39,12 @@ The main visualization component that renders tracks and handles interactions.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `timescale` | `boolean` | `false` | Show timeline with time markers |
 | `showClipHeaders` | `boolean` | `false` | Show clip name headers above waveforms |
+| `interactiveClips` | `boolean` | `false` | Enable dragging/trimming interactions on clips (requires @dnd-kit setup) |
 | `renderPlayhead` | `RenderPlayheadFunction` | - | Custom playhead render function |
 | `renderTrackControls` | `(trackIndex: number) => ReactNode` | - | Custom track controls renderer |
+
+Note: The `timescale` prop is set on `WaveformPlaylistProvider`, not on `Waveform`.
 
 ### Usage
 

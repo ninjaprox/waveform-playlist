@@ -48,11 +48,16 @@ When adding new examples or UI elements, maintain this aesthetic. The Flexible A
 **Stable Releases:** Publish without tag to update `@latest`.
 
 ```bash
-# Publish stable release
-pnpm publish
+# Publish stable release (all packages)
+pnpm publish --filter './packages/*' --no-git-checks
 
 # Users install with:
 npm install @waveform-playlist/browser
+```
+
+**Version Bumping:** All 10 `package.json` files (root + 9 packages) must be bumped in sync:
+```bash
+sed -i '' 's/"version": "OLD"/"version": "NEW"/g' package.json packages/*/package.json
 ```
 
 **Prerelease Tag:** Use `@next` for prerelease versions when preparing future major releases.
@@ -232,6 +237,17 @@ interface AudioClip {
 - Use MutationObserver to detect `data-theme` attribute changes
 - Switch between `defaultTheme` and `darkTheme` based on Docusaurus mode
 - Example: `minimal-app.tsx` detects and responds to theme toggle
+
+### Annotation Provider Pattern
+
+**Critical:** When using `annotationList` on `WaveformPlaylistProvider`, always pair it with `onAnnotationsChange`. Without the callback, annotation edits won't persist and a console warning fires.
+
+```typescript
+<WaveformPlaylistProvider
+  annotationList={{ annotations, editable: true, linkEndpoints: false }}
+  onAnnotationsChange={setAnnotations}  // Required for edits to persist
+>
+```
 
 ### Docusaurus Native Examples
 

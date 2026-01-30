@@ -547,16 +547,6 @@ div[class*='announcementBar'] code {
   padding: 0.1em 0.4em;
 }
 
-/* Buy Me a Coffee navbar link */
-.navbar__link--bmc {
-  opacity: 0.75;
-  transition: opacity 0.2s ease;
-}
-
-.navbar__link--bmc:hover {
-  opacity: 1;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .hero__title {

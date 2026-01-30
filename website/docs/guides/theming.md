@@ -399,5 +399,5 @@ For scrolling playlists, prefer solid colors instead.
 ## Next Steps
 
 - [Custom Playhead](/docs/api/components#custom-playhead) - Create a custom playhead component
-- [API Reference: Provider](/docs/api/provider) - Full provider configuration
+- [API Reference: Provider](/docs/api/providers/waveform-playlist-provider) - Full provider configuration
 - [Examples](/examples) - See themed examples in action

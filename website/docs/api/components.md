@@ -581,6 +581,6 @@ const StyledPlayButton = styled(PlayButton)`
 
 ## See Also
 
-- [WaveformPlaylistProvider](/docs/api/provider)
+- [WaveformPlaylistProvider](/docs/api/providers/waveform-playlist-provider)
 - [Hooks](/docs/api/hooks)
 - [Theming Guide](/docs/guides/theming)

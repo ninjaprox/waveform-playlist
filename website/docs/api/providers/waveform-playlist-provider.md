@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # WaveformPlaylistProvider
 
-The `WaveformPlaylistProvider` is the core component that manages all playlist state and provides context to child components.
+The `WaveformPlaylistProvider` is the core component that manages all playlist state and provides context to child components. It uses the Web Audio API (via Tone.js) for multi-track playback, mixing, and effects processing.
 
 ## Import
 

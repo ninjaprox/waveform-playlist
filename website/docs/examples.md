@@ -326,5 +326,5 @@ Visit `http://localhost:3000` to see the examples.
 ## See Also
 
 - [Getting Started](/docs/getting-started/installation)
-- [API Reference](/docs/api/provider)
+- [API Reference](/docs/api/providers/waveform-playlist-provider)
 - [GitHub Repository](https://github.com/naomiaro/waveform-playlist)

@@ -1014,7 +1014,7 @@ Hooks must be used within their providers:
 
 ## See Also
 
-- [WaveformPlaylistProvider](/docs/api/provider)
+- [WaveformPlaylistProvider](/docs/api/providers/waveform-playlist-provider)
 - [Components](/docs/api/components)
 - [Recording Guide](/docs/guides/recording)
 - [Annotations Guide](/docs/guides/annotations)

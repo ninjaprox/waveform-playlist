@@ -101,8 +101,8 @@ export const TrackMenu: React.FC<TrackMenuProps> = ({
           setOpen(prev => !prev);
         }}
         onMouseDown={(e) => e.stopPropagation()}
-        title="Track display options"
-        aria-label="Track display options"
+        title="Track menu"
+        aria-label="Track menu"
       >
         <DotsIcon size={16} />
       </MenuButton>

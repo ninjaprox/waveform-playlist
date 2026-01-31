@@ -17,3 +17,8 @@ website/static/storybook/
 
 # Package build output
 packages/*/dist/
+
+# Playwright
+test-results/
+playwright-report/
+.playwright-mcp/

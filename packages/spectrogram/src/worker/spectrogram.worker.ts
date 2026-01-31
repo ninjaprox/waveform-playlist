@@ -1,10 +1,12 @@
 /**
  * Web Worker for off-main-thread spectrogram computation and rendering.
  *
- * Supports three modes:
+ * Supports five modes:
  * 1. `compute` — FFT only, returns SpectrogramData to main thread (backward compat)
  * 2. `register-canvas` / `unregister-canvas` — manage OffscreenCanvas ownership
  * 3. `compute-render` — FFT + direct pixel rendering to registered OffscreenCanvases
+ * 4. `compute-fft` — FFT with caching, returns cache key (no rendering)
+ * 5. `render-chunks` — render specific chunks from cached FFT data
  */
 
 import type { SpectrogramConfig, SpectrogramData } from '@waveform-playlist/core';
@@ -14,6 +16,27 @@ import { getFrequencyScale, type FrequencyScaleName } from '../computation/frequ
 
 // --- Canvas registry ---
 const canvasRegistry = new Map<string, OffscreenCanvas>();
+
+// --- FFT cache ---
+// Caches raw dB spectrogram data keyed by FFT computation params.
+// Display-only params (gain, range, colormap) don't affect the cache key.
+const fftCache = new Map<string, SpectrogramData[]>();
+
+function generateCacheKey(params: {
+  clipId: string;
+  channelIndex: number;
+  offsetSamples: number;
+  durationSamples: number;
+  sampleRate: number;
+  fftSize: number;
+  zeroPaddingFactor: number;
+  hopSize: number;
+  windowFunction: string;
+  alpha: number | undefined;
+  mono: boolean;
+}): string {
+  return `${params.clipId}:${params.channelIndex}:${params.offsetSamples}:${params.durationSamples}:${params.sampleRate}:${params.fftSize}:${params.zeroPaddingFactor}:${params.hopSize}:${params.windowFunction}:${params.alpha ?? ''}:${params.mono ? 1 : 0}`;
+}
 
 // --- Message types ---
 
@@ -61,11 +84,43 @@ interface ComputeRenderRequest {
   };
 }
 
-type WorkerMessage = ComputeRequest | RegisterCanvasMessage | UnregisterCanvasMessage | ComputeRenderRequest;
+interface ComputeFFTRequest {
+  type: 'compute-fft';
+  id: string;
+  clipId: string;
+  channelDataArrays: Float32Array[];
+  config: SpectrogramConfig;
+  sampleRate: number;
+  offsetSamples: number;
+  durationSamples: number;
+  mono: boolean;
+}
+
+interface RenderChunksRequest {
+  type: 'render-chunks';
+  id: string;
+  cacheKey: string;
+  canvasIds: string[];          // flat list of canvas IDs to render
+  canvasWidths: number[];       // per-chunk CSS widths
+  globalPixelOffsets: number[]; // pixel offset for each chunk
+  canvasHeight: number;
+  devicePixelRatio: number;
+  samplesPerPixel: number;
+  colorLUT: Uint8Array;
+  frequencyScale: string;
+  minFrequency: number;
+  maxFrequency: number;
+  gainDb: number;
+  rangeDb: number;
+  channelIndex: number;
+}
+
+type WorkerMessage = ComputeRequest | RegisterCanvasMessage | UnregisterCanvasMessage | ComputeRenderRequest | ComputeFFTRequest | RenderChunksRequest;
 
 interface ComputeResponse {
   id: string;
   spectrograms?: SpectrogramData[];
+  cacheKey?: string;
   done?: boolean;
 }
 
@@ -185,26 +240,38 @@ function renderSpectrogramToCanvas(
   minFrequency: number,
   maxFrequency: number,
   isNonLinear: boolean,
+  globalPixelOffsets?: number[],
+  gainDbOverride?: number,
+  rangeDbOverride?: number,
 ): void {
-  const { frequencyBinCount, frameCount, hopSize, sampleRate, gainDb, rangeDb } = specData;
+  const { frequencyBinCount, frameCount, hopSize, sampleRate } = specData;
+  const gainDb = gainDbOverride ?? specData.gainDb;
+  const rangeDb = rangeDbOverride ?? specData.rangeDb;
   const maxF = maxFrequency > 0 ? maxFrequency : sampleRate / 2;
   const binToFreq = (bin: number) => (bin / frequencyBinCount) * (sampleRate / 2);
 
-  let globalPixelOffset = 0;
+  let accumulatedOffset = 0;
 
   for (let chunkIdx = 0; chunkIdx < canvasIds.length; chunkIdx++) {
     const canvasId = canvasIds[chunkIdx];
     const offscreen = canvasRegistry.get(canvasId);
-    if (!offscreen) continue;
+    if (!offscreen) {
+      if (!globalPixelOffsets) accumulatedOffset += canvasWidths[chunkIdx];
+      continue;
+    }
 
     const canvasWidth = canvasWidths[chunkIdx];
+    const globalPixelOffset = globalPixelOffsets ? globalPixelOffsets[chunkIdx] : accumulatedOffset;
 
     // Set physical canvas size for DPR
     offscreen.width = canvasWidth * devicePixelRatio;
     offscreen.height = canvasHeight * devicePixelRatio;
 
     const ctx = offscreen.getContext('2d');
-    if (!ctx) continue;
+    if (!ctx) {
+      if (!globalPixelOffsets) accumulatedOffset += canvasWidth;
+      continue;
+    }
 
     ctx.resetTransform();
     ctx.clearRect(0, 0, offscreen.width, offscreen.height);
@@ -271,7 +338,7 @@ function renderSpectrogramToCanvas(
       ctx.drawImage(tmpCanvas, 0, 0, offscreen.width, offscreen.height);
     }
 
-    globalPixelOffset += canvasWidth;
+    if (!globalPixelOffsets) accumulatedOffset += canvasWidth;
   }
 }
 
@@ -292,7 +359,80 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
     return;
   }
 
-  // Compute + render to registered canvases
+  // Compute FFT only (with caching), return cache key
+  if (msg.type === 'compute-fft') {
+    const { id, clipId, channelDataArrays, config, sampleRate, offsetSamples, durationSamples, mono } = msg;
+
+    const fftSize = config.fftSize ?? 2048;
+    const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
+    const hopSize = config.hopSize ?? Math.floor(fftSize / 4);
+    const windowFunction = config.windowFunction ?? 'hann';
+
+    const cacheKey = generateCacheKey({
+      clipId, channelIndex: 0, offsetSamples, durationSamples, sampleRate,
+      fftSize, zeroPaddingFactor, hopSize, windowFunction, alpha: config.alpha, mono,
+    });
+
+    if (!fftCache.has(cacheKey)) {
+      const spectrograms: SpectrogramData[] = [];
+      if (mono || channelDataArrays.length === 1) {
+        spectrograms.push(
+          computeMonoFromChannels(channelDataArrays, config, sampleRate, offsetSamples, durationSamples)
+        );
+      } else {
+        for (const channelData of channelDataArrays) {
+          spectrograms.push(
+            computeFromChannelData(channelData, config, sampleRate, offsetSamples, durationSamples)
+          );
+        }
+      }
+      fftCache.set(cacheKey, spectrograms);
+    }
+
+    const response: ComputeResponse = { id, cacheKey };
+    (self as unknown as Worker).postMessage(response);
+    return;
+  }
+
+  // Render specific chunks from cached FFT data
+  if (msg.type === 'render-chunks') {
+    const { id, cacheKey, canvasIds, canvasWidths, globalPixelOffsets, canvasHeight,
+            devicePixelRatio, samplesPerPixel, colorLUT, frequencyScale, minFrequency,
+            maxFrequency, gainDb, rangeDb, channelIndex } = msg;
+
+    const spectrograms = fftCache.get(cacheKey);
+    if (!spectrograms || channelIndex >= spectrograms.length) {
+      const response: ComputeResponse = { id, done: true };
+      (self as unknown as Worker).postMessage(response);
+      return;
+    }
+
+    const scaleFn = getFrequencyScale((frequencyScale ?? 'mel') as FrequencyScaleName);
+    const isNonLinear = frequencyScale !== 'linear';
+
+    renderSpectrogramToCanvas(
+      spectrograms[channelIndex],
+      canvasIds,
+      canvasWidths,
+      canvasHeight,
+      devicePixelRatio,
+      samplesPerPixel,
+      colorLUT,
+      scaleFn,
+      minFrequency,
+      maxFrequency,
+      isNonLinear,
+      globalPixelOffsets,
+      gainDb,
+      rangeDb,
+    );
+
+    const response: ComputeResponse = { id, done: true };
+    (self as unknown as Worker).postMessage(response);
+    return;
+  }
+
+  // Compute + render to registered canvases (uses cache internally)
   if (msg.type === 'compute-render') {
     const { id, channelDataArrays, config, sampleRate, offsetSamples, durationSamples, mono, render } = msg;
 

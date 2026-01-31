@@ -1,2 +1,2 @@
 export { createSpectrogramWorker } from './createSpectrogramWorker';
-export type { SpectrogramWorkerComputeParams, SpectrogramWorkerRenderParams, SpectrogramWorkerApi } from './createSpectrogramWorker';
+export type { SpectrogramWorkerComputeParams, SpectrogramWorkerRenderParams, SpectrogramWorkerFFTParams, SpectrogramWorkerRenderChunksParams, SpectrogramWorkerApi } from './createSpectrogramWorker';

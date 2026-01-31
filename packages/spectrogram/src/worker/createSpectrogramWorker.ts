@@ -23,14 +23,44 @@ export interface SpectrogramWorkerRenderParams extends SpectrogramWorkerComputeP
   };
 }
 
+export interface SpectrogramWorkerFFTParams {
+  clipId: string;
+  channelDataArrays: Float32Array[];
+  config: SpectrogramConfig;
+  sampleRate: number;
+  offsetSamples: number;
+  durationSamples: number;
+  mono: boolean;
+}
+
+export interface SpectrogramWorkerRenderChunksParams {
+  cacheKey: string;
+  canvasIds: string[];
+  canvasWidths: number[];
+  globalPixelOffsets: number[];
+  canvasHeight: number;
+  devicePixelRatio: number;
+  samplesPerPixel: number;
+  colorLUT: Uint8Array;
+  frequencyScale: string;
+  minFrequency: number;
+  maxFrequency: number;
+  gainDb: number;
+  rangeDb: number;
+  channelIndex: number;
+}
+
 interface ComputeResponse {
   id: string;
   spectrograms?: SpectrogramData[];
+  cacheKey?: string;
   done?: boolean;
 }
 
 export interface SpectrogramWorkerApi {
   compute(params: SpectrogramWorkerComputeParams): Promise<SpectrogramData[]>;
+  computeFFT(params: SpectrogramWorkerFFTParams): Promise<{ cacheKey: string }>;
+  renderChunks(params: SpectrogramWorkerRenderChunksParams): Promise<void>;
   registerCanvas(canvasId: string, canvas: OffscreenCanvas): void;
   unregisterCanvas(canvasId: string): void;
   computeAndRender(params: SpectrogramWorkerRenderParams): Promise<void>;
@@ -58,12 +88,15 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
   }>();
 
   worker.onmessage = (e: MessageEvent<ComputeResponse>) => {
-    const { id, spectrograms, done } = e.data;
+    const { id, spectrograms, cacheKey, done } = e.data;
     const entry = pending.get(id);
     if (entry) {
       pending.delete(id);
-      if (done && !spectrograms) {
-        // compute-render response — no data, just a signal
+      if (cacheKey !== undefined) {
+        // compute-fft response — return cache key
+        entry.resolve({ cacheKey });
+      } else if (done && !spectrograms) {
+        // compute-render or render-chunks response — no data, just a signal
         entry.resolve(undefined);
       } else {
         entry.resolve(spectrograms);
@@ -101,6 +134,59 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
           },
           transferables,
         );
+      });
+    },
+
+    computeFFT(params: SpectrogramWorkerFFTParams): Promise<{ cacheKey: string }> {
+      const id = String(++idCounter);
+
+      return new Promise<{ cacheKey: string }>((resolve, reject) => {
+        pending.set(id, { resolve, reject });
+
+        const transferableArrays = params.channelDataArrays.map(arr => arr.slice());
+        const transferables = transferableArrays.map(arr => arr.buffer);
+
+        worker.postMessage(
+          {
+            type: 'compute-fft',
+            id,
+            clipId: params.clipId,
+            channelDataArrays: transferableArrays,
+            config: params.config,
+            sampleRate: params.sampleRate,
+            offsetSamples: params.offsetSamples,
+            durationSamples: params.durationSamples,
+            mono: params.mono,
+          },
+          transferables,
+        );
+      });
+    },
+
+    renderChunks(params: SpectrogramWorkerRenderChunksParams): Promise<void> {
+      const id = String(++idCounter);
+
+      return new Promise<void>((resolve, reject) => {
+        pending.set(id, { resolve, reject });
+
+        worker.postMessage({
+          type: 'render-chunks',
+          id,
+          cacheKey: params.cacheKey,
+          canvasIds: params.canvasIds,
+          canvasWidths: params.canvasWidths,
+          globalPixelOffsets: params.globalPixelOffsets,
+          canvasHeight: params.canvasHeight,
+          devicePixelRatio: params.devicePixelRatio,
+          samplesPerPixel: params.samplesPerPixel,
+          colorLUT: params.colorLUT,
+          frequencyScale: params.frequencyScale,
+          minFrequency: params.minFrequency,
+          maxFrequency: params.maxFrequency,
+          gainDb: params.gainDb,
+          rangeDb: params.rangeDb,
+          channelIndex: params.channelIndex,
+        });
       });
     },
 

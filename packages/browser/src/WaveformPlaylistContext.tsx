@@ -1267,7 +1267,9 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
 
     };
 
-    computeAsync();
+    computeAsync().catch(err => {
+      console.error('[waveform-playlist] Spectrogram computation failed:', err);
+    });
   }, [tracks, mono, spectrogramConfig, spectrogramColorMap, trackRenderModes, trackSpectrogramConfigs, trackSpectrogramColorMaps, waveHeight, samplesPerPixel, spectrogramCanvasVersion]);
 
   // Animation loop

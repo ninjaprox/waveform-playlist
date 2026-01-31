@@ -449,6 +449,14 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
       });
 
       if (!fftCache.has(cacheKey)) {
+        // Evict stale cache entries for this clip (different FFT params)
+        const clipPrefix = `${clipId}:`;
+        for (const key of fftCache.keys()) {
+          if (key.startsWith(clipPrefix) && key !== cacheKey) {
+            fftCache.delete(key);
+          }
+        }
+
         const spectrograms: SpectrogramData[] = [];
         if (mono || channelDataArrays.length === 1) {
           spectrograms.push(

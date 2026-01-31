@@ -11,6 +11,7 @@ import {
   TrackControlsContext,
   DevicePixelRatioProvider,
   SmartScale,
+  CloseButton,
   Controls,
   Header,
   Button,
@@ -387,22 +388,7 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
                   <Controls onClick={() => selectTrack(trackIndex)}>
                     <Header style={{ justifyContent: 'center', position: 'relative' }}>
                       {onRemoveTrack && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onRemoveTrack(trackIndex); }}
-                          title="Remove track"
-                          style={{
-                            position: 'absolute', left: 0, top: 0,
-                            border: 'none', background: 'transparent',
-                            color: 'inherit', cursor: 'pointer',
-                            fontSize: 16, padding: '2px 4px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            opacity: 0.7, transition: 'opacity 0.15s, color 0.15s',
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#dc3545'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.color = 'inherit'; }}
-                        >
-                          ×
-                        </button>
+                        <CloseButton onClick={(e) => { e.stopPropagation(); onRemoveTrack(trackIndex); }} />
                       )}
                       <span style={{
                         overflow: 'hidden',

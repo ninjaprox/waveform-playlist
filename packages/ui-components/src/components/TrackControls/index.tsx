@@ -1,5 +1,6 @@
 import { Button } from './Button';
 import { ButtonGroup } from './ButtonGroup';
+import { CloseButton } from './CloseButton';
 import { Controls } from './Controls';
 import { Header } from './Header';
 import { VolumeDownIcon } from './VolumeDownIcon';
@@ -12,6 +13,7 @@ import { SliderWrapper } from './SliderWrapper';
 export {
   Button,
   ButtonGroup,
+  CloseButton,
   Controls,
   Header,
   VolumeDownIcon,

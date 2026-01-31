@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
-import { XIcon } from '@phosphor-icons/react';
+
 import JSZip from 'jszip';
 import { createTrack, createClipFromSeconds, type ClipTrack } from '@waveform-playlist/core';
 import {
@@ -35,6 +35,7 @@ import {
   VolumeDownIcon,
   VolumeUpIcon,
   BaseControlButton,
+  CloseButton,
 } from '@waveform-playlist/ui-components';
 import { useDocusaurusTheme } from '../../hooks/useDocusaurusTheme';
 import { EffectRack, TrackEffectControls } from '../effects';
@@ -170,31 +171,6 @@ const HiddenFileInput = styled.input`
   display: none;
 `;
 
-const DeleteButton = styled.button`
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  background: var(--ifm-color-danger, #dc3545);
-  color: white;
-  border: none;
-  border-radius: 3px;
-  padding: 0;
-  width: 16px;
-  height: 16px;
-  font-size: 12px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.2s, background 0.2s;
-
-  &:hover {
-    opacity: 1;
-    background: var(--ifm-color-danger-dark, #c82333);
-  }
-`;
 
 const ControlsWrapper = styled.div`
   position: relative;
@@ -409,9 +385,7 @@ const CustomTrackControls: React.FC<CustomTrackControlsProps> = ({
 
   return (
     <ControlsWrapper>
-      <DeleteButton onClick={() => onDeleteTrack(trackIndex)} title="Delete track">
-        <XIcon size={10} weight="bold" />
-      </DeleteButton>
+      <CloseButton onClick={() => onDeleteTrack(trackIndex)} title="Delete track" />
       <Controls>
         <Header style={{ justifyContent: 'center' }}>
           {trackState.name || `Track ${trackIndex + 1}`}

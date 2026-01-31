@@ -223,7 +223,7 @@ export function MirSpectrogramExample() {
               Clear All
             </ClearButton>
           </ControlBar>
-          <Waveform onRemoveTrack={handleRemoveTrack} />
+          <Waveform onRemoveTrack={handleRemoveTrack} showClipHeaders />
         </WaveformPlaylistProvider>
       )}
 

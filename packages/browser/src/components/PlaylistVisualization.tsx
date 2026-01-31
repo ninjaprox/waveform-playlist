@@ -410,7 +410,15 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
                           ×
                         </button>
                       )}
-                      {trackState.name || `Track ${trackIndex + 1}`}
+                      <span style={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        padding: '0 24px',
+                        display: 'block',
+                      }}>
+                        {trackState.name || `Track ${trackIndex + 1}`}
+                      </span>
                       <span style={{ position: 'absolute', right: 0, top: 0 }}>
                         <TrackMenu
                           items={(onClose) => SpectrogramMenuItems({

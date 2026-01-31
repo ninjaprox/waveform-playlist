@@ -78,12 +78,6 @@ export interface SpectrogramChannelProps {
   minFrequency?: number;
   /** Max frequency in Hz (defaults to sampleRate/2) */
   maxFrequency?: number;
-  /** Show frequency axis labels */
-  labels?: boolean;
-  /** Label text color */
-  labelsColor?: string;
-  /** Label background color */
-  labelsBackground?: string;
   /** Worker API for transferring canvas ownership. When provided, rendering is done in the worker. */
   workerApi?: SpectrogramWorkerCanvasApi;
   /** Clip ID used to construct unique canvas IDs for worker registration */
@@ -103,15 +97,11 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   frequencyScaleFn,
   minFrequency = 0,
   maxFrequency,
-  labels = false,
-  labelsColor = '#ccc',
-  labelsBackground = 'rgba(0,0,0,0.6)',
   workerApi,
   clipId,
   onCanvasesReady,
 }) => {
   const canvasesRef = useRef<HTMLCanvasElement[]>([]);
-  const labelsCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const registeredIdsRef = useRef<string[]>([]);
 
   // Track whether we're in worker mode (canvas transferred)
@@ -276,71 +266,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       globalPixelOffset += canvasWidth;
     }
 
-    // Draw labels
-    if (labels && labelsCanvasRef.current) {
-      const labelsCanvas = labelsCanvasRef.current;
-      const lctx = labelsCanvas.getContext('2d');
-      if (lctx) {
-        const lw = labelsCanvas.width / devicePixelRatio;
-        const lh = waveHeight;
-        lctx.resetTransform();
-        lctx.clearRect(0, 0, labelsCanvas.width, labelsCanvas.height);
-        lctx.scale(devicePixelRatio, devicePixelRatio);
-
-        const labelFreqs = getFrequencyLabels(minFrequency, maxF);
-        lctx.font = '10px monospace';
-        lctx.textBaseline = 'middle';
-
-        for (const freq of labelFreqs) {
-          const normalized = scaleFn(freq, minFrequency, maxF);
-          if (normalized < 0 || normalized > 1) continue;
-          const y = lh * (1 - normalized);
-
-          const text = freq >= 1000 ? `${(freq / 1000).toFixed(1)}k` : `${freq}`;
-          const metrics = lctx.measureText(text);
-          const padding = 2;
-
-          lctx.fillStyle = labelsBackground;
-          lctx.fillRect(0, y - 6, metrics.width + padding * 2, 12);
-          lctx.fillStyle = labelsColor;
-          lctx.fillText(text, padding, y);
-        }
-      }
-    }
-  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, frequencyScaleFn, minFrequency, maxF, labels, labelsColor, labelsBackground, scaleFn]);
-
-  // Worker mode: draw labels on main thread when render completes
-  useLayoutEffect(() => {
-    if (!isWorkerMode || !labels || !labelsCanvasRef.current || !data) return;
-
-    const labelsCanvas = labelsCanvasRef.current;
-    const lctx = labelsCanvas.getContext('2d');
-    if (!lctx) return;
-
-    const lh = waveHeight;
-    lctx.resetTransform();
-    lctx.clearRect(0, 0, labelsCanvas.width, labelsCanvas.height);
-    lctx.scale(devicePixelRatio, devicePixelRatio);
-
-    const labelFreqs = getFrequencyLabels(minFrequency, maxF);
-    lctx.font = '10px monospace';
-    lctx.textBaseline = 'middle';
-
-    for (const freq of labelFreqs) {
-      const normalized = scaleFn(freq, minFrequency, maxF);
-      if (normalized < 0 || normalized > 1) continue;
-      const y = lh * (1 - normalized);
-
-      const text = freq >= 1000 ? `${(freq / 1000).toFixed(1)}k` : `${freq}`;
-      const metrics = lctx.measureText(text);
-      const padding = 2;
-
-      lctx.fillStyle = labelsBackground;
-      lctx.fillRect(0, y - 6, metrics.width + padding * 2, 12);
-      lctx.fillStyle = labelsColor;
-      lctx.fillText(text, padding, y);
-    }
-  }, [isWorkerMode, labels, data, waveHeight, devicePixelRatio, minFrequency, maxF, scaleFn, labelsColor, labelsBackground]);
+  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, frequencyScaleFn, minFrequency, maxF, scaleFn]);
 
   // Build canvas chunks
   let totalWidth = length;
@@ -366,31 +292,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   return (
     <Wrapper $index={index} $cssWidth={length} $waveHeight={waveHeight}>
       {canvases}
-      {labels && (
-        <canvas
-          ref={labelsCanvasRef}
-          width={60 * devicePixelRatio}
-          height={waveHeight * devicePixelRatio}
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            width: 60,
-            height: waveHeight,
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        />
-      )}
     </Wrapper>
   );
 };
 
-/** Generate nice frequency labels for the axis */
-function getFrequencyLabels(minF: number, maxF: number): number[] {
-  const candidates = [
-    20, 50, 100, 200, 500, 1000, 2000, 3000, 4000, 5000,
-    8000, 10000, 12000, 16000, 20000,
-  ];
-  return candidates.filter(f => f >= minF && f <= maxF);
-}

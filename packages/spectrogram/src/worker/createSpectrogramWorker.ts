@@ -31,6 +31,7 @@ export interface SpectrogramWorkerFFTParams {
   offsetSamples: number;
   durationSamples: number;
   mono: boolean;
+  sampleRange?: { start: number; end: number };
 }
 
 export interface SpectrogramWorkerRenderChunksParams {
@@ -63,6 +64,8 @@ export interface SpectrogramWorkerApi {
   renderChunks(params: SpectrogramWorkerRenderChunksParams): Promise<void>;
   registerCanvas(canvasId: string, canvas: OffscreenCanvas): void;
   unregisterCanvas(canvasId: string): void;
+  registerAudioData(clipId: string, channelDataArrays: Float32Array[], sampleRate: number): void;
+  unregisterAudioData(clipId: string): void;
   computeAndRender(params: SpectrogramWorkerRenderParams): Promise<void>;
   terminate(): void;
 }
@@ -86,6 +89,9 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     resolve: (value: any) => void;
     reject: (reason: unknown) => void;
   }>();
+
+  // Track which clipIds have pre-registered audio data in the worker
+  const registeredClipIds = new Set<string>();
 
   worker.onmessage = (e: MessageEvent<ComputeResponse>) => {
     const { id, spectrograms, cacheKey, done } = e.data;
@@ -143,7 +149,9 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
       return new Promise<{ cacheKey: string }>((resolve, reject) => {
         pending.set(id, { resolve, reject });
 
-        const transferableArrays = params.channelDataArrays.map(arr => arr.slice());
+        // Skip transfer if audio data is pre-registered in the worker
+        const isPreRegistered = registeredClipIds.has(params.clipId);
+        const transferableArrays = isPreRegistered ? [] : params.channelDataArrays.map(arr => arr.slice());
         const transferables = transferableArrays.map(arr => arr.buffer);
 
         worker.postMessage(
@@ -157,6 +165,7 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
             offsetSamples: params.offsetSamples,
             durationSamples: params.durationSamples,
             mono: params.mono,
+            ...(params.sampleRange ? { sampleRange: params.sampleRange } : {}),
           },
           transferables,
         );
@@ -199,6 +208,21 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
 
     unregisterCanvas(canvasId: string): void {
       worker.postMessage({ type: 'unregister-canvas', canvasId });
+    },
+
+    registerAudioData(clipId: string, channelDataArrays: Float32Array[], sampleRate: number): void {
+      const transferableArrays = channelDataArrays.map(arr => arr.slice());
+      const transferables = transferableArrays.map(arr => arr.buffer);
+      worker.postMessage(
+        { type: 'register-audio-data', clipId, channelDataArrays: transferableArrays, sampleRate },
+        transferables,
+      );
+      registeredClipIds.add(clipId);
+    },
+
+    unregisterAudioData(clipId: string): void {
+      worker.postMessage({ type: 'unregister-audio-data', clipId });
+      registeredClipIds.delete(clipId);
     },
 
     computeAndRender(params: SpectrogramWorkerRenderParams): Promise<void> {

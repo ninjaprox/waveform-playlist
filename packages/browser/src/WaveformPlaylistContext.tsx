@@ -727,6 +727,8 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
   const clipCacheKeysRef = useRef<Map<string, string>>(new Map());
   // Abort controller for background chunk rendering
   const backgroundRenderAbortRef = useRef<{ aborted: boolean } | null>(null);
+  // Track which clipIds have been pre-registered with the worker
+  const registeredAudioClipIdsRef = useRef<Set<string>>(new Set());
 
   // Terminate worker on unmount
   useEffect(() => {
@@ -735,6 +737,54 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
       spectrogramWorkerRef.current = null;
     };
   }, []);
+
+  // Eagerly transfer audio data to worker when tracks load (pre-transfer optimization)
+  useEffect(() => {
+    if (!isReady || tracks.length === 0) return;
+
+    // Lazily create worker if not yet created
+    let workerApi = spectrogramWorkerRef.current;
+    if (!workerApi) {
+      try {
+        const rawWorker = new Worker(
+          new URL('@waveform-playlist/spectrogram/worker/spectrogram.worker', import.meta.url),
+          { type: 'module' }
+        );
+        workerApi = createSpectrogramWorker(rawWorker);
+        spectrogramWorkerRef.current = workerApi;
+        setSpectrogramWorkerReady(true);
+      } catch {
+        console.warn('Spectrogram Web Worker unavailable for pre-transfer');
+        return;
+      }
+    }
+
+    const currentClipIds = new Set<string>();
+
+    for (const track of tracks) {
+      for (const clip of track.clips) {
+        if (!clip.audioBuffer) continue;
+        currentClipIds.add(clip.id);
+
+        if (!registeredAudioClipIdsRef.current.has(clip.id)) {
+          const channelDataArrays: Float32Array[] = [];
+          for (let ch = 0; ch < clip.audioBuffer.numberOfChannels; ch++) {
+            channelDataArrays.push(clip.audioBuffer.getChannelData(ch));
+          }
+          workerApi.registerAudioData(clip.id, channelDataArrays, clip.audioBuffer.sampleRate);
+          registeredAudioClipIdsRef.current.add(clip.id);
+        }
+      }
+    }
+
+    // Unregister clips that were removed
+    for (const clipId of registeredAudioClipIdsRef.current) {
+      if (!currentClipIds.has(clipId)) {
+        workerApi.unregisterAudioData(clipId);
+        registeredAudioClipIdsRef.current.delete(clipId);
+      }
+    }
+  }, [isReady, tracks]);
 
   useEffect(() => {
     if (tracks.length === 0) return;
@@ -838,6 +888,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
       sampleRate: number;
       offsetSamples: number;
       durationSamples: number;
+      clipStartSample: number;
       monoFlag: boolean;
       colorMap: ColorMapValue;
     }> = [];
@@ -845,6 +896,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
       clipId: string;
       trackIndex: number;
       config: SpectrogramConfig;
+      clipStartSample: number;
       monoFlag: boolean;
       colorMap: ColorMapValue;
       numChannels: number;
@@ -875,6 +927,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
             clipId: clip.id,
             trackIndex: i,
             config: cfg,
+            clipStartSample: clip.startSample,
             monoFlag,
             colorMap: cm,
             numChannels: monoFlag ? 1 : clip.audioBuffer.numberOfChannels,
@@ -895,6 +948,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
           sampleRate: clip.audioBuffer.sampleRate,
           offsetSamples: clip.offsetSamples,
           durationSamples: clip.durationSamples,
+          clipStartSample: clip.startSample,
           monoFlag,
           colorMap: cm,
         });
@@ -932,7 +986,8 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     }
 
     // Helper: determine visible chunk indices from scroll position
-    const getVisibleChunkRange = (canvasWidths: number[]): { visibleIndices: number[]; remainingIndices: number[] } => {
+    // clipPixelOffset is the clip's pixel position on the timeline (from clip.startSample / samplesPerPixel)
+    const getVisibleChunkRange = (canvasWidths: number[], clipPixelOffset = 0): { visibleIndices: number[]; remainingIndices: number[] } => {
       const container = scrollContainerRef.current;
       if (!container) {
         // No scroll info available — all chunks are "visible"
@@ -948,7 +1003,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
       let offset = 0;
 
       for (let i = 0; i < canvasWidths.length; i++) {
-        const chunkLeft = offset + controlWidth;
+        const chunkLeft = offset + controlWidth + clipPixelOffset;
         const chunkRight = chunkLeft + canvasWidths[i];
         // Chunk is visible if it overlaps the viewport
         if (chunkRight > scrollLeft && chunkLeft < scrollLeft + viewportWidth) {
@@ -1019,7 +1074,85 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
         try {
           const clipCanvasInfo = spectrogramCanvasRegistryRef.current.get(item.clipId);
           if (clipCanvasInfo && clipCanvasInfo.size > 0) {
-            // Phase 1: Compute FFT (cached in worker)
+            const numChannels = item.monoFlag ? 1 : item.channelDataArrays.length;
+            const clipPixelOffset = Math.floor(item.clipStartSample / samplesPerPixel);
+
+            // Calculate visible sample range for range-limited FFT
+            const container = scrollContainerRef.current;
+            const windowSize = item.config.fftSize ?? 2048;
+            let visibleRange: { start: number; end: number } | undefined;
+
+            if (container) {
+              const scrollLeft = container.scrollLeft;
+              const viewportWidth = container.clientWidth;
+              const controlWidth = controls.show ? controls.width : 0;
+
+              // Viewport pixel range on the timeline
+              const vpStartPx = Math.max(0, scrollLeft - controlWidth);
+              const vpEndPx = vpStartPx + viewportWidth;
+
+              // Clip pixel range on the timeline
+              const clipStartPx = clipPixelOffset;
+              const clipEndPx = clipStartPx + Math.ceil(item.durationSamples / samplesPerPixel);
+
+              // Intersection of viewport with clip (in timeline pixels)
+              const overlapStartPx = Math.max(vpStartPx, clipStartPx);
+              const overlapEndPx = Math.min(vpEndPx, clipEndPx);
+
+              console.log(`[spectrogram] viewport: scrollLeft=${scrollLeft}, viewportWidth=${viewportWidth}, controlWidth=${controlWidth}, vpStart=${vpStartPx}, vpEnd=${vpEndPx}, clipStartPx=${clipStartPx}, clipEndPx=${clipEndPx}, spp=${samplesPerPixel}, overlapStart=${Math.max(vpStartPx, clipStartPx)}, overlapEnd=${Math.min(vpEndPx, clipEndPx)}, clipStartSample=${item.clipStartSample}, offsetSamples=${item.offsetSamples}, durationSamples=${item.durationSamples}`);
+              if (overlapEndPx > overlapStartPx) {
+                // Convert to clip-local pixels, then to buffer samples
+                const localStartPx = overlapStartPx - clipStartPx;
+                const localEndPx = overlapEndPx - clipStartPx;
+                const visStartSample = item.offsetSamples + Math.floor(localStartPx * samplesPerPixel);
+                const visEndSample = Math.min(
+                  item.offsetSamples + item.durationSamples,
+                  item.offsetSamples + Math.ceil(localEndPx * samplesPerPixel)
+                );
+                // Add padding for FFT windowing
+                const paddedStart = Math.max(item.offsetSamples, visStartSample - windowSize);
+                const paddedEnd = Math.min(item.offsetSamples + item.durationSamples, visEndSample + windowSize);
+
+                // Only use range-limited FFT if it's substantially smaller than the full clip
+                if ((paddedEnd - paddedStart) < item.durationSamples * 0.8) {
+                  visibleRange = { start: paddedStart, end: paddedEnd };
+                }
+              }
+            }
+
+            // Phase 1a: Compute visible-range FFT first (if range is smaller than full clip)
+            // Skip if the full-clip FFT is already cached (e.g., from a previous zoom level)
+            const fullClipAlreadyCached = clipCacheKeysRef.current.has(item.clipId);
+            if (visibleRange && !fullClipAlreadyCached) {
+              const tVFFT0 = performance.now();
+              const { cacheKey: visibleCacheKey } = await workerApi!.computeFFT({
+                clipId: item.clipId,
+                channelDataArrays: item.channelDataArrays,
+                config: item.config,
+                sampleRate: item.sampleRate,
+                offsetSamples: item.offsetSamples,
+                durationSamples: item.durationSamples,
+                mono: item.monoFlag,
+                sampleRange: visibleRange,
+              });
+              const tVFFT1 = performance.now();
+              console.log(`[spectrogram] Phase 1a visible-range FFT (${item.clipId}): ${(tVFFT1 - tVFFT0).toFixed(1)}ms (${visibleRange.end - visibleRange.start} samples)`);
+
+              if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
+
+              // Render visible chunks immediately from partial FFT
+              for (let ch = 0; ch < numChannels; ch++) {
+                const channelInfo = clipCanvasInfo.get(ch);
+                if (!channelInfo) continue;
+
+                const { visibleIndices } = getVisibleChunkRange(channelInfo.canvasWidths, clipPixelOffset);
+                await renderChunkSubset(workerApi!, visibleCacheKey, channelInfo, visibleIndices, item, ch);
+              }
+
+              if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
+            }
+
+            // Phase 1b: Compute full-clip FFT (cached in worker)
             const tFFT0 = performance.now();
             const { cacheKey } = await workerApi!.computeFFT({
               clipId: item.clipId,
@@ -1031,21 +1164,20 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
               mono: item.monoFlag,
             });
             const tFFT1 = performance.now();
-            console.log(`[spectrogram] Phase 1 FFT (${item.clipId}): ${(tFFT1 - tFFT0).toFixed(1)}ms`);
+            console.log(`[spectrogram] Phase 1b full FFT (${item.clipId}): ${(tFFT1 - tFFT0).toFixed(1)}ms`);
 
             if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
 
             clipCacheKeysRef.current.set(item.clipId, cacheKey);
 
-            const numChannels = item.monoFlag ? 1 : item.channelDataArrays.length;
-
             for (let ch = 0; ch < numChannels; ch++) {
               const channelInfo = clipCanvasInfo.get(ch);
               if (!channelInfo) continue;
 
-              const { visibleIndices, remainingIndices } = getVisibleChunkRange(channelInfo.canvasWidths);
+              const { visibleIndices, remainingIndices } = getVisibleChunkRange(channelInfo.canvasWidths, clipPixelOffset);
 
-              // Phase 2: Render visible chunks first
+              // Phase 2: Re-render visible chunks with full FFT data
+              // Always re-render: partial FFT may leave gaps at chunk edges outside the visible range
               const tVis0 = performance.now();
               await renderChunkSubset(workerApi!, cacheKey, channelInfo, visibleIndices, item, ch);
               const tVis1 = performance.now();
@@ -1119,11 +1251,12 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
 
         try {
           const tDisp0 = performance.now();
+          const clipPixelOffset = Math.floor(item.clipStartSample / samplesPerPixel);
           for (let ch = 0; ch < item.numChannels; ch++) {
             const channelInfo = clipCanvasInfo.get(ch);
             if (!channelInfo) continue;
 
-            const { visibleIndices, remainingIndices } = getVisibleChunkRange(channelInfo.canvasWidths);
+            const { visibleIndices, remainingIndices } = getVisibleChunkRange(channelInfo.canvasWidths, clipPixelOffset);
 
             // Phase 2: Visible chunks first
             await renderChunkSubset(workerApi!, cacheKey, channelInfo, visibleIndices, item, ch);

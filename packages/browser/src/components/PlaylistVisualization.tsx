@@ -23,6 +23,7 @@ import {
   useTheme,
   waveformColorToCss,
   type RenderPlayheadFunction,
+  SpectrogramLabels,
 } from '@waveform-playlist/ui-components';
 import {
   AnnotationBoxesWrapper,
@@ -491,6 +492,24 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
                       trackId={track.id}
                       isSelected={track.id === selectedTrackId}
                     >
+                      {effectiveRenderMode !== 'waveform' && (() => {
+                        const helpers = perTrackSpectrogramHelpers.get(trackIndex);
+                        const trackCfg = helpers?.config;
+                        if (!trackCfg?.labels || !helpers) return null;
+                        return (
+                          <SpectrogramLabels
+                            waveHeight={waveHeight}
+                            numChannels={maxChannels}
+                            frequencyScaleFn={helpers.frequencyScaleFn}
+                            minFrequency={trackCfg.minFrequency ?? 0}
+                            maxFrequency={trackCfg.maxFrequency ?? (sampleRate / 2)}
+                            labelsColor={trackCfg.labelsColor}
+                            labelsBackground={trackCfg.labelsBackground}
+                            renderMode={effectiveRenderMode as 'spectrogram' | 'both'}
+                            hasClipHeaders={showClipHeaders}
+                          />
+                        );
+                      })()}
                       {trackClipPeaks.map((clip, clipIndex) => {
                         const peaksData = clip.peaks;
                         const width = peaksData.length;
@@ -546,9 +565,6 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
                                   spectrogramFrequencyScaleFn={helpers?.frequencyScaleFn}
                                   spectrogramMinFrequency={trackCfg?.minFrequency}
                                   spectrogramMaxFrequency={trackCfg?.maxFrequency}
-                                  spectrogramLabels={trackCfg?.labels}
-                                  spectrogramLabelsColor={trackCfg?.labelsColor}
-                                  spectrogramLabelsBackground={trackCfg?.labelsBackground}
                                   spectrogramWorkerApi={workerCanvasApi}
                                   spectrogramClipId={clip.clipId}
                                   spectrogramOnCanvasesReady={(canvasIds, canvasWidths) => {

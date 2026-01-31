@@ -204,6 +204,7 @@ export function MirSpectrogramExample() {
         <WaveformPlaylistProvider
           tracks={allTracks}
           theme={theme}
+          timescale
           waveHeight={100}
           samplesPerPixel={8192}
           barWidth={4}

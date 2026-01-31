@@ -27,12 +27,6 @@ export interface SmartChannelProps {
   spectrogramMinFrequency?: number;
   /** Max frequency in Hz */
   spectrogramMaxFrequency?: number;
-  /** Show frequency labels */
-  spectrogramLabels?: boolean;
-  /** Label text color */
-  spectrogramLabelsColor?: string;
-  /** Label background color */
-  spectrogramLabelsBackground?: string;
   /** Worker API for OffscreenCanvas transfer */
   spectrogramWorkerApi?: SpectrogramWorkerCanvasApi;
   /** Clip ID for worker canvas registration */
@@ -51,9 +45,6 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
   spectrogramFrequencyScaleFn,
   spectrogramMinFrequency,
   spectrogramMaxFrequency,
-  spectrogramLabels,
-  spectrogramLabelsColor,
-  spectrogramLabelsBackground,
   spectrogramWorkerApi,
   spectrogramClipId,
   spectrogramOnCanvasesReady,
@@ -92,9 +83,6 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
         frequencyScaleFn={spectrogramFrequencyScaleFn}
         minFrequency={spectrogramMinFrequency}
         maxFrequency={spectrogramMaxFrequency}
-        labels={spectrogramLabels}
-        labelsColor={spectrogramLabelsColor}
-        labelsBackground={spectrogramLabelsBackground}
         workerApi={spectrogramWorkerApi}
         clipId={spectrogramClipId}
         onCanvasesReady={spectrogramOnCanvasesReady}
@@ -119,9 +107,6 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
           frequencyScaleFn={spectrogramFrequencyScaleFn}
           minFrequency={spectrogramMinFrequency}
           maxFrequency={spectrogramMaxFrequency}
-          labels={spectrogramLabels}
-          labelsColor={spectrogramLabelsColor}
-          labelsBackground={spectrogramLabelsBackground}
           workerApi={spectrogramWorkerApi}
           clipId={spectrogramClipId}
           onCanvasesReady={spectrogramOnCanvasesReady}

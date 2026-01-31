@@ -17,10 +17,19 @@ import { getFrequencyScale, type FrequencyScaleName } from '../computation/frequ
 // --- Canvas registry ---
 const canvasRegistry = new Map<string, OffscreenCanvas>();
 
+// --- Audio data registry ---
+// Pre-transferred audio data keyed by clipId, avoiding re-transfer on compute-fft.
+const audioDataRegistry = new Map<string, { channelDataArrays: Float32Array[]; sampleRate: number }>();
+
 // --- FFT cache ---
 // Caches raw dB spectrogram data keyed by FFT computation params.
 // Display-only params (gain, range, colormap) don't affect the cache key.
-const fftCache = new Map<string, SpectrogramData[]>();
+// sampleOffset: the sample position where this FFT data starts (for range-limited FFT)
+interface FFTCacheEntry {
+  spectrograms: SpectrogramData[];
+  sampleOffset: number;
+}
+const fftCache = new Map<string, FFTCacheEntry>();
 
 function generateCacheKey(params: {
   clipId: string;
@@ -84,6 +93,18 @@ interface ComputeRenderRequest {
   };
 }
 
+interface RegisterAudioDataMessage {
+  type: 'register-audio-data';
+  clipId: string;
+  channelDataArrays: Float32Array[];
+  sampleRate: number;
+}
+
+interface UnregisterAudioDataMessage {
+  type: 'unregister-audio-data';
+  clipId: string;
+}
+
 interface ComputeFFTRequest {
   type: 'compute-fft';
   id: string;
@@ -94,6 +115,7 @@ interface ComputeFFTRequest {
   offsetSamples: number;
   durationSamples: number;
   mono: boolean;
+  sampleRange?: { start: number; end: number };
 }
 
 interface RenderChunksRequest {
@@ -115,7 +137,7 @@ interface RenderChunksRequest {
   channelIndex: number;
 }
 
-type WorkerMessage = ComputeRequest | RegisterCanvasMessage | UnregisterCanvasMessage | ComputeRenderRequest | ComputeFFTRequest | RenderChunksRequest;
+type WorkerMessage = ComputeRequest | RegisterCanvasMessage | UnregisterCanvasMessage | ComputeRenderRequest | ComputeFFTRequest | RenderChunksRequest | RegisterAudioDataMessage | UnregisterAudioDataMessage;
 
 interface ComputeResponse {
   id: string;
@@ -243,6 +265,7 @@ function renderSpectrogramToCanvas(
   globalPixelOffsets?: number[],
   gainDbOverride?: number,
   rangeDbOverride?: number,
+  sampleOffset = 0,
 ): void {
   const { frequencyBinCount, frameCount, hopSize, sampleRate } = specData;
   const gainDb = gainDbOverride ?? specData.gainDb;
@@ -283,7 +306,7 @@ function renderSpectrogramToCanvas(
 
     for (let x = 0; x < canvasWidth; x++) {
       const globalX = globalPixelOffset + x;
-      const samplePos = globalX * samplesPerPixel;
+      const samplePos = globalX * samplesPerPixel - sampleOffset;
       const frame = Math.floor(samplePos / hopSize);
 
       if (frame < 0 || frame >= frameCount) continue;
@@ -359,17 +382,47 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
     return;
   }
 
+  // Register audio data for a clip (pre-transfer)
+  if (msg.type === 'register-audio-data') {
+    audioDataRegistry.set(msg.clipId, {
+      channelDataArrays: msg.channelDataArrays,
+      sampleRate: msg.sampleRate,
+    });
+    return;
+  }
+
+  // Unregister audio data for a clip
+  if (msg.type === 'unregister-audio-data') {
+    audioDataRegistry.delete(msg.clipId);
+    return;
+  }
+
   // Compute FFT only (with caching), return cache key
   if (msg.type === 'compute-fft') {
-    const { id, clipId, channelDataArrays, config, sampleRate, offsetSamples, durationSamples, mono } = msg;
+    const { id, clipId, config, sampleRate: msgSampleRate, offsetSamples, durationSamples, mono, sampleRange } = msg;
+
+    // Use pre-registered audio data if available, otherwise use message payload
+    const registered = audioDataRegistry.get(clipId);
+    const channelDataArrays = (registered && msg.channelDataArrays.length === 0)
+      ? registered.channelDataArrays
+      : msg.channelDataArrays;
+    const sampleRate = (registered && msg.channelDataArrays.length === 0)
+      ? registered.sampleRate
+      : msgSampleRate;
 
     const fftSize = config.fftSize ?? 2048;
     const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
     const hopSize = config.hopSize ?? Math.floor(fftSize / 4);
     const windowFunction = config.windowFunction ?? 'hann';
 
+    // Use sampleRange if provided (visible-range-first optimization)
+    const effectiveOffset = sampleRange ? sampleRange.start : offsetSamples;
+    const effectiveDuration = sampleRange
+      ? (sampleRange.end - sampleRange.start)
+      : durationSamples;
+
     const cacheKey = generateCacheKey({
-      clipId, channelIndex: 0, offsetSamples, durationSamples, sampleRate,
+      clipId, channelIndex: 0, offsetSamples: effectiveOffset, durationSamples: effectiveDuration, sampleRate,
       fftSize, zeroPaddingFactor, hopSize, windowFunction, alpha: config.alpha, mono,
     });
 
@@ -378,17 +431,17 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
       const spectrograms: SpectrogramData[] = [];
       if (mono || channelDataArrays.length === 1) {
         spectrograms.push(
-          computeMonoFromChannels(channelDataArrays, config, sampleRate, offsetSamples, durationSamples)
+          computeMonoFromChannels(channelDataArrays, config, sampleRate, effectiveOffset, effectiveDuration)
         );
       } else {
         for (const channelData of channelDataArrays) {
           spectrograms.push(
-            computeFromChannelData(channelData, config, sampleRate, offsetSamples, durationSamples)
+            computeFromChannelData(channelData, config, sampleRate, effectiveOffset, effectiveDuration)
           );
         }
       }
-      fftCache.set(cacheKey, spectrograms);
-      console.log(`[spectrogram-worker] FFT computed: ${(performance.now() - tFFT).toFixed(1)}ms (${durationSamples} samples, fftSize=${fftSize})`);
+      fftCache.set(cacheKey, { spectrograms, sampleOffset: effectiveOffset });
+      console.log(`[spectrogram-worker] FFT computed: ${(performance.now() - tFFT).toFixed(1)}ms (${effectiveDuration} samples, fftSize=${fftSize}${sampleRange ? ', range-limited' : ''})`);
     } else {
       console.log(`[spectrogram-worker] FFT cache hit for ${clipId}`);
     }
@@ -404,8 +457,8 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
             devicePixelRatio, samplesPerPixel, colorLUT, frequencyScale, minFrequency,
             maxFrequency, gainDb, rangeDb, channelIndex } = msg;
 
-    const spectrograms = fftCache.get(cacheKey);
-    if (!spectrograms || channelIndex >= spectrograms.length) {
+    const cacheEntry = fftCache.get(cacheKey);
+    if (!cacheEntry || channelIndex >= cacheEntry.spectrograms.length) {
       const response: ComputeResponse = { id, done: true };
       (self as unknown as Worker).postMessage(response);
       return;
@@ -416,7 +469,7 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
     const isNonLinear = frequencyScale !== 'linear';
 
     renderSpectrogramToCanvas(
-      spectrograms[channelIndex],
+      cacheEntry.spectrograms[channelIndex],
       canvasIds,
       canvasWidths,
       canvasHeight,
@@ -430,6 +483,7 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
       globalPixelOffsets,
       gainDb,
       rangeDb,
+      cacheEntry.sampleOffset,
     );
     console.log(`[spectrogram-worker] render-chunks: ${canvasIds.length} chunks in ${(performance.now() - tRender).toFixed(1)}ms`);
 

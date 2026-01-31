@@ -14,6 +14,7 @@ export * from './LoopRegion';
 export * from './SelectionTimeInputs';
 export * from './SmartChannel';
 export * from './SpectrogramChannel';
+export * from './SpectrogramLabels';
 export * from './SmartScale';
 export * from './TimeFormatSelect';
 export * from './TimeInput';

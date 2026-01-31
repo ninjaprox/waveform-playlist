@@ -189,6 +189,7 @@ const config: Config = {
                 '@waveform-playlist/playout': path.resolve(__dirname, '../packages/playout/src'),
                 '@waveform-playlist/ui-components': path.resolve(__dirname, '../packages/ui-components/src'),
                 '@waveform-playlist/annotations': path.resolve(__dirname, '../packages/annotations/src'),
+                '@waveform-playlist/spectrogram': path.resolve(__dirname, '../packages/spectrogram/src'),
                 // recording, loaders, and webaudio-peaks use their built dist versions via node_modules
 
                 // Force single instance of styled-components to avoid "several instances" warning

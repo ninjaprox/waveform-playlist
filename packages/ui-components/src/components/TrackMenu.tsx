@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
-import type { RenderMode } from '@waveform-playlist/core';
 import { DotsIcon } from './TrackControls/DotsIcon';
 
+export interface TrackMenuItem {
+  id: string;
+  label?: string;
+  content: ReactNode;
+}
+
 export interface TrackMenuProps {
-  renderMode: RenderMode;
-  onRenderModeChange: (mode: RenderMode) => void;
-  onOpenSpectrogramSettings: () => void;
+  items: TrackMenuItem[] | ((onClose: () => void) => TrackMenuItem[]);
 }
 
 const MenuContainer = styled.div`
@@ -45,65 +48,18 @@ const Dropdown = styled.div<{ $top: number; $left: number }>`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 `;
 
-const DropdownSection = styled.div`
-  padding: 0.25rem 0.75rem;
-`;
-
-const SectionLabel = styled.div`
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.5;
-  margin-bottom: 0.25rem;
-`;
-
-const RadioLabel = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.2rem 0;
-  font-size: 0.8rem;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.8;
-  }
-`;
-
 const Divider = styled.hr`
   border: none;
   border-top: 1px solid rgba(128, 128, 128, 0.3);
   margin: 0.35rem 0;
 `;
 
-const SettingsButton = styled.button`
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  font-size: 0.8rem;
-  padding: 0.35rem 0.75rem;
-  width: 100%;
-  text-align: left;
-
-  &:hover {
-    background: rgba(128, 128, 128, 0.15);
-  }
-`;
-
-const RENDER_MODES: { value: RenderMode; label: string }[] = [
-  { value: 'waveform', label: 'Waveform' },
-  { value: 'spectrogram', label: 'Spectrogram' },
-  { value: 'both', label: 'Both' },
-];
-
 export const TrackMenu: React.FC<TrackMenuProps> = ({
-  renderMode,
-  onRenderModeChange,
-  onOpenSpectrogramSettings,
+  items: itemsProp,
 }) => {
   const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+  const items = typeof itemsProp === 'function' ? itemsProp(close) : itemsProp;
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -114,7 +70,7 @@ export const TrackMenu: React.FC<TrackMenuProps> = ({
       const rect = buttonRef.current.getBoundingClientRect();
       setDropdownPos({
         top: rect.bottom + 2,
-        left: Math.max(0, rect.right - 180), // align right edge with button
+        left: Math.max(0, rect.right - 180),
       });
     }
   }, [open]);
@@ -135,11 +91,6 @@ export const TrackMenu: React.FC<TrackMenuProps> = ({
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
-
-  const handleModeChange = useCallback((mode: RenderMode) => {
-    onRenderModeChange(mode);
-    setOpen(false);
-  }, [onRenderModeChange]);
 
   return (
     <MenuContainer>
@@ -162,31 +113,12 @@ export const TrackMenu: React.FC<TrackMenuProps> = ({
           $left={dropdownPos.left}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <DropdownSection>
-            <SectionLabel>Display</SectionLabel>
-            {RENDER_MODES.map(({ value, label }) => (
-              <RadioLabel key={value}>
-                <input
-                  type="radio"
-                  name="render-mode"
-                  checked={renderMode === value}
-                  onChange={() => handleModeChange(value)}
-                />
-                {label}
-              </RadioLabel>
-            ))}
-          </DropdownSection>
-          <Divider />
-          <SettingsButton
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(false);
-              onOpenSpectrogramSettings();
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            Spectrogram Settings...
-          </SettingsButton>
+          {items.map((item, index) => (
+            <React.Fragment key={item.id}>
+              {index > 0 && <Divider />}
+              {item.content}
+            </React.Fragment>
+          ))}
         </Dropdown>,
         document.body
       )}

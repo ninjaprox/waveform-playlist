@@ -58,6 +58,7 @@
     "@waveform-playlist/media-element-playout": "workspace:*",
     "@waveform-playlist/playout": "workspace:*",
     "@waveform-playlist/recording": "workspace:*",
+    "@waveform-playlist/spectrogram": "workspace:*",
     "@waveform-playlist/ui-components": "workspace:*",
     "@waveform-playlist/webaudio-peaks": "workspace:*",
     "uuid": "^13.0.0",

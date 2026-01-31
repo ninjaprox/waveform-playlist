@@ -5,7 +5,7 @@ import { type Track, type ClipTrack, type Fade, type SpectrogramData, type Spect
 import { type TimeFormat, type WaveformPlaylistTheme, defaultTheme } from '@waveform-playlist/ui-components';
 import { start as toneStart, getContext } from 'tone';
 import { generatePeaks } from './peaksUtil';
-import { computeSpectrogram, computeSpectrogramMono } from './spectrogram';
+import { computeSpectrogram, computeSpectrogramMono } from '@waveform-playlist/spectrogram';
 import { extractPeaksFromWaveformData } from './waveformDataLoader';
 import type { PeakData } from '@waveform-playlist/webaudio-peaks';
 import { parseAeneas, type AnnotationData } from '@waveform-playlist/annotations';

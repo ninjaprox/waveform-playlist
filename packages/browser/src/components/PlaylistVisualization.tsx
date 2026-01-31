@@ -20,7 +20,6 @@ import {
   VolumeDownIcon,
   VolumeUpIcon,
   TrackMenu,
-  SpectrogramSettingsModal,
   useTheme,
   waveformColorToCss,
   type RenderPlayheadFunction,
@@ -36,7 +35,7 @@ import { AnimatedPlayhead } from './AnimatedPlayhead';
 import { ChannelWithProgress } from './ChannelWithProgress';
 import type { SpectrogramConfig, ColorMapValue, RenderMode } from '@waveform-playlist/core';
 import type { AnnotationData, GetAnnotationBoxLabelFn } from '../types/annotations';
-import { getColorMap, getFrequencyScale } from '../spectrogram';
+import { getColorMap, getFrequencyScale, SpectrogramMenuItems, SpectrogramSettingsModal } from '@waveform-playlist/spectrogram';
 
 // Default duration in seconds for empty tracks (used for recording workflow)
 const DEFAULT_EMPTY_TRACK_DURATION = 60;
@@ -381,9 +380,12 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
                       {trackState.name || `Track ${trackIndex + 1}`}
                       <span style={{ position: 'absolute', right: 0, top: 0 }}>
                         <TrackMenu
-                          renderMode={effectiveRenderMode}
-                          onRenderModeChange={(mode) => setTrackRenderMode(trackIndex, mode)}
-                          onOpenSpectrogramSettings={() => setSettingsModalTrackIndex(trackIndex)}
+                          items={(onClose) => SpectrogramMenuItems({
+                            renderMode: effectiveRenderMode,
+                            onRenderModeChange: (mode) => setTrackRenderMode(trackIndex, mode),
+                            onOpenSettings: () => setSettingsModalTrackIndex(trackIndex),
+                            onClose,
+                          })}
                         />
                       </span>
                     </Header>

@@ -36,24 +36,24 @@ const TRACK_CONFIGS: { src: string; name: string; defaultMode: RenderMode; color
   {
     src: '/waveform-playlist/media/audio/AlbertKader_Whiptails/09_Synth1.opus',
     name: 'Synth',
-    defaultMode: 'both',
+    defaultMode: 'waveform',
     colorMap: 'viridis',
   },
   {
     src: '/waveform-playlist/media/audio/AlbertKader_Whiptails/07_Bass1.opus',
     name: 'Bass',
-    defaultMode: 'both',
+    defaultMode: 'waveform',
     colorMap: 'magma',
   },
   {
     src: '/waveform-playlist/media/audio/AlbertKader_Whiptails/03_Kick.opus',
     name: 'Kick',
-    defaultMode: 'both',
+    defaultMode: 'waveform',
   },
   {
     src: '/waveform-playlist/media/audio/AlbertKader_Whiptails/06_HiHat.opus',
     name: 'HiHat',
-    defaultMode: 'both',
+    defaultMode: 'waveform',
   },
 ];
 

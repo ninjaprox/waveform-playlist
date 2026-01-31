@@ -206,6 +206,7 @@ export function MirSpectrogramExample() {
           tracks={allTracks}
           theme={theme}
           timescale
+          automaticScroll
           waveHeight={100}
           samplesPerPixel={8192}
           barWidth={4}

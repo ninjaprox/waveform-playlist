@@ -75,5 +75,15 @@ export type ColorMapValue = ColorMapName | ColorMapEntry[];
 /** Subset of SpectrogramConfig fields that affect FFT computation (used for cache keys) */
 export type SpectrogramComputeConfig = Pick<SpectrogramConfig, 'fftSize' | 'hopSize' | 'windowFunction' | 'alpha' | 'zeroPaddingFactor'>;
 
+/** Subset of SpectrogramConfig fields that only affect display/rendering (not FFT computation) */
+export type SpectrogramDisplayConfig = Pick<SpectrogramConfig, 'frequencyScale' | 'minFrequency' | 'maxFrequency' | 'gainDb' | 'rangeDb' | 'labels' | 'labelsColor' | 'labelsBackground'>;
+
 /** Render mode for a track's visualization */
 export type RenderMode = 'waveform' | 'spectrogram' | 'both';
+
+/** Per-track overrides for spectrogram rendering (render mode, config, color map) */
+export interface TrackSpectrogramOverrides {
+  renderMode: RenderMode;
+  config?: SpectrogramConfig;
+  colorMap?: ColorMapValue;
+}

@@ -51,13 +51,11 @@ export interface SpectrogramWorkerRenderChunksParams {
   channelIndex: number;
 }
 
-interface ComputeResponse {
-  id: string;
-  spectrograms?: SpectrogramData[];
-  cacheKey?: string;
-  done?: boolean;
-  error?: string;
-}
+type ComputeResponse =
+  | { id: string; type: 'spectrograms'; spectrograms: SpectrogramData[] }
+  | { id: string; type: 'cache-key'; cacheKey: string }
+  | { id: string; type: 'done' }
+  | { id: string; type: 'error'; error: string };
 
 export interface SpectrogramWorkerApi {
   compute(params: SpectrogramWorkerComputeParams): Promise<SpectrogramData[]>;
@@ -96,23 +94,26 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
   let terminated = false;
 
   worker.onmessage = (e: MessageEvent<ComputeResponse>) => {
-    const { id, spectrograms, cacheKey, done, error } = e.data;
-    const entry = pending.get(id);
+    const msg = e.data;
+    const entry = pending.get(msg.id);
     if (entry) {
-      pending.delete(id);
-      if (error) {
-        entry.reject(new Error(error));
-      } else if (cacheKey !== undefined) {
-        // compute-fft response — return cache key
-        entry.resolve({ cacheKey });
-      } else if (done && !spectrograms) {
-        // compute-render or render-chunks response — no data, just a signal
-        entry.resolve(undefined);
-      } else {
-        entry.resolve(spectrograms);
+      pending.delete(msg.id);
+      switch (msg.type) {
+        case 'error':
+          entry.reject(new Error(msg.error));
+          break;
+        case 'cache-key':
+          entry.resolve({ cacheKey: msg.cacheKey });
+          break;
+        case 'done':
+          entry.resolve(undefined);
+          break;
+        case 'spectrograms':
+          entry.resolve(msg.spectrograms);
+          break;
       }
-    } else if (id) {
-      console.warn(`[spectrogram] Received response for unknown message ID: ${id}`);
+    } else if (msg.id) {
+      console.warn(`[spectrogram] Received response for unknown message ID: ${msg.id}`);
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, type ReactNode } from 'react';
 import { ThemeProvider } from 'styled-components';
 import { TonePlayout, type EffectsFunction, type TrackEffectsFunction } from '@waveform-playlist/playout';
-import { type Track, type ClipTrack, type Fade, type SpectrogramData, type SpectrogramConfig, type ColorMapValue, type RenderMode } from '@waveform-playlist/core';
+import { type Track, type ClipTrack, type Fade, type SpectrogramData, type SpectrogramConfig, type SpectrogramComputeConfig, type ColorMapValue, type RenderMode, type TrackSpectrogramOverrides } from '@waveform-playlist/core';
 import { type TimeFormat, type WaveformPlaylistTheme, defaultTheme } from '@waveform-playlist/ui-components';
 import { start as toneStart, getContext } from 'tone';
 import { generatePeaks } from './peaksUtil';
@@ -224,12 +224,8 @@ export interface PlaylistDataContextValue {
   spectrogramConfig?: SpectrogramConfig;
   /** Global spectrogram color map (fallback) */
   spectrogramColorMap?: ColorMapValue;
-  /** Per-track render mode overrides (set via track menu) */
-  trackRenderModes: Map<string, RenderMode>;
-  /** Per-track spectrogram config overrides */
-  trackSpectrogramConfigs: Map<string, SpectrogramConfig>;
-  /** Per-track spectrogram color map overrides */
-  trackSpectrogramColorMaps: Map<string, ColorMapValue>;
+  /** Per-track spectrogram overrides (render mode, config, color map) */
+  trackSpectrogramOverrides: Map<string, TrackSpectrogramOverrides>;
   /** Spectrogram worker API (for OffscreenCanvas rendering) */
   spectrogramWorkerApi: SpectrogramWorkerApi | null;
 }
@@ -340,10 +336,8 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
   const [loopEnd, setLoopEndState] = useState(0);
   const [isReady, setIsReady] = useState(false);
 
-  // Per-track render mode and spectrogram config overrides (set via track menu)
-  const [trackRenderModes, setTrackRenderModes] = useState<Map<string, RenderMode>>(new Map());
-  const [trackSpectrogramConfigs, setTrackSpectrogramConfigs] = useState<Map<string, SpectrogramConfig>>(new Map());
-  const [trackSpectrogramColorMaps, setTrackSpectrogramColorMaps] = useState<Map<string, ColorMapValue>>(new Map());
+  // Per-track spectrogram overrides (render mode, config, color map) — single Map
+  const [trackSpectrogramOverrides, setTrackSpectrogramOverrides] = useState<Map<string, TrackSpectrogramOverrides>>(new Map());
 
   // OffscreenCanvas registry for worker-rendered spectrograms
   // Map: clipId → Map<channelIndex, { canvasIds: string[], canvasWidths: number[] }>
@@ -793,18 +787,18 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     const currentKeys = new Map<string, string>();
     const currentFFTKeys = new Map<string, string>();
     tracks.forEach((track, i) => {
-      const mode = trackRenderModes.get(track.id) ?? track.renderMode ?? 'waveform';
+      const mode = trackSpectrogramOverrides.get(track.id)?.renderMode ?? track.renderMode ?? 'waveform';
       if (mode === 'waveform') return;
-      const cfg = trackSpectrogramConfigs.get(track.id) ?? track.spectrogramConfig ?? spectrogramConfig;
-      const cm = trackSpectrogramColorMaps.get(track.id) ?? track.spectrogramColorMap ?? spectrogramColorMap;
+      const cfg = trackSpectrogramOverrides.get(track.id)?.config ?? track.spectrogramConfig ?? spectrogramConfig;
+      const cm = trackSpectrogramOverrides.get(track.id)?.colorMap ?? track.spectrogramColorMap ?? spectrogramColorMap;
       currentKeys.set(track.id, JSON.stringify({ mode, cfg, cm, mono }));
-      // FFT key: only params that affect FFT output (not gain, range, colormap, freq scale, etc.)
-      currentFFTKeys.set(track.id, JSON.stringify({
-        mode, mono,
+      // FFT key: only SpectrogramComputeConfig fields (not gain, range, colormap, freq scale, etc.)
+      const computeConfig: SpectrogramComputeConfig = {
         fftSize: cfg?.fftSize, hopSize: cfg?.hopSize,
         windowFunction: cfg?.windowFunction, alpha: cfg?.alpha,
         zeroPaddingFactor: cfg?.zeroPaddingFactor,
-      }));
+      };
+      currentFFTKeys.set(track.id, JSON.stringify({ mode, mono, ...computeConfig }));
     });
 
     const prevKeys = prevSpectrogramConfigRef.current;
@@ -843,7 +837,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
       setSpectrogramDataMap(prevMap => {
         const newMap = new Map(prevMap);
         for (const track of tracks) {
-          const mode = trackRenderModes.get(track.id) ?? track.renderMode ?? 'waveform';
+          const mode = trackSpectrogramOverrides.get(track.id)?.renderMode ?? track.renderMode ?? 'waveform';
           if (mode === 'waveform') {
             for (const clip of track.clips) {
               newMap.delete(clip.id);
@@ -902,7 +896,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     }> = [];
 
     tracks.forEach((track, i) => {
-      const mode = trackRenderModes.get(track.id) ?? track.renderMode ?? 'waveform';
+      const mode = trackSpectrogramOverrides.get(track.id)?.renderMode ?? track.renderMode ?? 'waveform';
       if (mode === 'waveform') return;
 
       const trackConfigChanged = configChanged && (currentKeys.get(track.id) !== prevKeys.get(track.id));
@@ -912,8 +906,8 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
       );
       if (!trackConfigChanged && !hasRegisteredCanvases) return;
 
-      const cfg = trackSpectrogramConfigs.get(track.id) ?? track.spectrogramConfig ?? spectrogramConfig ?? {};
-      const cm = trackSpectrogramColorMaps.get(track.id) ?? track.spectrogramColorMap ?? spectrogramColorMap ?? 'viridis';
+      const cfg = trackSpectrogramOverrides.get(track.id)?.config ?? track.spectrogramConfig ?? spectrogramConfig ?? {};
+      const cm = trackSpectrogramOverrides.get(track.id)?.colorMap ?? track.spectrogramColorMap ?? spectrogramColorMap ?? 'viridis';
 
       for (const clip of track.clips) {
         if (!clip.audioBuffer) continue;
@@ -1270,7 +1264,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     computeAsync().catch(err => {
       console.error('[waveform-playlist] Spectrogram computation failed:', err);
     });
-  }, [tracks, mono, spectrogramConfig, spectrogramColorMap, trackRenderModes, trackSpectrogramConfigs, trackSpectrogramColorMaps, waveHeight, samplesPerPixel, spectrogramCanvasVersion]);
+  }, [tracks, mono, spectrogramConfig, spectrogramColorMap, trackSpectrogramOverrides, waveHeight, samplesPerPixel, spectrogramCanvasVersion]);
 
   // Animation loop
   const startAnimationLoop = useCallback(() => {
@@ -1609,28 +1603,27 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     }
   }, [trackStates]);
 
-  // Per-track render mode and spectrogram config setters
+  // Per-track render mode and spectrogram config setters (convenience wrappers over single Map)
   const setTrackRenderMode = useCallback((trackId: string, mode: RenderMode) => {
-    setTrackRenderModes(prev => {
+    setTrackSpectrogramOverrides(prev => {
       const next = new Map(prev);
-      next.set(trackId, mode);
+      const existing = next.get(trackId);
+      next.set(trackId, { ...existing, renderMode: mode });
       return next;
     });
   }, []);
 
   const setTrackSpectrogramConfig = useCallback((trackId: string, config: SpectrogramConfig, colorMap?: ColorMapValue) => {
-    setTrackSpectrogramConfigs(prev => {
+    setTrackSpectrogramOverrides(prev => {
       const next = new Map(prev);
-      next.set(trackId, config);
+      const existing = next.get(trackId);
+      next.set(trackId, {
+        renderMode: existing?.renderMode ?? 'waveform',
+        config,
+        ...(colorMap !== undefined ? { colorMap } : { colorMap: existing?.colorMap }),
+      });
       return next;
     });
-    if (colorMap !== undefined) {
-      setTrackSpectrogramColorMaps(prev => {
-        const next = new Map(prev);
-        next.set(trackId, colorMap);
-        return next;
-      });
-    }
   }, []);
 
   // Spectrogram OffscreenCanvas registration
@@ -1811,9 +1804,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     spectrogramDataMap,
     spectrogramConfig,
     spectrogramColorMap,
-    trackRenderModes,
-    trackSpectrogramConfigs,
-    trackSpectrogramColorMaps,
+    trackSpectrogramOverrides,
     spectrogramWorkerApi: spectrogramWorkerReady ? spectrogramWorkerRef.current : null,
   };
 

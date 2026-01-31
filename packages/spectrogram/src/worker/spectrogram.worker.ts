@@ -9,7 +9,7 @@
  * 5. `render-chunks` — render specific chunks from cached FFT data
  */
 
-import type { SpectrogramConfig, SpectrogramData } from '@waveform-playlist/core';
+import type { SpectrogramConfig, SpectrogramComputeConfig, SpectrogramData } from '@waveform-playlist/core';
 import { fftMagnitudeDb } from '../computation/fft';
 import { getWindowFunction } from '../computation/windowFunctions';
 import { getFrequencyScale, type FrequencyScaleName } from '../computation/frequencyScales';
@@ -37,14 +37,11 @@ function generateCacheKey(params: {
   offsetSamples: number;
   durationSamples: number;
   sampleRate: number;
-  fftSize: number;
-  zeroPaddingFactor: number;
-  hopSize: number;
-  windowFunction: string;
-  alpha: number | undefined;
+  compute: SpectrogramComputeConfig;
   mono: boolean;
 }): string {
-  return `${params.clipId}:${params.channelIndex}:${params.offsetSamples}:${params.durationSamples}:${params.sampleRate}:${params.fftSize}:${params.zeroPaddingFactor}:${params.hopSize}:${params.windowFunction}:${params.alpha ?? ''}:${params.mono ? 1 : 0}`;
+  const { compute: c } = params;
+  return `${params.clipId}:${params.channelIndex}:${params.offsetSamples}:${params.durationSamples}:${params.sampleRate}:${c.fftSize ?? ''}:${c.zeroPaddingFactor ?? ''}:${c.hopSize ?? ''}:${c.windowFunction ?? ''}:${c.alpha ?? ''}:${params.mono ? 1 : 0}`;
 }
 
 // --- Message types ---
@@ -139,13 +136,11 @@ interface RenderChunksRequest {
 
 type WorkerMessage = ComputeRequest | RegisterCanvasMessage | UnregisterCanvasMessage | ComputeRenderRequest | ComputeFFTRequest | RenderChunksRequest | RegisterAudioDataMessage | UnregisterAudioDataMessage;
 
-interface ComputeResponse {
-  id: string;
-  spectrograms?: SpectrogramData[];
-  cacheKey?: string;
-  done?: boolean;
-  error?: string;
-}
+type ComputeResponse =
+  | { id: string; type: 'spectrograms'; spectrograms: SpectrogramData[] }
+  | { id: string; type: 'cache-key'; cacheKey: string }
+  | { id: string; type: 'done' }
+  | { id: string; type: 'error'; error: string };
 
 // --- FFT computation (unchanged) ---
 
@@ -446,7 +441,8 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
 
       const cacheKey = generateCacheKey({
         clipId, channelIndex: 0, offsetSamples: effectiveOffset, durationSamples: effectiveDuration, sampleRate,
-        fftSize, zeroPaddingFactor, hopSize, windowFunction, alpha: config.alpha, mono,
+        compute: { fftSize, zeroPaddingFactor, hopSize, windowFunction, alpha: config.alpha },
+        mono,
       });
 
       if (!fftCache.has(cacheKey)) {
@@ -473,10 +469,10 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         fftCache.set(cacheKey, { spectrograms, sampleOffset: effectiveOffset });
       }
 
-      const response: ComputeResponse = { id, cacheKey };
+      const response: ComputeResponse = { id, type: 'cache-key', cacheKey };
       (self as unknown as Worker).postMessage(response);
     } catch (err) {
-      const response: ComputeResponse = { id, error: String(err) };
+      const response: ComputeResponse = { id, type: 'error', error: String(err) };
       (self as unknown as Worker).postMessage(response);
     }
     return;
@@ -492,7 +488,7 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
 
       const cacheEntry = fftCache.get(cacheKey);
       if (!cacheEntry || channelIndex >= cacheEntry.spectrograms.length) {
-        const response: ComputeResponse = { id, done: true, error: 'cache-miss' };
+        const response: ComputeResponse = { id, type: 'error', error: 'cache-miss' };
         (self as unknown as Worker).postMessage(response);
         return;
       }
@@ -518,10 +514,10 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         cacheEntry.sampleOffset,
       );
 
-      const response: ComputeResponse = { id, done: true };
+      const response: ComputeResponse = { id, type: 'done' };
       (self as unknown as Worker).postMessage(response);
     } catch (err) {
-      const response: ComputeResponse = { id, error: String(err) };
+      const response: ComputeResponse = { id, type: 'error', error: String(err) };
       (self as unknown as Worker).postMessage(response);
     }
     return;
@@ -570,10 +566,10 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         );
       }
 
-      const response: ComputeResponse = { id, done: true };
+      const response: ComputeResponse = { id, type: 'done' };
       (self as unknown as Worker).postMessage(response);
     } catch (err) {
-      const response: ComputeResponse = { id, error: String(err) };
+      const response: ComputeResponse = { id, type: 'error', error: String(err) };
       (self as unknown as Worker).postMessage(response);
     }
     return;
@@ -599,10 +595,10 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
     // Transfer the data Float32Arrays back (zero-copy)
     const transferables = spectrograms.map(s => s.data.buffer);
 
-    const response: ComputeResponse = { id, spectrograms };
+    const response: ComputeResponse = { id, type: 'spectrograms', spectrograms };
     (self as unknown as Worker).postMessage(response, transferables);
   } catch (err) {
-    const response: ComputeResponse = { id, error: String(err) };
+    const response: ComputeResponse = { id, type: 'error', error: String(err) };
     (self as unknown as Worker).postMessage(response);
   }
 };

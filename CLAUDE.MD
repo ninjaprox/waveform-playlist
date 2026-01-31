@@ -416,6 +416,14 @@ Without `Tone.start()`, `Tone.now()` returns null → RangeError in scheduling.
 
 **Master volume:** Uses Web Audio standard 0-1.0 range (not 0-100).
 
+### Tone.js Internal AudioParam Access
+
+**Pattern:** Access raw `AudioParam` via `(signal as any)._param` for `setValueAtTime`/`cancelScheduledValues` when Tone.js Signal wrapper doesn't propagate changes (e.g., suspended AudioContext).
+
+**Used in:** `ToneTrack.setMute()`, `ToneTrack.scheduleFades()`
+
+**Risk:** `_param` is a private Tone.js 15.x internal. Pin version carefully. Consider consolidating into a shared utility with null guard.
+
 ### Firefox Compatibility (standardized-audio-context)
 
 **Problem 1: AudioListener Error**

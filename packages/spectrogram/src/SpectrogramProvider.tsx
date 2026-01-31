@@ -267,29 +267,34 @@ export const SpectrogramProvider: React.FC<SpectrogramProviderProps> = ({
     if (clipsNeedingFFT.length === 0 && clipsNeedingDisplayOnly.length === 0) return;
 
     if (!workerApi) {
-      setSpectrogramDataMap(prevMap => {
-        const newMap = new Map(prevMap);
-        for (const item of clipsNeedingFFT) {
-          const channelSpectrograms: SpectrogramData[] = [];
-          if (item.monoFlag) {
-            channelSpectrograms.push(
-              computeSpectrogramMono(
-                tracks.flatMap(t => t.clips).find(c => c.id === item.clipId)!.audioBuffer!,
-                item.config, item.offsetSamples, item.durationSamples
-              )
-            );
-          } else {
-            const clip = tracks.flatMap(t => t.clips).find(c => c.id === item.clipId)!;
-            for (let ch = 0; ch < clip.audioBuffer!.numberOfChannels; ch++) {
+      try {
+        setSpectrogramDataMap(prevMap => {
+          const newMap = new Map(prevMap);
+          for (const item of clipsNeedingFFT) {
+            const clip = tracks.flatMap(t => t.clips).find(c => c.id === item.clipId);
+            if (!clip?.audioBuffer) continue;
+            const channelSpectrograms: SpectrogramData[] = [];
+            if (item.monoFlag) {
               channelSpectrograms.push(
-                computeSpectrogram(clip.audioBuffer!, item.config, item.offsetSamples, item.durationSamples, ch)
+                computeSpectrogramMono(
+                  clip.audioBuffer,
+                  item.config, item.offsetSamples, item.durationSamples
+                )
               );
+            } else {
+              for (let ch = 0; ch < clip.audioBuffer.numberOfChannels; ch++) {
+                channelSpectrograms.push(
+                  computeSpectrogram(clip.audioBuffer, item.config, item.offsetSamples, item.durationSamples, ch)
+                );
+              }
             }
+            newMap.set(item.clipId, channelSpectrograms);
           }
-          newMap.set(item.clipId, channelSpectrograms);
-        }
-        return newMap;
-      });
+          return newMap;
+        });
+      } catch (err) {
+        console.error('[waveform-playlist] Synchronous spectrogram computation failed:', err);
+      }
       return;
     }
 

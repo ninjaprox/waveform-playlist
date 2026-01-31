@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
 import type { SpectrogramData, SpectrogramConfig, ColorMapValue, RenderMode, TrackSpectrogramOverrides } from '@waveform-playlist/core';
 
 export interface SpectrogramIntegration {
@@ -12,7 +12,7 @@ export interface SpectrogramIntegration {
   registerSpectrogramCanvases: (clipId: string, channelIndex: number, canvasIds: string[], canvasWidths: number[]) => void;
   unregisterSpectrogramCanvases: (clipId: string, channelIndex: number) => void;
   /** Render spectrogram menu items for a track's context menu */
-  renderMenuItems?: (props: { renderMode: string; onRenderModeChange: (mode: RenderMode) => void; onOpenSettings: () => void; onClose?: () => void }) => any[];
+  renderMenuItems?: (props: { renderMode: string; onRenderModeChange: (mode: RenderMode) => void; onOpenSettings: () => void; onClose?: () => void }) => Array<{ id: string; label?: string; content: React.ReactNode }>;
   /** Settings modal component provided by the spectrogram package */
   SettingsModal?: React.ComponentType<{
     open: boolean;

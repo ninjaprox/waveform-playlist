@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import type { SpectrogramConfig, ColorMapValue, ColorMapName } from '@waveform-playlist/core';
+import type { SpectrogramConfig, ColorMapValue, ColorMapName, FFTSize } from '@waveform-playlist/core';
 
 export interface SpectrogramSettingsModalProps {
   open: boolean;
@@ -203,7 +203,7 @@ export const SpectrogramSettingsModal: React.FC<SpectrogramSettingsModalProps> =
       <FormGrid>
         <Field>
           <Label>FFT Size</Label>
-          <Select value={fftSize} onChange={e => { const v = Number(e.target.value); setFftSize(v); setHopSize(v / 4); }}>
+          <Select value={fftSize} onChange={e => { const v = Number(e.target.value) as FFTSize; setFftSize(v); setHopSize(Math.floor(v / 4)); }}>
             {FFT_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
           </Select>
         </Field>
@@ -213,9 +213,9 @@ export const SpectrogramSettingsModal: React.FC<SpectrogramSettingsModalProps> =
           <Select value={hopSize} onChange={e => setHopSize(Number(e.target.value))}>
             {[
               { label: `${fftSize} (no overlap)`, value: fftSize },
-              { label: `${fftSize / 2} (50%)`, value: fftSize / 2 },
-              { label: `${fftSize / 4} (75%)`, value: fftSize / 4 },
-              { label: `${fftSize / 8} (87.5%)`, value: fftSize / 8 },
+              { label: `${Math.floor(fftSize / 2)} (50%)`, value: Math.floor(fftSize / 2) },
+              { label: `${Math.floor(fftSize / 4)} (75%)`, value: Math.floor(fftSize / 4) },
+              { label: `${Math.floor(fftSize / 8)} (87.5%)`, value: Math.floor(fftSize / 8) },
             ].map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </Select>
         </Field>

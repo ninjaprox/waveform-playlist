@@ -63,7 +63,7 @@ export function getWindowFunction(
     }
 
     default:
-      // Default to Hann
+      console.warn(`[spectrogram] Unknown window function "${name}", falling back to hann`);
       for (let i = 0; i < size; i++) {
         window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / N));
       }

@@ -56,6 +56,7 @@ interface ComputeResponse {
   spectrograms?: SpectrogramData[];
   cacheKey?: string;
   done?: boolean;
+  error?: string;
 }
 
 export interface SpectrogramWorkerApi {
@@ -92,13 +93,16 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
 
   // Track which clipIds have pre-registered audio data in the worker
   const registeredClipIds = new Set<string>();
+  let terminated = false;
 
   worker.onmessage = (e: MessageEvent<ComputeResponse>) => {
-    const { id, spectrograms, cacheKey, done } = e.data;
+    const { id, spectrograms, cacheKey, done, error } = e.data;
     const entry = pending.get(id);
     if (entry) {
       pending.delete(id);
-      if (cacheKey !== undefined) {
+      if (error) {
+        entry.reject(new Error(error));
+      } else if (cacheKey !== undefined) {
         // compute-fft response — return cache key
         entry.resolve({ cacheKey });
       } else if (done && !spectrograms) {
@@ -107,10 +111,13 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
       } else {
         entry.resolve(spectrograms);
       }
+    } else if (id) {
+      console.warn(`[spectrogram] Received response for unknown message ID: ${id}`);
     }
   };
 
   worker.onerror = (e: ErrorEvent) => {
+    terminated = true;
     for (const [, entry] of pending) {
       entry.reject(e.error ?? new Error(e.message));
     }
@@ -119,6 +126,7 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
 
   return {
     compute(params: SpectrogramWorkerComputeParams): Promise<SpectrogramData[]> {
+      if (terminated) return Promise.reject(new Error('Worker terminated'));
       const id = String(++idCounter);
 
       return new Promise<SpectrogramData[]>((resolve, reject) => {
@@ -144,6 +152,7 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     },
 
     computeFFT(params: SpectrogramWorkerFFTParams): Promise<{ cacheKey: string }> {
+      if (terminated) return Promise.reject(new Error('Worker terminated'));
       const id = String(++idCounter);
 
       return new Promise<{ cacheKey: string }>((resolve, reject) => {
@@ -151,11 +160,8 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
 
         // Skip transfer if audio data is pre-registered in the worker
         const isPreRegistered = registeredClipIds.has(params.clipId);
-        const t0 = performance.now();
         const transferableArrays = isPreRegistered ? [] : params.channelDataArrays.map(arr => arr.slice());
-        const sliceMs = performance.now() - t0;
         const transferables = transferableArrays.map(arr => arr.buffer);
-        const t1 = performance.now();
 
         worker.postMessage(
           {
@@ -172,13 +178,11 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
           },
           transferables,
         );
-        const postMs = performance.now() - t1;
-        const totalSamples = transferableArrays.reduce((sum, arr) => sum + arr.length, 0);
-        console.log(`[spectrogram] computeFFT postMessage (${params.clipId}): preRegistered=${isPreRegistered}, slice=${sliceMs.toFixed(1)}ms, postMessage=${postMs.toFixed(1)}ms${isPreRegistered ? '' : `, ${totalSamples} samples transferred`}`);
       });
     },
 
     renderChunks(params: SpectrogramWorkerRenderChunksParams): Promise<void> {
+      if (terminated) return Promise.reject(new Error('Worker terminated'));
       const id = String(++idCounter);
 
       return new Promise<void>((resolve, reject) => {
@@ -217,18 +221,12 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     },
 
     registerAudioData(clipId: string, channelDataArrays: Float32Array[], sampleRate: number): void {
-      const totalSamples = channelDataArrays.reduce((sum, arr) => sum + arr.length, 0);
-      const t0 = performance.now();
       const transferableArrays = channelDataArrays.map(arr => arr.slice());
-      const sliceMs = performance.now() - t0;
       const transferables = transferableArrays.map(arr => arr.buffer);
-      const t1 = performance.now();
       worker.postMessage(
         { type: 'register-audio-data', clipId, channelDataArrays: transferableArrays, sampleRate },
         transferables,
       );
-      const postMs = performance.now() - t1;
-      console.log(`[spectrogram] registerAudioData (${clipId}): slice=${sliceMs.toFixed(1)}ms, postMessage=${postMs.toFixed(1)}ms, ${totalSamples} samples (${channelDataArrays.length} channels)`);
       registeredClipIds.add(clipId);
     },
 
@@ -238,6 +236,7 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     },
 
     computeAndRender(params: SpectrogramWorkerRenderParams): Promise<void> {
+      if (terminated) return Promise.reject(new Error('Worker terminated'));
       const id = String(++idCounter);
 
       return new Promise<void>((resolve, reject) => {
@@ -264,6 +263,7 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     },
 
     terminate() {
+      terminated = true;
       worker.terminate();
       for (const [, entry] of pending) {
         entry.reject(new Error('Worker terminated'));

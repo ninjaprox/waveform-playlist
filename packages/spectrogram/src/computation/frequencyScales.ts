@@ -4,12 +4,14 @@
  */
 
 function linearScale(f: number, minF: number, maxF: number): number {
+  if (maxF === minF) return 0;
   return (f - minF) / (maxF - minF);
 }
 
 function logarithmicScale(f: number, minF: number, maxF: number): number {
   const logMin = Math.log2(Math.max(minF, 1));
   const logMax = Math.log2(maxF);
+  if (logMax === logMin) return 0;
   return (Math.log2(Math.max(f, 1)) - logMin) / (logMax - logMin);
 }
 
@@ -20,6 +22,7 @@ function hzToMel(f: number): number {
 function melScale(f: number, minF: number, maxF: number): number {
   const melMin = hzToMel(minF);
   const melMax = hzToMel(maxF);
+  if (melMax === melMin) return 0;
   return (hzToMel(f) - melMin) / (melMax - melMin);
 }
 
@@ -30,6 +33,7 @@ function hzToBark(f: number): number {
 function barkScale(f: number, minF: number, maxF: number): number {
   const barkMin = hzToBark(minF);
   const barkMax = hzToBark(maxF);
+  if (barkMax === barkMin) return 0;
   return (hzToBark(f) - barkMin) / (barkMax - barkMin);
 }
 
@@ -40,6 +44,7 @@ function hzToErb(f: number): number {
 function erbScale(f: number, minF: number, maxF: number): number {
   const erbMin = hzToErb(minF);
   const erbMax = hzToErb(maxF);
+  if (erbMax === erbMin) return 0;
   return (hzToErb(f) - erbMin) / (erbMax - erbMin);
 }
 
@@ -57,7 +62,9 @@ export function getFrequencyScale(
     case 'bark': return barkScale;
     case 'erb': return erbScale;
     case 'linear':
+      return linearScale;
     default:
+      console.warn(`[spectrogram] Unknown frequency scale "${name}", falling back to linear`);
       return linearScale;
   }
 }

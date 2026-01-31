@@ -121,6 +121,8 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   useEffect(() => {
     if (!isWorkerMode) return;
 
+    const canvasCount = Math.ceil(length / MAX_CANVAS_WIDTH);
+    canvasesRef.current.length = canvasCount;
     const canvases = canvasesRef.current;
     const ids: string[] = [];
     const widths: number[] = [];
@@ -136,8 +138,8 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
         workerApi!.registerCanvas(canvasId, offscreen);
         ids.push(canvasId);
         widths.push(Math.min(length - i * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
-      } catch {
-        // transferControlToOffscreen may fail if already transferred or unsupported
+      } catch (err) {
+        console.warn(`[spectrogram] transferControlToOffscreen failed for ${canvasId}:`, err);
         break;
       }
     }
@@ -167,7 +169,8 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     if (isWorkerMode || !data) return;
 
     const canvases = canvasesRef.current;
-    const { frequencyBinCount, frameCount, hopSize, sampleRate, gainDb, rangeDb } = data;
+    const { frequencyBinCount, frameCount, hopSize, sampleRate, gainDb, rangeDb: rawRangeDb } = data;
+    const rangeDb = rawRangeDb === 0 ? 1 : rawRangeDb;
     let globalPixelOffset = 0;
 
     // Pre-compute Y mapping: for each pixel row, which frequency bin(s) to sample
@@ -255,7 +258,8 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
         const tmpCanvas = document.createElement('canvas');
         tmpCanvas.width = canvasWidth;
         tmpCanvas.height = canvasHeight;
-        const tmpCtx = tmpCanvas.getContext('2d')!;
+        const tmpCtx = tmpCanvas.getContext('2d');
+        if (!tmpCtx) continue;
         tmpCtx.putImageData(imgData, 0, 0);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);

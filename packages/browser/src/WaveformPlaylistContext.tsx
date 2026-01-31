@@ -1065,7 +1065,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     const computeAsync = async () => {
       const abortToken = { aborted: false };
       backgroundRenderAbortRef.current = abortToken;
-      const t0 = performance.now();
 
       // --- Process clips needing full FFT ---
       for (const item of clipsNeedingFFT) {
@@ -1099,7 +1098,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
               const overlapStartPx = Math.max(vpStartPx, clipStartPx);
               const overlapEndPx = Math.min(vpEndPx, clipEndPx);
 
-              console.log(`[spectrogram] viewport: scrollLeft=${scrollLeft}, viewportWidth=${viewportWidth}, controlWidth=${controlWidth}, vpStart=${vpStartPx}, vpEnd=${vpEndPx}, clipStartPx=${clipStartPx}, clipEndPx=${clipEndPx}, spp=${samplesPerPixel}, overlapStart=${Math.max(vpStartPx, clipStartPx)}, overlapEnd=${Math.min(vpEndPx, clipEndPx)}, clipStartSample=${item.clipStartSample}, offsetSamples=${item.offsetSamples}, durationSamples=${item.durationSamples}`);
               if (overlapEndPx > overlapStartPx) {
                 // Convert to clip-local pixels, then to buffer samples
                 const localStartPx = overlapStartPx - clipStartPx;
@@ -1124,7 +1122,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
             // Skip if the full-clip FFT is already cached (e.g., from a previous zoom level)
             const fullClipAlreadyCached = clipCacheKeysRef.current.has(item.clipId);
             if (visibleRange && !fullClipAlreadyCached) {
-              const tVFFT0 = performance.now();
               const { cacheKey: visibleCacheKey } = await workerApi!.computeFFT({
                 clipId: item.clipId,
                 channelDataArrays: item.channelDataArrays,
@@ -1135,9 +1132,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
                 mono: item.monoFlag,
                 sampleRange: visibleRange,
               });
-              const tVFFT1 = performance.now();
-              console.log(`[spectrogram] Phase 1a visible-range FFT (${item.clipId}): ${(tVFFT1 - tVFFT0).toFixed(1)}ms (${visibleRange.end - visibleRange.start} samples)`);
-
               if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
 
               // Render visible chunks immediately from partial FFT
@@ -1153,7 +1147,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
             }
 
             // Phase 1b: Compute full-clip FFT (cached in worker)
-            const tFFT0 = performance.now();
             const { cacheKey } = await workerApi!.computeFFT({
               clipId: item.clipId,
               channelDataArrays: item.channelDataArrays,
@@ -1163,8 +1156,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
               durationSamples: item.durationSamples,
               mono: item.monoFlag,
             });
-            const tFFT1 = performance.now();
-            console.log(`[spectrogram] Phase 1b full FFT (${item.clipId}): ${(tFFT1 - tFFT0).toFixed(1)}ms`);
 
             if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
 
@@ -1178,15 +1169,11 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
 
               // Phase 2: Re-render visible chunks with full FFT data
               // Always re-render: partial FFT may leave gaps at chunk edges outside the visible range
-              const tVis0 = performance.now();
               await renderChunkSubset(workerApi!, cacheKey, channelInfo, visibleIndices, item, ch);
-              const tVis1 = performance.now();
-              console.log(`[spectrogram] Phase 2 visible (${item.clipId} ch${ch}): ${visibleIndices.length} chunks in ${(tVis1 - tVis0).toFixed(1)}ms`);
 
               if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
 
               // Phase 3: Background render remaining chunks in batches
-              const tBg0 = performance.now();
               const BATCH_SIZE = 4;
               for (let batchStart = 0; batchStart < remainingIndices.length; batchStart += BATCH_SIZE) {
                 if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
@@ -1205,10 +1192,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
                 if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
 
                 await renderChunkSubset(workerApi!, cacheKey, channelInfo, batch, item, ch);
-              }
-              const tBg1 = performance.now();
-              if (remainingIndices.length > 0) {
-                console.log(`[spectrogram] Phase 3 background (${item.clipId} ch${ch}): ${remainingIndices.length} chunks in ${(tBg1 - tBg0).toFixed(1)}ms`);
               }
             }
           } else {
@@ -1235,10 +1218,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
         }
       }
 
-      if (clipsNeedingFFT.length > 0) {
-        console.log(`[spectrogram] All FFT clips done in ${(performance.now() - t0).toFixed(1)}ms`);
-      }
-
       // --- Process clips needing display-only re-render (skip FFT) ---
       for (const item of clipsNeedingDisplayOnly) {
         if (spectrogramGenerationRef.current !== generation || abortToken.aborted) return;
@@ -1250,7 +1229,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
         if (!clipCanvasInfo || clipCanvasInfo.size === 0) continue;
 
         try {
-          const tDisp0 = performance.now();
           const clipPixelOffset = Math.floor(item.clipStartSample / samplesPerPixel);
           for (let ch = 0; ch < item.numChannels; ch++) {
             const channelInfo = clipCanvasInfo.get(ch);
@@ -1283,13 +1261,11 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
               await renderChunkSubset(workerApi!, cacheKey, channelInfo, batch, item, ch);
             }
           }
-          console.log(`[spectrogram] Display-only re-render (${item.clipId}): ${(performance.now() - tDisp0).toFixed(1)}ms (FFT skipped)`);
         } catch (err) {
           console.warn('Spectrogram display re-render error for clip', item.clipId, err);
         }
       }
 
-      console.log(`[spectrogram] Total pipeline: ${(performance.now() - t0).toFixed(1)}ms (${clipsNeedingFFT.length} FFT, ${clipsNeedingDisplayOnly.length} display-only)`);
     };
 
     computeAsync();

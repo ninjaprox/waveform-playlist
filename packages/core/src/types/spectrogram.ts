@@ -4,6 +4,12 @@
  * Types for frequency-domain visualization of audio data.
  */
 
+/** Valid FFT sizes (must be power of 2, 256–8192) */
+export type FFTSize = 256 | 512 | 1024 | 2048 | 4096 | 8192;
+
+/** A single color map entry: [r, g, b] or [r, g, b, a] */
+export type ColorMapEntry = [number, number, number] | [number, number, number, number];
+
 /**
  * Computed spectrogram data ready for rendering.
  */
@@ -33,7 +39,7 @@ export interface SpectrogramData {
  */
 export interface SpectrogramConfig {
   /** FFT size: 256–8192, must be power of 2. Default: 2048 */
-  fftSize?: number;
+  fftSize?: FFTSize;
   /** Hop size between frames in samples. Default: fftSize / 4 */
   hopSize?: number;
   /** Window function applied before FFT. Default: 'hann' */
@@ -64,7 +70,10 @@ export interface SpectrogramConfig {
 export type ColorMapName = 'viridis' | 'magma' | 'inferno' | 'grayscale' | 'igray' | 'roseus';
 
 /** Color map can be a named preset or a custom array of [r, g, b, a?] entries */
-export type ColorMapValue = ColorMapName | number[][];
+export type ColorMapValue = ColorMapName | ColorMapEntry[];
+
+/** Subset of SpectrogramConfig fields that affect FFT computation (used for cache keys) */
+export type SpectrogramComputeConfig = Pick<SpectrogramConfig, 'fftSize' | 'hopSize' | 'windowFunction' | 'alpha' | 'zeroPaddingFactor'>;
 
 /** Render mode for a track's visualization */
 export type RenderMode = 'waveform' | 'spectrogram' | 'both';

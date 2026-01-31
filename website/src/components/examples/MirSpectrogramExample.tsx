@@ -7,13 +7,14 @@ import {
   PlayButton,
   PauseButton,
   StopButton,
+  RewindButton,
   AudioPosition,
   ZoomInButton,
   ZoomOutButton,
   useAudioTracks,
   usePlaybackShortcuts,
 } from '@waveform-playlist/browser';
-import type { SpectrogramConfig, RenderMode, ColorMapName, ClipTrack } from '@waveform-playlist/core';
+import type { SpectrogramConfig, RenderMode, ClipTrack } from '@waveform-playlist/core';
 import { createTrack, createClipFromSeconds } from '@waveform-playlist/core';
 import type { AudioTrackConfig } from '@waveform-playlist/browser';
 import { useDocusaurusTheme } from '../../hooks/useDocusaurusTheme';
@@ -77,18 +78,16 @@ const HiddenFileInput = styled.input`
   display: none;
 `;
 
-const TRACK_CONFIGS: { src: string; name: string; defaultMode: RenderMode; colorMap?: ColorMapName }[] = [
+const TRACK_CONFIGS: { src: string; name: string; defaultMode: RenderMode }[] = [
   {
     src: '/waveform-playlist/media/audio/AlbertKader_Whiptails/09_Synth1.opus',
     name: 'Synth',
     defaultMode: 'waveform',
-    colorMap: 'viridis',
   },
   {
     src: '/waveform-playlist/media/audio/AlbertKader_Whiptails/07_Bass1.opus',
     name: 'Bass',
     defaultMode: 'waveform',
-    colorMap: 'magma',
   },
   {
     src: '/waveform-playlist/media/audio/AlbertKader_Whiptails/03_Kick.opus',
@@ -105,12 +104,11 @@ const TRACK_CONFIGS: { src: string; name: string; defaultMode: RenderMode; color
 const DEFAULT_SPECTROGRAM_CONFIG: SpectrogramConfig = {
   fftSize: 2048,
   windowFunction: 'hann',
-  frequencyScale: 'linear',
+  frequencyScale: 'mel',
   minFrequency: 0,
   maxFrequency: 20000,
-  minDecibels: -100,
-  maxDecibels: -20,
-  gainDb: 0,
+  gainDb: 20,
+  rangeDb: 80,
   labels: false,
 };
 
@@ -119,7 +117,6 @@ const AUDIO_CONFIGS: AudioTrackConfig[] = TRACK_CONFIGS.map((tc) => ({
   name: tc.name,
   renderMode: tc.defaultMode,
   spectrogramConfig: DEFAULT_SPECTROGRAM_CONFIG,
-  spectrogramColorMap: tc.colorMap,
 }));
 
 function MirSpectrogramInner() {
@@ -172,6 +169,7 @@ export function MirSpectrogramExample() {
           soloed: false,
           volume: 1,
           pan: 0,
+          spectrogramConfig: DEFAULT_SPECTROGRAM_CONFIG,
         });
         setUserTracks(prev => [...prev, newTrack]);
       } catch (err) {
@@ -207,14 +205,16 @@ export function MirSpectrogramExample() {
           tracks={allTracks}
           theme={theme}
           waveHeight={100}
-          samplesPerPixel={512}
+          samplesPerPixel={8192}
           barWidth={4}
           barGap={2}
-          zoomLevels={[128, 256, 512, 1024, 2048, 4096]}
+          zoomLevels={[512, 1024, 2048, 4096, 8192, 16384, 32768]}
           controls={{ show: true, width: 180 }}
+          spectrogramColorMap="roseus"
         >
           <MirSpectrogramInner />
           <ControlBar>
+            <RewindButton />
             <PlayButton />
             <PauseButton />
             <StopButton />

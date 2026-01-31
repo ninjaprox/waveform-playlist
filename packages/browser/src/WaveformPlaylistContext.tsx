@@ -921,7 +921,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
                 devicePixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio : 1,
                 samplesPerPixel,
                 colorLUT,
-                frequencyScale: item.config.frequencyScale ?? 'linear',
+                frequencyScale: item.config.frequencyScale ?? 'mel',
                 minFrequency: item.config.minFrequency ?? 0,
                 maxFrequency: item.config.maxFrequency ?? 0,
               },

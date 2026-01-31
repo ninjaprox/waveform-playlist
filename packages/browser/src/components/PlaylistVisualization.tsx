@@ -170,7 +170,7 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
       const cfg = trackSpectrogramConfigs.get(i) ?? track.spectrogramConfig ?? spectrogramConfig;
       helpers.set(i, {
         colorLUT: getColorMap(cm),
-        frequencyScaleFn: getFrequencyScale(cfg?.frequencyScale ?? 'linear'),
+        frequencyScaleFn: getFrequencyScale(cfg?.frequencyScale ?? 'mel'),
         config: cfg,
       });
     });

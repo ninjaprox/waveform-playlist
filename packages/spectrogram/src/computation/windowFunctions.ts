@@ -8,7 +8,7 @@ export function getWindowFunction(
   alpha?: number
 ): Float32Array {
   const window = new Float32Array(size);
-  const N = size - 1;
+  const N = size;
 
   switch (name) {
     case 'rectangular':
@@ -67,6 +67,15 @@ export function getWindowFunction(
       for (let i = 0; i < size; i++) {
         window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / N));
       }
+  }
+
+  // Amplitude normalization: scale so a 0 dB sine produces a 0 dB spectrum peak.
+  // Matches Audacity: scale = 2.0 / sum(window)
+  let sum = 0;
+  for (let i = 0; i < size; i++) sum += window[i];
+  if (sum > 0) {
+    const scale = 2.0 / sum;
+    for (let i = 0; i < size; i++) window[i] *= scale;
   }
 
   return window;

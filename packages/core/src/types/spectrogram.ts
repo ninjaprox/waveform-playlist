@@ -8,8 +8,10 @@
  * Computed spectrogram data ready for rendering.
  */
 export interface SpectrogramData {
-  /** FFT size used for computation */
+  /** Actual FFT length used for computation (includes zero padding) */
   fftSize: number;
+  /** Original analysis window size before zero padding */
+  windowSize: number;
   /** Number of frequency bins (fftSize / 2) */
   frequencyBinCount: number;
   /** Sample rate of the source audio */
@@ -20,10 +22,10 @@ export interface SpectrogramData {
   frameCount: number;
   /** dB values: frameCount * frequencyBinCount Float32Array (row-major, frame × bin) */
   data: Float32Array;
-  /** Minimum dB value used in computation */
-  minDecibels: number;
-  /** Maximum dB value used in computation */
-  maxDecibels: number;
+  /** Display brightness boost in dB */
+  gainDb: number;
+  /** Signal range in dB */
+  rangeDb: number;
 }
 
 /**
@@ -38,20 +40,18 @@ export interface SpectrogramConfig {
   windowFunction?: 'hann' | 'hamming' | 'blackman' | 'rectangular' | 'bartlett' | 'blackman-harris';
   /** Window function parameter (0-1), used by some window functions */
   alpha?: number;
-  /** Frequency axis scale. Default: 'linear' */
+  /** Frequency axis scale. Default: 'mel' */
   frequencyScale?: 'linear' | 'logarithmic' | 'mel' | 'bark' | 'erb';
   /** Minimum frequency in Hz. Default: 0 */
   minFrequency?: number;
   /** Maximum frequency in Hz. Default: sampleRate / 2 */
   maxFrequency?: number;
-  /** Minimum decibels for normalization. Default: -100 */
-  minDecibels?: number;
-  /** Maximum decibels for normalization. Default: -20 */
-  maxDecibels?: number;
-  /** Display brightness boost in dB. Default: 0 */
+  /** Display brightness boost in dB. Default: 20 */
   gainDb?: number;
   /** Signal range in dB. Default: 80 */
   rangeDb?: number;
+  /** Zero padding factor: actual FFT length = fftSize * zeroPaddingFactor. Default: 2 */
+  zeroPaddingFactor?: number;
   /** Show frequency axis labels. Default: false */
   labels?: boolean;
   /** Label text color */

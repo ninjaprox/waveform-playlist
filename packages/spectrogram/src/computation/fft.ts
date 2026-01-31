@@ -77,19 +77,14 @@ export function magnitudeSpectrum(real: Float32Array, imag: Float32Array): Float
 }
 
 /**
- * Convert magnitudes to decibels, clamped to [minDb, maxDb] and shifted by gainDb.
+ * Convert magnitudes to decibels with a fixed -160 dB floor.
+ * Gain is applied at render time, not during FFT.
  */
-export function toDecibels(
-  magnitudes: Float32Array,
-  minDb: number,
-  maxDb: number,
-  gainDb: number = 0
-): Float32Array {
+export function toDecibels(magnitudes: Float32Array): Float32Array {
   const result = new Float32Array(magnitudes.length);
   for (let i = 0; i < magnitudes.length; i++) {
-    let db = 20 * Math.log10(magnitudes[i] + 1e-10) + gainDb;
-    if (db < minDb) db = minDb;
-    if (db > maxDb) db = maxDb;
+    let db = 20 * Math.log10(magnitudes[i] + 1e-10);
+    if (db < -160) db = -160;
     result[i] = db;
   }
   return result;

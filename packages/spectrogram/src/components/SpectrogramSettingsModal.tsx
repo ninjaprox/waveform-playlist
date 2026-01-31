@@ -130,28 +130,28 @@ export const SpectrogramSettingsModal: React.FC<SpectrogramSettingsModalProps> =
   // Local form state
   const [fftSize, setFftSize] = useState(config.fftSize ?? 2048);
   const [windowFn, setWindowFn] = useState(config.windowFunction ?? 'hann');
-  const [freqScale, setFreqScale] = useState(config.frequencyScale ?? 'linear');
+  const [freqScale, setFreqScale] = useState(config.frequencyScale ?? 'mel');
   const [localColorMap, setLocalColorMap] = useState<ColorMapName>(
     typeof colorMap === 'string' ? colorMap : 'viridis'
   );
   const [minFreq, setMinFreq] = useState(config.minFrequency ?? 0);
   const [maxFreq, setMaxFreq] = useState(config.maxFrequency ?? 20000);
-  const [minDb, setMinDb] = useState(config.minDecibels ?? -100);
-  const [maxDb, setMaxDb] = useState(config.maxDecibels ?? -20);
-  const [gainDb, setGainDb] = useState(config.gainDb ?? 0);
+  const [gainDb, setGainDb] = useState(config.gainDb ?? 20);
+  const [rangeDb, setRangeDb] = useState(config.rangeDb ?? 80);
+  const [zeroPadding, setZeroPadding] = useState(config.zeroPaddingFactor ?? 2);
   const [showLabels, setShowLabels] = useState(config.labels ?? false);
 
   // Sync local state when props change
   useEffect(() => {
     setFftSize(config.fftSize ?? 2048);
     setWindowFn(config.windowFunction ?? 'hann');
-    setFreqScale(config.frequencyScale ?? 'linear');
+    setFreqScale(config.frequencyScale ?? 'mel');
     setLocalColorMap(typeof colorMap === 'string' ? colorMap : 'viridis');
     setMinFreq(config.minFrequency ?? 0);
     setMaxFreq(config.maxFrequency ?? 20000);
-    setMinDb(config.minDecibels ?? -100);
-    setMaxDb(config.maxDecibels ?? -20);
-    setGainDb(config.gainDb ?? 0);
+    setGainDb(config.gainDb ?? 20);
+    setRangeDb(config.rangeDb ?? 80);
+    setZeroPadding(config.zeroPaddingFactor ?? 2);
     setShowLabels(config.labels ?? false);
   }, [config, colorMap]);
 
@@ -184,9 +184,9 @@ export const SpectrogramSettingsModal: React.FC<SpectrogramSettingsModalProps> =
         frequencyScale: freqScale as SpectrogramConfig['frequencyScale'],
         minFrequency: minFreq,
         maxFrequency: maxFreq,
-        minDecibels: minDb,
-        maxDecibels: maxDb,
         gainDb,
+        rangeDb,
+        zeroPaddingFactor: zeroPadding,
         labels: showLabels,
       },
       localColorMap
@@ -202,6 +202,13 @@ export const SpectrogramSettingsModal: React.FC<SpectrogramSettingsModalProps> =
           <Label>FFT Size</Label>
           <Select value={fftSize} onChange={e => setFftSize(Number(e.target.value))}>
             {FFT_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+          </Select>
+        </Field>
+
+        <Field>
+          <Label>Zero Padding</Label>
+          <Select value={zeroPadding} onChange={e => setZeroPadding(Number(e.target.value))}>
+            {[1, 2, 4, 8, 16].map(v => <option key={v} value={v}>{v}</option>)}
           </Select>
         </Field>
 
@@ -239,25 +246,15 @@ export const SpectrogramSettingsModal: React.FC<SpectrogramSettingsModalProps> =
         </Field>
 
         <Field>
-          <Label>Min dB</Label>
-          <NumberInput type="number" min={-120} max={-20} step={5} value={minDb}
-            onChange={e => setMinDb(Number(e.target.value))} />
+          <Label>Range (dB)</Label>
+          <NumberInput type="number" min={1} max={120} step={1} value={rangeDb}
+            onChange={e => setRangeDb(Number(e.target.value))} />
         </Field>
 
         <Field>
-          <Label>Max dB</Label>
-          <NumberInput type="number" min={-60} max={0} step={5} value={maxDb}
-            onChange={e => setMaxDb(Number(e.target.value))} />
-        </Field>
-
-        <Field $span>
-          <Label>Gain: {gainDb} dB</Label>
-          <RangeRow>
-            <RangeValue>-20</RangeValue>
-            <input type="range" min={-20} max={40} step={1} value={gainDb}
-              onChange={e => setGainDb(Number(e.target.value))} style={{ flex: 1 }} />
-            <RangeValue>40</RangeValue>
-          </RangeRow>
+          <Label>Gain (dB)</Label>
+          <NumberInput type="number" min={-20} max={60} step={1} value={gainDb}
+            onChange={e => setGainDb(Number(e.target.value))} />
         </Field>
 
         <Field $span>

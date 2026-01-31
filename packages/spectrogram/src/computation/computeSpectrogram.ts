@@ -22,65 +22,71 @@ export function computeSpectrogram(
   durationSamples?: number,
   channel: number = 0
 ): SpectrogramData {
-  const fftSize = config.fftSize ?? 2048;
-  const hopSize = config.hopSize ?? Math.floor(fftSize / 4);
+  const windowSize = config.fftSize ?? 2048;
+  const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
+  const actualFftSize = windowSize * zeroPaddingFactor;
+  const hopSize = config.hopSize ?? Math.floor(windowSize / 4);
   const windowName = config.windowFunction ?? 'hann';
-  const minDecibels = config.minDecibels ?? -100;
-  const maxDecibels = config.maxDecibels ?? -20;
-  const gainDb = config.gainDb ?? 0;
+  const gainDb = config.gainDb ?? 20;
+  const rangeDb = config.rangeDb ?? 80;
   const alpha = config.alpha;
 
   const sampleRate = audioBuffer.sampleRate;
-  const frequencyBinCount = fftSize >> 1;
+  const frequencyBinCount = actualFftSize >> 1;
   const totalSamples = durationSamples ?? (audioBuffer.length - offsetSamples);
 
   // Get channel data
   const channelIdx = Math.min(channel, audioBuffer.numberOfChannels - 1);
   const channelData = audioBuffer.getChannelData(channelIdx);
 
-  // Pre-compute window
-  const window = getWindowFunction(windowName, fftSize, alpha);
+  // Pre-compute window (at windowSize, not actualFftSize)
+  const window = getWindowFunction(windowName, windowSize, alpha);
 
-  // Calculate frame count
-  const frameCount = Math.max(1, Math.floor((totalSamples - fftSize) / hopSize) + 1);
+  // Calculate frame count (step by windowSize, not actualFftSize)
+  const frameCount = Math.max(1, Math.floor((totalSamples - windowSize) / hopSize) + 1);
 
   // Output: frameCount × frequencyBinCount
   const data = new Float32Array(frameCount * frequencyBinCount);
 
-  // Reusable buffers
-  const real = new Float32Array(fftSize);
-  const imag = new Float32Array(fftSize);
+  // Reusable buffers at actualFftSize
+  const real = new Float32Array(actualFftSize);
+  const imag = new Float32Array(actualFftSize);
 
   for (let frame = 0; frame < frameCount; frame++) {
     const start = offsetSamples + frame * hopSize;
 
-    // Fill real buffer with windowed samples
-    for (let i = 0; i < fftSize; i++) {
+    // Fill first windowSize samples with windowed audio, rest stays zero
+    for (let i = 0; i < windowSize; i++) {
       const sampleIdx = start + i;
       real[i] = sampleIdx < channelData.length ? channelData[sampleIdx] * window[i] : 0;
-      imag[i] = 0;
     }
+    // Zero-pad the rest
+    for (let i = windowSize; i < actualFftSize; i++) {
+      real[i] = 0;
+    }
+    imag.fill(0);
 
     // FFT
     fft(real, imag);
 
     // Magnitude → dB
     const mags = magnitudeSpectrum(real, imag);
-    const dbs = toDecibels(mags, minDecibels, maxDecibels, gainDb);
+    const dbs = toDecibels(mags);
 
     // Store in output
     data.set(dbs, frame * frequencyBinCount);
   }
 
   return {
-    fftSize,
+    fftSize: actualFftSize,
+    windowSize,
     frequencyBinCount,
     sampleRate,
     hopSize,
     frameCount,
     data,
-    minDecibels,
-    maxDecibels,
+    gainDb,
+    rangeDb,
   };
 }
 
@@ -98,24 +104,25 @@ export function computeSpectrogramMono(
   }
 
   // Mix down channels
-  const fftSize = config.fftSize ?? 2048;
-  const hopSize = config.hopSize ?? Math.floor(fftSize / 4);
+  const windowSize = config.fftSize ?? 2048;
+  const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
+  const actualFftSize = windowSize * zeroPaddingFactor;
+  const hopSize = config.hopSize ?? Math.floor(windowSize / 4);
   const windowName = config.windowFunction ?? 'hann';
-  const minDecibels = config.minDecibels ?? -100;
-  const maxDecibels = config.maxDecibels ?? -20;
-  const gainDb = config.gainDb ?? 0;
+  const gainDb = config.gainDb ?? 20;
+  const rangeDb = config.rangeDb ?? 80;
   const alpha = config.alpha;
 
   const sampleRate = audioBuffer.sampleRate;
-  const frequencyBinCount = fftSize >> 1;
+  const frequencyBinCount = actualFftSize >> 1;
   const totalSamples = durationSamples ?? (audioBuffer.length - offsetSamples);
   const numChannels = audioBuffer.numberOfChannels;
 
-  const window = getWindowFunction(windowName, fftSize, alpha);
-  const frameCount = Math.max(1, Math.floor((totalSamples - fftSize) / hopSize) + 1);
+  const window = getWindowFunction(windowName, windowSize, alpha);
+  const frameCount = Math.max(1, Math.floor((totalSamples - windowSize) / hopSize) + 1);
   const data = new Float32Array(frameCount * frequencyBinCount);
-  const real = new Float32Array(fftSize);
-  const imag = new Float32Array(fftSize);
+  const real = new Float32Array(actualFftSize);
+  const imag = new Float32Array(actualFftSize);
 
   // Get all channel data
   const channels: Float32Array[] = [];
@@ -127,30 +134,35 @@ export function computeSpectrogramMono(
     const start = offsetSamples + frame * hopSize;
 
     // Mix channels and apply window
-    for (let i = 0; i < fftSize; i++) {
+    for (let i = 0; i < windowSize; i++) {
       const sampleIdx = start + i;
       let sum = 0;
       for (let ch = 0; ch < numChannels; ch++) {
         sum += sampleIdx < channels[ch].length ? channels[ch][sampleIdx] : 0;
       }
       real[i] = (sum / numChannels) * window[i];
-      imag[i] = 0;
     }
+    // Zero-pad the rest
+    for (let i = windowSize; i < actualFftSize; i++) {
+      real[i] = 0;
+    }
+    imag.fill(0);
 
     fft(real, imag);
     const mags = magnitudeSpectrum(real, imag);
-    const dbs = toDecibels(mags, minDecibels, maxDecibels, gainDb);
+    const dbs = toDecibels(mags);
     data.set(dbs, frame * frequencyBinCount);
   }
 
   return {
-    fftSize,
+    fftSize: actualFftSize,
+    windowSize,
     frequencyBinCount,
     sampleRate,
     hopSize,
     frameCount,
     data,
-    minDecibels,
-    maxDecibels,
+    gainDb,
+    rangeDb,
   };
 }

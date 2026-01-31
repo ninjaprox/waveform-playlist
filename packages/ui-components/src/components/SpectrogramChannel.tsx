@@ -177,8 +177,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     if (isWorkerMode || !data) return;
 
     const canvases = canvasesRef.current;
-    const { frequencyBinCount, frameCount, hopSize, sampleRate, minDecibels, maxDecibels } = data;
-    const dbRange = maxDecibels - minDecibels;
+    const { frequencyBinCount, frameCount, hopSize, sampleRate, gainDb, rangeDb } = data;
     let globalPixelOffset = 0;
 
     // Pre-compute Y mapping: for each pixel row, which frequency bin(s) to sample
@@ -244,7 +243,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
           // Get dB value and normalize to [0, 1]
           const db = data.data[frameOffset + bin];
-          const normalized = Math.max(0, Math.min(1, (db - minDecibels) / dbRange));
+          const normalized = Math.max(0, Math.min(1, (db + rangeDb + gainDb) / rangeDb));
 
           // Map to color via LUT (0-255 index)
           const colorIdx = Math.floor(normalized * 255);

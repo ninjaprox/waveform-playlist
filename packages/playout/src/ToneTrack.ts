@@ -209,7 +209,15 @@ export class ToneTrack {
 
   setMute(muted: boolean): void {
     this.track.muted = muted;
-    this.muteGain.gain.value = muted ? 0 : 1;
+    const value = muted ? 0 : 1;
+    // Use setValueAtTime on the raw AudioParam to ensure the value is applied
+    // even when the AudioContext is suspended. Setting .gain.value on the Tone.js
+    // Signal wrapper doesn't propagate to the underlying AudioParam until the
+    // context resumes, causing a brief audio glitch (e.g., all tracks audible
+    // before solo muting takes effect).
+    const audioParam = (this.muteGain.gain as any)._param as AudioParam;
+    audioParam.setValueAtTime(value, 0);
+    this.muteGain.gain.value = value;
   }
 
   setSolo(soloed: boolean): void {
@@ -248,7 +256,6 @@ export class ToneTrack {
     });
 
     this.activePlayers = 0;
-
     // Play each clip that should be active at this offset
     this.clips.forEach(clipPlayer => {
       const { player, clipInfo } = clipPlayer;

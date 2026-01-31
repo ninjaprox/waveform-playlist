@@ -135,6 +135,42 @@ Benefits:
 
 The processing worker runs audiowaveform (compiled to WASM) rather than implementing peak computation from scratch.
 
+## Micropayment Rail (x402)
+
+The subscription model works for human users but creates friction for AI agents — the primary growth vector for developer infrastructure APIs. An agent building an audio app wants to POST a file, get peaks back, and pay per call without signing up.
+
+**x402** is an HTTP-native payment protocol where the server returns `402 Payment Required` with a price and payment address. The client pays (crypto micropayment) and retries — no API keys, no accounts, no Stripe minimums.
+
+### Why this matters for waveform-service
+
+- **Per-request pricing** — charge $0.001–$0.01 per file processed. Agents pay exactly for what they use.
+- **No minimum transaction overhead** — Stripe's fee floor (~$0.30) makes sub-dollar transactions uneconomical. x402 removes that constraint.
+- **Zero onboarding** — no API key provisioning, no OAuth, no billing portal. The payment *is* the authentication.
+- **Agent-native** — AI coding assistants and automation pipelines can consume the API without human signup flows.
+
+### Practical approach
+
+Build the API with standard auth/billing first (Phase 3's Stripe integration). Add x402 as an alternative payment rail when the ecosystem matures. The API design doesn't change — only the payment layer.
+
+```
+# Standard path (human users)
+POST /v1/peaks  +  Authorization: Bearer <api-key>
+
+# x402 path (agents)
+POST /v1/peaks  →  402 Payment Required  →  pay  →  retry  →  200 OK
+```
+
+### Where it gets more interesting
+
+Peak generation alone may not justify per-request payment — agents could run audiowaveform locally. Higher-value operations that are harder to self-host make stronger candidates:
+
+- Multi-format transcoding (requires FFmpeg + codec libraries)
+- Loudness normalization (EBU R128 / ITU-R BS.1770)
+- Stem separation (GPU-accelerated ML models)
+- Batch waveform rendering at multiple zoom levels
+
+These have real compute cost and expertise barriers that justify paying per request.
+
 ## Open Questions
 
 - **Max file size**: Workers have memory limits (~128MB). Large files may need Durable Objects or a queued pipeline.

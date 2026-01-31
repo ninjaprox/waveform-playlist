@@ -1,65 +1,72 @@
-/**
- * Inline radix-2 Cooley-Tukey FFT implementation.
- * No external dependencies. Works for power-of-2 sizes.
- */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const FFT = require('fft.js');
 
 /**
- * In-place radix-2 FFT.
+ * Cache fft.js instances per size (pre-computes twiddle factors).
+ */
+const fftInstances = new Map<number, any>();
+const complexBuffers = new Map<number, any>();
+
+function getFftInstance(size: number): any {
+  let instance = fftInstances.get(size);
+  if (!instance) {
+    instance = new FFT(size);
+    fftInstances.set(size, instance);
+    complexBuffers.set(size, instance.createComplexArray());
+  }
+  return instance;
+}
+
+function getComplexBuffer(size: number): any {
+  return complexBuffers.get(size);
+}
+
+/**
+ * In-place FFT using fft.js (radix-4).
  * @param real - Real part (modified in place)
  * @param imag - Imaginary part (modified in place)
  */
 export function fft(real: Float32Array, imag: Float32Array): void {
   const n = real.length;
+  const f = getFftInstance(n);
+  const input = f.createComplexArray();
+  const out = getComplexBuffer(n);
 
-  // Bit-reversal permutation
-  for (let i = 1, j = 0; i < n; i++) {
-    let bit = n >> 1;
-    while (j & bit) {
-      j ^= bit;
-      bit >>= 1;
-    }
-    j ^= bit;
-
-    if (i < j) {
-      // Swap real
-      let tmp = real[i];
-      real[i] = real[j];
-      real[j] = tmp;
-      // Swap imag
-      tmp = imag[i];
-      imag[i] = imag[j];
-      imag[j] = tmp;
-    }
+  for (let i = 0; i < n; i++) {
+    input[i * 2] = real[i];
+    input[i * 2 + 1] = imag[i];
   }
 
-  // Cooley-Tukey butterfly
-  for (let len = 2; len <= n; len <<= 1) {
-    const halfLen = len >> 1;
-    const angle = (-2 * Math.PI) / len;
-    const wReal = Math.cos(angle);
-    const wImag = Math.sin(angle);
+  f.transform(out, input);
 
-    for (let i = 0; i < n; i += len) {
-      let curReal = 1;
-      let curImag = 0;
+  for (let i = 0; i < n; i++) {
+    real[i] = out[i * 2];
+    imag[i] = out[i * 2 + 1];
+  }
+}
 
-      for (let j = 0; j < halfLen; j++) {
-        const evenIdx = i + j;
-        const oddIdx = i + j + halfLen;
+/**
+ * Fused FFT → magnitude → decibels for real-valued input.
+ * Uses fft.js realTransform (radix-4, ~25% faster for real input).
+ * Writes dB values for positive frequencies (n/2 bins) into `out`.
+ *
+ * @param real - Real input (windowed audio frame, length n)
+ * @param out - Output array for dB values (length >= n/2)
+ */
+export function fftMagnitudeDb(real: Float32Array, out: Float32Array): void {
+  const n = real.length;
+  const f = getFftInstance(n);
+  const complexOut = getComplexBuffer(n);
 
-        const tReal = curReal * real[oddIdx] - curImag * imag[oddIdx];
-        const tImag = curReal * imag[oddIdx] + curImag * real[oddIdx];
+  f.realTransform(complexOut, real);
 
-        real[oddIdx] = real[evenIdx] - tReal;
-        imag[oddIdx] = imag[evenIdx] - tImag;
-        real[evenIdx] += tReal;
-        imag[evenIdx] += tImag;
-
-        const newCurReal = curReal * wReal - curImag * wImag;
-        curImag = curReal * wImag + curImag * wReal;
-        curReal = newCurReal;
-      }
-    }
+  const half = n >> 1;
+  for (let i = 0; i < half; i++) {
+    const re = complexOut[i * 2];
+    const im = complexOut[i * 2 + 1];
+    let db = 20 * Math.log10(Math.sqrt(re * re + im * im) + 1e-10);
+    if (db < -160) db = -160;
+    out[i] = db;
   }
 }
 

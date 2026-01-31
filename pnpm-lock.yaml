@@ -227,6 +227,9 @@ importers:
       '@waveform-playlist/core':
         specifier: workspace:*
         version: link:../core
+      fft.js:
+        specifier: ^4.0.4
+        version: 4.0.4
       react:
         specifier: ^18.0.0
         version: 18.3.1
@@ -9006,6 +9009,10 @@ packages:
     engines: {node: '>=0.4.0'}
     dependencies:
       xml-js: 1.6.11
+    dev: false
+
+  /fft.js@4.0.4:
+    resolution: {integrity: sha512-f9c00hphOgeQTlDyavwTtu6RiK8AIFjD6+jvXkNkpeQ7rirK3uFWVpalkoS4LAwbdX7mfZ8aoBfFVQX1Re/8aw==}
     dev: false
 
   /figures@3.2.0:

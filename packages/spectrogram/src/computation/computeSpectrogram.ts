@@ -3,7 +3,7 @@
  */
 
 import type { SpectrogramConfig, SpectrogramData } from '@waveform-playlist/core';
-import { fft, magnitudeSpectrum, toDecibels } from './fft';
+import { fftMagnitudeDb } from './fft';
 import { getWindowFunction } from './windowFunctions';
 
 /**
@@ -50,7 +50,7 @@ export function computeSpectrogram(
 
   // Reusable buffers at actualFftSize
   const real = new Float32Array(actualFftSize);
-  const imag = new Float32Array(actualFftSize);
+  const dbBuf = new Float32Array(frequencyBinCount);
 
   for (let frame = 0; frame < frameCount; frame++) {
     const start = offsetSamples + frame * hopSize;
@@ -64,17 +64,9 @@ export function computeSpectrogram(
     for (let i = windowSize; i < actualFftSize; i++) {
       real[i] = 0;
     }
-    imag.fill(0);
 
-    // FFT
-    fft(real, imag);
-
-    // Magnitude → dB
-    const mags = magnitudeSpectrum(real, imag);
-    const dbs = toDecibels(mags);
-
-    // Store in output
-    data.set(dbs, frame * frequencyBinCount);
+    fftMagnitudeDb(real, dbBuf);
+    data.set(dbBuf, frame * frequencyBinCount);
   }
 
   return {
@@ -122,7 +114,7 @@ export function computeSpectrogramMono(
   const frameCount = Math.max(1, Math.floor((totalSamples - windowSize) / hopSize) + 1);
   const data = new Float32Array(frameCount * frequencyBinCount);
   const real = new Float32Array(actualFftSize);
-  const imag = new Float32Array(actualFftSize);
+  const dbBuf = new Float32Array(frequencyBinCount);
 
   // Get all channel data
   const channels: Float32Array[] = [];
@@ -146,12 +138,9 @@ export function computeSpectrogramMono(
     for (let i = windowSize; i < actualFftSize; i++) {
       real[i] = 0;
     }
-    imag.fill(0);
 
-    fft(real, imag);
-    const mags = magnitudeSpectrum(real, imag);
-    const dbs = toDecibels(mags);
-    data.set(dbs, frame * frequencyBinCount);
+    fftMagnitudeDb(real, dbBuf);
+    data.set(dbBuf, frame * frequencyBinCount);
   }
 
   return {

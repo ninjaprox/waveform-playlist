@@ -10,7 +10,7 @@
  */
 
 import type { SpectrogramConfig, SpectrogramData } from '@waveform-playlist/core';
-import { fft, magnitudeSpectrum, toDecibels } from '../computation/fft';
+import { fftMagnitudeDb } from '../computation/fft';
 import { getWindowFunction } from '../computation/windowFunctions';
 import { getFrequencyScale, type FrequencyScaleName } from '../computation/frequencyScales';
 
@@ -171,7 +171,7 @@ function computeFromChannelData(
   const frameCount = Math.max(1, Math.floor((totalSamples - windowSize) / hopSize) + 1);
   const data = new Float32Array(frameCount * frequencyBinCount);
   const real = new Float32Array(actualFftSize);
-  const imag = new Float32Array(actualFftSize);
+  const dbBuf = new Float32Array(frequencyBinCount);
 
   for (let frame = 0; frame < frameCount; frame++) {
     const start = offsetSamples + frame * hopSize;
@@ -183,12 +183,9 @@ function computeFromChannelData(
     for (let i = windowSize; i < actualFftSize; i++) {
       real[i] = 0;
     }
-    imag.fill(0);
 
-    fft(real, imag);
-    const mags = magnitudeSpectrum(real, imag);
-    const dbs = toDecibels(mags);
-    data.set(dbs, frame * frequencyBinCount);
+    fftMagnitudeDb(real, dbBuf);
+    data.set(dbBuf, frame * frequencyBinCount);
   }
 
   return { fftSize: actualFftSize, windowSize, frequencyBinCount, sampleRate, hopSize, frameCount, data, gainDb, rangeDb };
@@ -221,7 +218,7 @@ function computeMonoFromChannels(
   const frameCount = Math.max(1, Math.floor((durationSamples - windowSize) / hopSize) + 1);
   const data = new Float32Array(frameCount * frequencyBinCount);
   const real = new Float32Array(actualFftSize);
-  const imag = new Float32Array(actualFftSize);
+  const dbBuf = new Float32Array(frequencyBinCount);
 
   for (let frame = 0; frame < frameCount; frame++) {
     const start = offsetSamples + frame * hopSize;
@@ -237,12 +234,9 @@ function computeMonoFromChannels(
     for (let i = windowSize; i < actualFftSize; i++) {
       real[i] = 0;
     }
-    imag.fill(0);
 
-    fft(real, imag);
-    const mags = magnitudeSpectrum(real, imag);
-    const dbs = toDecibels(mags);
-    data.set(dbs, frame * frequencyBinCount);
+    fftMagnitudeDb(real, dbBuf);
+    data.set(dbBuf, frame * frequencyBinCount);
   }
 
   return { fftSize: actualFftSize, windowSize, frequencyBinCount, sampleRate, hopSize, frameCount, data, gainDb, rangeDb };
@@ -370,6 +364,7 @@ function renderSpectrogramToCanvas(
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
   const msg = e.data;
 
+  // FFT benchmark (dev only)
   // Register canvas
   if (msg.type === 'register-canvas') {
     canvasRegistry.set(msg.canvasId, msg.canvas);
@@ -384,6 +379,8 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
 
   // Register audio data for a clip (pre-transfer)
   if (msg.type === 'register-audio-data') {
+    const totalSamples = msg.channelDataArrays.reduce((sum: number, arr: Float32Array) => sum + arr.length, 0);
+    console.log(`[spectrogram-worker] register-audio-data received (${msg.clipId}): ${totalSamples} samples, ${msg.channelDataArrays.length} channels`);
     audioDataRegistry.set(msg.clipId, {
       channelDataArrays: msg.channelDataArrays,
       sampleRate: msg.sampleRate,

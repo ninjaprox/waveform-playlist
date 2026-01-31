@@ -151,8 +151,11 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
 
         // Skip transfer if audio data is pre-registered in the worker
         const isPreRegistered = registeredClipIds.has(params.clipId);
+        const t0 = performance.now();
         const transferableArrays = isPreRegistered ? [] : params.channelDataArrays.map(arr => arr.slice());
+        const sliceMs = performance.now() - t0;
         const transferables = transferableArrays.map(arr => arr.buffer);
+        const t1 = performance.now();
 
         worker.postMessage(
           {
@@ -169,6 +172,9 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
           },
           transferables,
         );
+        const postMs = performance.now() - t1;
+        const totalSamples = transferableArrays.reduce((sum, arr) => sum + arr.length, 0);
+        console.log(`[spectrogram] computeFFT postMessage (${params.clipId}): preRegistered=${isPreRegistered}, slice=${sliceMs.toFixed(1)}ms, postMessage=${postMs.toFixed(1)}ms${isPreRegistered ? '' : `, ${totalSamples} samples transferred`}`);
       });
     },
 
@@ -211,12 +217,18 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     },
 
     registerAudioData(clipId: string, channelDataArrays: Float32Array[], sampleRate: number): void {
+      const totalSamples = channelDataArrays.reduce((sum, arr) => sum + arr.length, 0);
+      const t0 = performance.now();
       const transferableArrays = channelDataArrays.map(arr => arr.slice());
+      const sliceMs = performance.now() - t0;
       const transferables = transferableArrays.map(arr => arr.buffer);
+      const t1 = performance.now();
       worker.postMessage(
         { type: 'register-audio-data', clipId, channelDataArrays: transferableArrays, sampleRate },
         transferables,
       );
+      const postMs = performance.now() - t1;
+      console.log(`[spectrogram] registerAudioData (${clipId}): slice=${sliceMs.toFixed(1)}ms, postMessage=${postMs.toFixed(1)}ms, ${totalSamples} samples (${channelDataArrays.length} channels)`);
       registeredClipIds.add(clipId);
     },
 

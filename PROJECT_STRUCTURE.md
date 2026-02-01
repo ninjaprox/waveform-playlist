@@ -4,10 +4,7 @@
 
 Waveform-playlist is a **monorepo** organized with pnpm workspaces. It's a multitrack Web Audio editor and player with canvas-based waveform visualizations.
 
-**Current State:** Undergoing React migration (Tone.js overhaul branch)
-
-- Old architecture: jQuery + EventEmitter pattern
-- New architecture: React + Tone.js + styled-components
+**Stack:** React + Tone.js + styled-components (v5 released)
 
 ## Monorepo Structure
 
@@ -15,28 +12,35 @@ Waveform-playlist is a **monorepo** organized with pnpm workspaces. It's a multi
 waveform-playlist/
 ├── packages/              # Workspace packages (modular architecture)
 │   ├── annotations/       # 📦 OPTIONAL: Annotation components & hooks
-│   ├── browser/           # React apps & webpack bundles
+│   ├── browser/           # Main React package (provider, hooks, components)
 │   ├── core/              # Core types and interfaces
 │   ├── loaders/           # Audio file loaders
 │   ├── media-element-playout/  # Audio playback (HTMLAudioElement, no Tone.js)
 │   ├── playout/           # Audio playback (Tone.js wrapper)
 │   ├── recording/         # 📦 OPTIONAL: Audio recording with AudioWorklet
+│   ├── spectrogram/       # 📦 OPTIONAL: FFT computation, worker rendering, color maps
 │   ├── ui-components/     # Reusable React UI components
 │   └── webaudio-peaks/    # Waveform peak generation
 │
 └── website/               # Docusaurus documentation site
     ├── src/
-    │   ├── components/examples/  # React example components
+    │   ├── components/examples/  # React example components (16 examples)
     │   │   ├── MinimalExample.tsx
     │   │   ├── StemTracksExample.tsx
+    │   │   ├── StereoExample.tsx
     │   │   ├── EffectsExample.tsx
+    │   │   ├── FadesExample.tsx
     │   │   ├── NewTracksExample.tsx
     │   │   ├── MultiClipExample.tsx
     │   │   ├── AnnotationsExample.tsx
     │   │   ├── RecordingExample.tsx
     │   │   ├── FlexibleApiExample.tsx
-    │   │   ├── WaveformDataExample.tsx  # BBC peaks demo
-    │   │   └── MediaElementExample.tsx  # HTMLAudioElement streaming
+    │   │   ├── StylingExample.tsx
+    │   │   ├── WaveformDataExample.tsx       # BBC peaks demo
+    │   │   ├── MediaElementExample.tsx       # HTMLAudioElement streaming
+    │   │   ├── MirSpectrogramExample.tsx     # Spectrogram visualization
+    │   │   ├── MobileAnnotationsExample.tsx  # Mobile-optimized annotations
+    │   │   └── MobileMultiClipExample.tsx    # Mobile-optimized multi-clip
     │   ├── pages/examples/       # Example page wrappers
     │   ├── hooks/                # Docusaurus-specific hooks
     │   │   └── useDocusaurusTheme.ts
@@ -166,54 +170,64 @@ const clip = createClipFromSeconds({
   - `Track` - Individual waveform track
   - `Clip` - Audio clip with optional draggable header
   - `ClipHeader` - Draggable title bar for clips (uses theme)
-  - `SmartChannel` - Waveform rendering with device pixel ratio
-  - `TimeInput` - Time value input with format support
+  - `ClipBoundary` - Trim handles (left/right edges)
+  - `Channel` / `SmartChannel` - Waveform rendering with device pixel ratio
+  - `SpectrogramChannel` - Spectrogram canvas rendering (chunked)
+  - `SpectrogramLabels` - Frequency axis labels
+  - `FadeOverlay` - Fade in/out visualization
+  - `LoopRegion` - Loop region overlay
+  - `TimeInput` / `SelectionTimeInputs` - Time value inputs
+  - `TimeScale` / `SmartScale` - Timeline ruler
+  - `TimeFormatSelect` - Time format dropdown
   - `Playhead` - Playback position indicator
   - `Selection` - Selection overlay
-  - `AnnotationBox` - Annotation display/editing
+  - `AudioPosition` - Current time display
+  - `MasterVolumeControl` - Volume slider
+  - `AutomaticScrollCheckbox` - Auto-scroll toggle
+  - `TrackMenu` - Per-track dropdown menu
+  - `TrackControls/` - Mute, solo, volume, pan controls
 
 #### `@waveform-playlist/browser`
 
-- **Purpose:** Browser-ready React applications and webpack bundles
-- **Outputs:**
-  - `waveform-playlist.js` - Main bundle (UMD)
-  - `annotations-bundle.js` - Annotations example bundle
-  - `stem-tracks-bundle.js` - Stem tracks example bundle
-  - `flexible-example-bundle.js` - Flexible API example bundle
+- **Purpose:** Main React package — provider, hooks, components, effects
 - **Structure:**
   ```
   src/
   ├── index.tsx                         # Main entry point + API exports
-  ├── annotations-app.tsx               # Annotations example app
-  ├── stem-tracks-app.tsx               # Stem tracks example app
-  ├── flexible-example-app.tsx          # Flexible API example app
-  ├── WaveformPlaylistComponent.tsx     # Main React component (backward compatible)
-  ├── WaveformPlaylistContext.tsx       # Context provider for flexible API
-  ├── peaksUtil.ts                      # Peak generation helper
-  ├── hooks/                            # Custom hooks for logic extraction
-  │   ├── usePlaybackControls.ts        # Play/pause/stop/seek
-  │   ├── useTimeFormat.ts              # Time formatting
-  │   ├── useZoomControls.ts            # Zoom in/out
-  │   ├── useAudioPosition.ts           # Audio position display
-  │   ├── useMasterVolume.ts            # Master volume control
-  │   ├── useWaveformPlaylist.ts        # Composite hook
+  ├── WaveformPlaylistContext.tsx        # Context provider (flexible API)
+  ├── MediaElementPlaylistContext.tsx    # Context provider (HTMLAudioElement)
+  ├── SpectrogramIntegrationContext.tsx  # Optional spectrogram integration
+  ├── hooks/                            # Custom hooks
+  │   ├── useAnnotationDragHandlers.ts  # Annotation drag logic
   │   ├── useAnnotationKeyboardControls.ts # Annotation navigation & editing
-  │   ├── useKeyboardShortcuts.ts       # Flexible keyboard shortcut system
-  │   ├── usePlaybackShortcuts.ts       # Default playback shortcuts (0 = rewind)
+  │   ├── useAudioEffects.ts            # Audio effects management
+  │   ├── useAudioTracks.ts             # Track loading and management
   │   ├── useClipDragHandlers.ts        # Clip drag-to-move and trim
   │   ├── useClipSplitting.ts           # Split clips at playhead
-  │   ├── index.ts                      # Hook exports
-  │   └── README.md                     # Hook API docs
-  ├── components/                       # Flexible API primitive components
-  │   ├── PlaybackControls.tsx          # Play/Pause/Stop/Rewind/FF buttons
+  │   ├── useDragSensors.ts             # @dnd-kit sensor config
+  │   ├── useDynamicEffects.ts          # Master effects chain
+  │   ├── useExportWav.ts               # WAV export via Tone.Offline
+  │   ├── useIntegratedRecording.ts     # Recording integration
+  │   ├── useKeyboardShortcuts.ts       # Flexible keyboard shortcut system
+  │   ├── useMasterVolume.ts            # Master volume control
+  │   ├── usePlaybackShortcuts.ts       # Default playback shortcuts
+  │   ├── useTimeFormat.ts              # Time formatting
+  │   ├── useTrackDynamicEffects.ts     # Per-track effects
+  │   └── useZoomControls.ts            # Zoom level management
+  ├── components/                       # React components
+  │   ├── PlaylistVisualization.tsx      # Main waveform + track rendering
+  │   ├── Waveform.tsx                  # Public waveform component
+  │   ├── PlaybackControls.tsx          # Play/Pause/Stop buttons
   │   ├── ZoomControls.tsx              # Zoom in/out buttons
   │   ├── ContextualControls.tsx        # Context-aware wrappers
-  │   ├── Waveform.tsx                  # Main waveform visualization
   │   └── index.tsx                     # Component exports
-  └── examples/                         # Usage examples
-      └── CustomControlsExample.tsx     # Custom UI example
+  ├── effects/                          # Audio effects system
+  │   ├── effectDefinitions.ts          # 20 Tone.js effect definitions
+  │   ├── effectFactory.ts              # Effect instance creation
+  │   └── index.ts
+  └── waveformDataLoader.ts            # BBC waveform-data.js support
   ```
-- **Build:** Vite production builds
+- **Build:** Vite + tsup
 
 ### 🔊 Audio Layer
 
@@ -435,6 +449,41 @@ audiowaveform -i audio.mp3 -o peaks-stereo.dat -z 256 --split-channels
 - **Example:** `website/src/components/examples/RecordingExample.tsx`
 - **Debugging:** See `DEBUGGING.md` for comprehensive troubleshooting guide
 
+#### `@waveform-playlist/spectrogram`
+
+- **Type:** Optional package (install separately)
+- **Purpose:** FFT-based spectrogram visualization with worker-based rendering
+- **Install:** `npm install @waveform-playlist/spectrogram`
+- **Structure:**
+  ```
+  src/
+  ├── SpectrogramProvider.tsx  # Provider (fills SpectrogramIntegrationContext)
+  ├── components/              # UI components (menu items, settings modal)
+  ├── computation/             # FFT computation logic
+  ├── worker/                  # Web Worker for off-thread rendering
+  ├── styled.d.ts
+  └── index.ts
+  ```
+- **Integration Pattern:**
+  - Browser package defines `SpectrogramIntegrationContext` (nullable)
+  - Spectrogram package provides `SpectrogramProvider` that fills this context
+  - When no provider present, all spectrogram features are skipped (zero runtime cost)
+  ```typescript
+  // With spectrogram:
+  <WaveformPlaylistProvider tracks={tracks}>
+    <SpectrogramProvider config={config} colorMap="viridis">
+      <Waveform />
+    </SpectrogramProvider>
+  </WaveformPlaylistProvider>
+
+  // Without spectrogram (no change needed):
+  <WaveformPlaylistProvider tracks={tracks}>
+    <Waveform />
+  </WaveformPlaylistProvider>
+  ```
+- **Peer Dependencies:** React, @waveform-playlist/browser
+- **Example:** `website/src/components/examples/MirSpectrogramExample.tsx`
+
 ## Data Flow Architecture
 
 ### Current Architecture (React + Hooks + Context)
@@ -490,9 +539,9 @@ The provider uses **4 separate contexts** to optimize performance by isolating d
 **Key Files:**
 
 - `packages/browser/src/WaveformPlaylistContext.tsx` - Context provider (flexible API)
-- `packages/browser/src/WaveformPlaylistComponent.tsx` - Main orchestrator (backward compatible)
+- `packages/browser/src/SpectrogramIntegrationContext.tsx` - Optional spectrogram integration
 - `packages/browser/src/hooks/` - Reusable business logic
-- `packages/browser/src/components/` - Primitive components
+- `packages/browser/src/components/` - React components
 - `packages/ui-components/src/components/Playlist.tsx` - UI container
 - `packages/playout/src/TonePlayout.ts` - Audio playback
 
@@ -580,16 +629,24 @@ export const ContinuousPlayCheckbox = () => {
 
 Business logic is extracted into reusable custom hooks that can be used by any component:
 
-**Individual Hooks:**
+**Hooks (in `packages/browser/src/hooks/`):**
 
-- `usePlaybackControls` - Play/pause/stop/seek operations
-- `useTimeFormat` - Time formatting and format selection sync
-- `useZoomControls` - Zoom level management with configurable levels
-- `useAudioPosition` - Updates `.audio-pos` display element (backward compatibility)
-
-**Composite Hook:**
-
-- `useWaveformPlaylist` - Combines all hooks for convenience
+- `useAudioTracks` - Track loading and management
+- `useClipDragHandlers` - Clip drag-to-move and boundary trimming
+- `useClipSplitting` - Split clips at playhead
+- `useAnnotationDragHandlers` - Annotation drag logic
+- `useAnnotationKeyboardControls` - Annotation navigation & editing
+- `useKeyboardShortcuts` - Flexible keyboard shortcut system
+- `usePlaybackShortcuts` - Default playback shortcuts (0 = rewind)
+- `useDynamicEffects` - Master effects chain with runtime parameter updates
+- `useTrackDynamicEffects` - Per-track effects management
+- `useAudioEffects` - Audio effects management
+- `useExportWav` - WAV export via Tone.Offline
+- `useIntegratedRecording` - Recording integration
+- `useMasterVolume` - Master volume control
+- `useTimeFormat` - Time formatting and format selection
+- `useZoomControls` - Zoom level management
+- `useDragSensors` - @dnd-kit sensor configuration
 
 Users can:
 
@@ -769,55 +826,6 @@ const trackConfigs = [
 
 **Location:** `website/src/components/examples/MultiClipExample.tsx`
 
-## Migration Status
-
-### ✅ Completed (React)
-
-- **Custom Hooks Architecture** - Reusable hooks for building custom UIs
-  - `usePlaybackControls`, `useTimeFormat`, `useZoomControls`, `useAudioPosition`, `useMasterVolume`
-  - `useWaveformPlaylist` composite hook
-  - Full API documentation and examples
-- **Flexible/Headless API** - Provider pattern with primitive components
-  - `WaveformPlaylistProvider` - Context provider for state management
-  - Primitive components: PlayButton, PauseButton, StopButton, ZoomInButton, etc.
-  - `Waveform` component with render prop for custom track controls
-  - `useWaveformPlaylist` hook for accessing context
-  - Full example showing custom layout (`flexible-api.html`)
-- **Optional Packages Architecture** - Annotations as separate package
-  - `@waveform-playlist/annotations` package with components, hooks, types, and parsers
-  - `useAnnotationControls` hook for annotation state and boundary logic
-  - React checkbox components (ContinuousPlayCheckbox, LinkEndpointsCheckbox)
-  - ~50KB bundle size reduction for users who don't need annotations
-  - Documentation in `OPTIONAL_PACKAGES.md`
-- Annotations example (using annotations package)
-- Stem-tracks example (cleaned up with React controls)
-- Selection time inputs
-- Playback controls (play/pause/stop/seek)
-- Waveform rendering
-- Automatic scroll
-- Track controls (mute/solo/volume/pan)
-- Master volume control
-- Stop button remembers start position
-- Complete theming system (waveform colors, timescale, playhead, selection)
-- Custom timestamp rendering
-
-### 🚧 In Progress
-
-- Design tokens system
-- More examples showing different layouts
-
-### 🔮 Planned
-
-- Additional optional packages (effects, fades, etc.)
-- Additional hooks (`useSelection`, `useKeyboardShortcuts`)
-- Component library documentation
-- Unit tests for hooks and components
-
-### ❌ Not Started (Still jQuery)
-
-- Most other examples (fades, effects, etc.)
-- Some advanced features
-
 ## Development Workflow
 
 ### Local Development
@@ -942,23 +950,9 @@ const { play, pause, stop } = usePlaybackControls({ playoutRef });
 const { formatTime } = useTimeFormat();
 ```
 
-**Option 3: Traditional Component (Backward Compatible)**
-
-```typescript
-import { WaveformPlaylistComponent } from '@waveform-playlist/browser';
-
-<WaveformPlaylistComponent
-  tracks={tracks}
-  samplesPerPixel={1024}
-/>
-```
-
 ### Example Components
 
-- `flexible-example-app.tsx` - Complete custom layout with styled components
-- `stem-tracks-app.tsx` - Simplified example using WaveformPlaylistComponent
-- `DefaultPlaylistControls.tsx` - Reference implementation showing hook usage
-- `CustomControlsExample.tsx` - Fully styled custom player with progress bar
+See `website/src/components/examples/` for 16 complete examples covering minimal setup, stem tracks, effects, fades, recording, annotations, spectrogram, and more.
 
 ### Documentation
 

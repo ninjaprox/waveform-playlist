@@ -136,6 +136,7 @@ Multi-track audio editor roadmap for waveform-playlist.
 - Undo/redo (command pattern)
 - Snap to grid
 - Keyboard shortcuts help overlay
+- Re-render spectrograms on tab visibility change (OffscreenCanvas buffers can be cleared by browser when tab is backgrounded)
 - Accessibility (ARIA, focus management)
 - Context menus
 

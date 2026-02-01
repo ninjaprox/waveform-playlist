@@ -103,6 +103,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 }) => {
   const canvasesRef = useRef<HTMLCanvasElement[]>([]);
   const registeredIdsRef = useRef<string[]>([]);
+  const transferredCanvasesRef = useRef<WeakSet<HTMLCanvasElement>>(new WeakSet());
 
   // Track whether we're in worker mode (canvas transferred)
   const isWorkerMode = !!(workerApi && clipId);
@@ -131,11 +132,15 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       const canvas = canvases[i];
       if (!canvas) continue;
 
+      // Skip canvases that have already been transferred to the worker
+      if (transferredCanvasesRef.current.has(canvas)) continue;
+
       const canvasId = `${clipId}-ch${index}-chunk${i}`;
 
       try {
         const offscreen = canvas.transferControlToOffscreen();
         workerApi!.registerCanvas(canvasId, offscreen);
+        transferredCanvasesRef.current.add(canvas);
         ids.push(canvasId);
         widths.push(Math.min(length - i * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
       } catch (err) {

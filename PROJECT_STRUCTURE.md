@@ -447,7 +447,7 @@ audiowaveform -i audio.mp3 -o peaks-stereo.dat -z 256 --split-channels
 - **Peer Dependencies:** React ^18.0.0, styled-components ^6.0.0
 - **Use Cases:** Voice recording, podcast editing, audio capture, live input, microphone testing
 - **Example:** `website/src/components/examples/RecordingExample.tsx`
-- **Debugging:** See `DEBUGGING.md` for comprehensive troubleshooting guide
+- **Debugging:** See `CLAUDE.md` → "Debugging AudioWorklets" section
 
 #### `@waveform-playlist/spectrogram`
 

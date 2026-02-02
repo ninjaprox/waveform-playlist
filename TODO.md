@@ -11,7 +11,6 @@ Multi-track audio editor roadmap for waveform-playlist.
 ### Testing & CI
 
 - [ ] **Unit tests** - Hooks, components, audio processing (Vitest + RTL)
-- [ ] **Browser compatibility** - Chrome, Firefox, Safari, Edge
 - [ ] **CI/CD pipeline** - Automated builds, tests, publishing
 
 ### API Parity

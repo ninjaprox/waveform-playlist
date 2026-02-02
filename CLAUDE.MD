@@ -137,6 +137,21 @@ pnpm publish --filter @waveform-playlist/NEW-PACKAGE --no-git-checks --access pu
 
 - Use transient props (prefix with `$`) for props that shouldn't pass to DOM
 - Example: `$left`, `$width`, `$color`
+- **Use `.attrs()` for frequently changing props** — props that change on every render (positions, sizes, colors) must use `.attrs()` with a `style` object. Putting them in the template literal generates a new CSS class per render, causing "over 200 classes generated" warnings and memory bloat.
+  ```typescript
+  // ✅ GOOD - inline style via .attrs(), single CSS class reused
+  const Box = styled.div.attrs<{ $left: number }>((props) => ({
+    style: { left: `${props.$left}px` },
+  }))<{ $left: number }>`
+    position: absolute;
+  `;
+
+  // ❌ BAD - new CSS class generated on every render
+  const Box = styled.div<{ $left: number }>`
+    position: absolute;
+    left: ${(props) => props.$left}px;
+  `;
+  ```
 
 ### Building and Testing
 

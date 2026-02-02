@@ -15,13 +15,16 @@ interface BackgroundProps {
   readonly $width: number;
 }
 
-const Background = styled.div<BackgroundProps>`
+const Background = styled.div.attrs<BackgroundProps>((props) => ({
+  style: {
+    top: `${props.$top}px`,
+    width: `${props.$width}px`,
+    height: `${props.$height}px`,
+    background: props.$color,
+  },
+}))<BackgroundProps>`
   position: absolute;
-  top: ${(props) => props.$top}px;
   left: 0;
-  width: ${(props) => props.$width}px;
-  height: ${(props) => props.$height}px;
-  background: ${(props) => props.$color};
   z-index: 0;
   /* Force GPU compositing layer to prevent gradient flickering during scroll */
   transform: translateZ(0);
@@ -35,12 +38,15 @@ interface ProgressOverlayProps {
   readonly $top: number;
 }
 
-const ProgressOverlay = styled.div<ProgressOverlayProps>`
+const ProgressOverlay = styled.div.attrs<ProgressOverlayProps>((props) => ({
+  style: {
+    top: `${props.$top}px`,
+    height: `${props.$height}px`,
+    background: props.$color,
+  },
+}))<ProgressOverlayProps>`
   position: absolute;
-  top: ${(props) => props.$top}px;
   left: 0;
-  height: ${(props) => props.$height}px;
-  background: ${(props) => props.$color};
   pointer-events: none;
   z-index: 1;
   will-change: width;

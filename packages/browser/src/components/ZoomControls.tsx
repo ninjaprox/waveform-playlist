@@ -7,7 +7,7 @@ export const ZoomInButton: React.FC<{ className?: string; disabled?: boolean }> 
   const { canZoomIn } = usePlaylistData();
 
   return (
-    <BaseControlButton variant="success" onClick={zoomIn} disabled={disabled || !canZoomIn} className={className}>
+    <BaseControlButton onClick={zoomIn} disabled={disabled || !canZoomIn} className={className}>
       Zoom In
     </BaseControlButton>
   );
@@ -18,7 +18,7 @@ export const ZoomOutButton: React.FC<{ className?: string; disabled?: boolean }>
   const { canZoomOut } = usePlaylistData();
 
   return (
-    <BaseControlButton variant="success" onClick={zoomOut} disabled={disabled || !canZoomOut} className={className}>
+    <BaseControlButton onClick={zoomOut} disabled={disabled || !canZoomOut} className={className}>
       Zoom Out
     </BaseControlButton>
   );

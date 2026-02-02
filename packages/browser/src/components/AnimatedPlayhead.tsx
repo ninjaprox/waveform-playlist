@@ -3,12 +3,15 @@ import styled from 'styled-components';
 import { getContext } from 'tone';
 import { usePlaybackAnimation, usePlaylistData } from '../WaveformPlaylistContext';
 
-const PlayheadLine = styled.div<{ $color: string; $width: number }>`
+const PlayheadLine = styled.div.attrs<{ $color: string; $width: number }>((props) => ({
+  style: {
+    width: `${props.$width}px`,
+    background: props.$color,
+  },
+}))<{ $color: string; $width: number }>`
   position: absolute;
   top: 0;
   left: 0;
-  width: ${(props) => props.$width}px;
-  background: ${(props) => props.$color};
   height: 100%;
   z-index: 100; /* Below sticky controls (z-index: 101) so playhead is hidden when scrolled behind controls */
   pointer-events: none;

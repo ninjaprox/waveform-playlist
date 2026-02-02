@@ -1,18 +1,12 @@
 import styled from 'styled-components';
 
-export interface ControlButtonProps {
-  variant?: 'primary' | 'success' | 'info';
-}
-
 /**
- * ControlButton - A colored action button (primary/success/info variants)
- *
- * This is used for prominent actions like Play, Pause, Record.
+ * ControlButton - A colored action button for prominent actions like Play, Pause, Record.
  * For neutral buttons, use BaseButton from the styled primitives.
  *
  * Uses theme colors when available, with fallbacks for standalone use.
  */
-export const BaseControlButton = styled.button<ControlButtonProps>`
+export const BaseControlButton = styled.button`
   padding: 0.5rem 1rem;
   background: ${(props) => props.theme.buttonBackground || '#007bff'};
   color: ${(props) => props.theme.buttonText || 'white'};

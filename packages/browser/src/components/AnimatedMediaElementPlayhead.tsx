@@ -1,6 +1,9 @@
-import React, { useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import { useMediaElementAnimation, useMediaElementData } from '../MediaElementPlaylistContext';
+import React, { useRef, useEffect } from "react";
+import styled from "styled-components";
+import {
+  useMediaElementAnimation,
+  useMediaElementData,
+} from "../MediaElementPlaylistContext";
 
 const PlayheadLine = styled.div<{ $color: string; $width: number }>`
   position: absolute;
@@ -24,15 +27,15 @@ interface AnimatedMediaElementPlayheadProps {
  * Uses the MediaElement context for time tracking instead of Tone.js audio context.
  * Updates position via direct DOM manipulation for smooth 60fps animation.
  */
-export const AnimatedMediaElementPlayhead: React.FC<AnimatedMediaElementPlayheadProps> = ({
-  color = '#ff0000',
-  controlsOffset = 0,
-}) => {
+export const AnimatedMediaElementPlayhead: React.FC<
+  AnimatedMediaElementPlayheadProps
+> = ({ color = "#ff0000", controlsOffset = 0 }) => {
   const playheadRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   const { isPlaying, currentTimeRef } = useMediaElementAnimation();
-  const { samplesPerPixel, sampleRate, progressBarWidth } = useMediaElementData();
+  const { samplesPerPixel, sampleRate, progressBarWidth } =
+    useMediaElementData();
 
   useEffect(() => {
     const updatePosition = () => {
@@ -73,5 +76,12 @@ export const AnimatedMediaElementPlayhead: React.FC<AnimatedMediaElementPlayhead
     }
   });
 
-  return <PlayheadLine ref={playheadRef} $color={color} $width={progressBarWidth} data-playhead />;
+  return (
+    <PlayheadLine
+      ref={playheadRef}
+      $color={color}
+      $width={progressBarWidth}
+      data-playhead
+    />
+  );
 };

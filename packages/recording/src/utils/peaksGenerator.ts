@@ -14,10 +14,11 @@
 export function generatePeaks(
   samples: Float32Array,
   samplesPerPixel: number,
-  bits: 8 | 16 = 16
+  bits: 8 | 16 = 16,
 ): Int8Array | Int16Array {
   const numPeaks = Math.ceil(samples.length / samplesPerPixel);
-  const peakArray = bits === 8 ? new Int8Array(numPeaks * 2) : new Int16Array(numPeaks * 2);
+  const peakArray =
+    bits === 8 ? new Int8Array(numPeaks * 2) : new Int16Array(numPeaks * 2);
   const maxValue = 2 ** (bits - 1);
 
   for (let i = 0; i < numPeaks; i++) {
@@ -50,7 +51,7 @@ export function appendPeaks(
   newSamples: Float32Array,
   samplesPerPixel: number,
   totalSamplesProcessed: number,
-  bits: 8 | 16 = 16
+  bits: 8 | 16 = 16,
 ): Int8Array | Int16Array {
   const maxValue = 2 ** (bits - 1);
 
@@ -75,7 +76,9 @@ export function appendPeaks(
     }
 
     // Update last peak
-    const updated = new (bits === 8 ? Int8Array : Int16Array)(existingPeaks.length);
+    const updated = new (bits === 8 ? Int8Array : Int16Array)(
+      existingPeaks.length,
+    );
     updated.set(existingPeaks);
     updated[existingPeaks.length - 2] = Math.floor(min * maxValue);
     updated[existingPeaks.length - 1] = Math.floor(max * maxValue);
@@ -83,16 +86,28 @@ export function appendPeaks(
     offset = endIndex;
 
     // Generate peaks for remaining samples and concatenate
-    const newPeaks = generatePeaks(newSamples.slice(offset), samplesPerPixel, bits);
-    const result = new (bits === 8 ? Int8Array : Int16Array)(updated.length + newPeaks.length);
+    const newPeaks = generatePeaks(
+      newSamples.slice(offset),
+      samplesPerPixel,
+      bits,
+    );
+    const result = new (bits === 8 ? Int8Array : Int16Array)(
+      updated.length + newPeaks.length,
+    );
     result.set(updated);
     result.set(newPeaks, updated.length);
     return result;
   }
 
   // No partial peak, just concatenate
-  const newPeaks = generatePeaks(newSamples.slice(offset), samplesPerPixel, bits);
-  const result = new (bits === 8 ? Int8Array : Int16Array)(existingPeaks.length + newPeaks.length);
+  const newPeaks = generatePeaks(
+    newSamples.slice(offset),
+    samplesPerPixel,
+    bits,
+  );
+  const result = new (bits === 8 ? Int8Array : Int16Array)(
+    existingPeaks.length + newPeaks.length,
+  );
   result.set(existingPeaks);
   result.set(newPeaks, existingPeaks.length);
   return result;

@@ -1,4 +1,4 @@
-declare module 'fade-maker' {
+declare module "fade-maker" {
   export const FADEIN: string;
   export const FADEOUT: string;
 
@@ -6,13 +6,13 @@ declare module 'fade-maker' {
     audioParam: AudioParam,
     type: string,
     start: number,
-    duration: number
+    duration: number,
   ): void;
 
   export function createFadeOut(
     audioParam: AudioParam,
     type: string,
     start: number,
-    duration: number
+    duration: number,
   ): void;
 }

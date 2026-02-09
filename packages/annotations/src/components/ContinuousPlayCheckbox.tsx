@@ -1,5 +1,9 @@
-import React from 'react';
-import { BaseCheckboxWrapper, BaseCheckbox, BaseCheckboxLabel } from '@waveform-playlist/ui-components';
+import React from "react";
+import {
+  BaseCheckboxWrapper,
+  BaseCheckbox,
+  BaseCheckboxLabel,
+} from "@waveform-playlist/ui-components";
 
 export interface ContinuousPlayCheckboxProps {
   checked: boolean;
@@ -32,7 +36,9 @@ export const ContinuousPlayCheckbox: React.FC<ContinuousPlayCheckboxProps> = ({
         onChange={handleChange}
         disabled={disabled}
       />
-      <BaseCheckboxLabel htmlFor="continuous-play">Continuous Play</BaseCheckboxLabel>
+      <BaseCheckboxLabel htmlFor="continuous-play">
+        Continuous Play
+      </BaseCheckboxLabel>
     </BaseCheckboxWrapper>
   );
 };

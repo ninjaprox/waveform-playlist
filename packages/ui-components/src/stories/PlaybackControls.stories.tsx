@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
+import type { Meta, StoryObj } from "@storybook/react";
+import React from "react";
 import {
   WaveformPlaylistProvider,
   PlayButton,
@@ -11,7 +11,7 @@ import {
   SkipForwardButton,
   LoopButton,
   SetLoopRegionButton,
-} from '@waveform-playlist/browser';
+} from "@waveform-playlist/browser";
 
 // A simple decorator that provides the WaveformPlaylistProvider context
 // with an empty track list for UI demonstration
@@ -26,10 +26,10 @@ const WaveformProviderDecorator = (Story: React.FC) => {
 };
 
 const meta: Meta = {
-  title: 'Browser/PlaybackControls',
+  title: "Browser/PlaybackControls",
   decorators: [WaveformProviderDecorator],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
     docs: {
       description: {
         component: `
@@ -46,14 +46,14 @@ In a real app, use \`useAudioTracks\` to load audio files first.
       },
     },
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
 
 export const AllControls: StoryObj = {
   render: () => (
-    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
       <PlayButton />
       <PauseButton />
       <StopButton />
@@ -69,7 +69,7 @@ export const AllControls: StoryObj = {
 
 export const PlayPauseStop: StoryObj = {
   render: () => (
-    <div style={{ display: 'flex', gap: '0.5rem' }}>
+    <div style={{ display: "flex", gap: "0.5rem" }}>
       <PlayButton />
       <PauseButton />
       <StopButton />
@@ -79,7 +79,7 @@ export const PlayPauseStop: StoryObj = {
 
 export const NavigationControls: StoryObj = {
   render: () => (
-    <div style={{ display: 'flex', gap: '0.5rem' }}>
+    <div style={{ display: "flex", gap: "0.5rem" }}>
       <RewindButton />
       <SkipBackwardButton skipAmount={5} />
       <SkipForwardButton skipAmount={5} />
@@ -90,9 +90,11 @@ export const NavigationControls: StoryObj = {
 
 export const CustomSkipAmount: StoryObj = {
   render: () => (
-    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
       <SkipBackwardButton skipAmount={10} />
-      <span style={{ fontSize: '0.875rem', color: '#666' }}>10 second skip</span>
+      <span style={{ fontSize: "0.875rem", color: "#666" }}>
+        10 second skip
+      </span>
       <SkipForwardButton skipAmount={10} />
     </div>
   ),
@@ -100,7 +102,7 @@ export const CustomSkipAmount: StoryObj = {
 
 export const LoopControls: StoryObj = {
   render: () => (
-    <div style={{ display: 'flex', gap: '0.5rem' }}>
+    <div style={{ display: "flex", gap: "0.5rem" }}>
       <SetLoopRegionButton />
       <LoopButton />
     </div>

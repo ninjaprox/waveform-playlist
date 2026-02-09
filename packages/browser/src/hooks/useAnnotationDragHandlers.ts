@@ -1,5 +1,5 @@
-import React from 'react';
-import type { AnnotationData } from '@waveform-playlist/core';
+import React from "react";
+import type { AnnotationData } from "@waveform-playlist/core";
 
 const LINK_THRESHOLD = 0.01; // Consider edges "linked" if within 10ms
 
@@ -62,7 +62,7 @@ export function useAnnotationDragHandlers({
       const data = active.data.current as {
         annotationId: string;
         annotationIndex: number;
-        edge: 'start' | 'end';
+        edge: "start" | "end";
       };
 
       if (!data || data.annotationIndex === undefined) {
@@ -79,7 +79,7 @@ export function useAnnotationDragHandlers({
         };
       }
     },
-    [annotations]
+    [annotations],
   );
 
   const onDragMove = React.useCallback(
@@ -93,7 +93,7 @@ export function useAnnotationDragHandlers({
       const data = active.data.current as {
         annotationId: string;
         annotationIndex: number;
-        edge: 'start' | 'end';
+        edge: "start" | "end";
       };
 
       if (!data) return;
@@ -105,15 +105,16 @@ export function useAnnotationDragHandlers({
       const timeDelta = (delta.x * samplesPerPixel) / sampleRate;
 
       // Apply delta to original state
-      const newTime = edge === 'start'
-        ? originalState.start + timeDelta
-        : originalState.end + timeDelta;
+      const newTime =
+        edge === "start"
+          ? originalState.start + timeDelta
+          : originalState.end + timeDelta;
 
       // Update annotations using the boundary logic
       const updatedAnnotations = updateAnnotationBoundaries({
         annotationIndex,
         newTime,
-        isDraggingStart: edge === 'start',
+        isDraggingStart: edge === "start",
         annotations,
         duration,
         linkEndpoints,
@@ -121,7 +122,14 @@ export function useAnnotationDragHandlers({
 
       onAnnotationsChange(updatedAnnotations);
     },
-    [annotations, onAnnotationsChange, samplesPerPixel, sampleRate, duration, linkEndpoints]
+    [
+      annotations,
+      onAnnotationsChange,
+      samplesPerPixel,
+      sampleRate,
+      duration,
+      linkEndpoints,
+    ],
   );
 
   const onDragEnd = React.useCallback(() => {
@@ -159,7 +167,10 @@ function updateAnnotationBoundaries({
 
   if (isDraggingStart) {
     // Dragging start edge
-    const constrainedStart = Math.min(annotation.end - 0.1, Math.max(0, newTime));
+    const constrainedStart = Math.min(
+      annotation.end - 0.1,
+      Math.max(0, newTime),
+    );
     const delta = constrainedStart - annotation.start;
 
     updatedAnnotations[annotationIndex] = {
@@ -184,7 +195,11 @@ function updateAnnotationBoundaries({
           start: prevAnnotation.end,
         };
       }
-    } else if (!shouldLinkEndpoints && annotationIndex > 0 && constrainedStart < updatedAnnotations[annotationIndex - 1].end) {
+    } else if (
+      !shouldLinkEndpoints &&
+      annotationIndex > 0 &&
+      constrainedStart < updatedAnnotations[annotationIndex - 1].end
+    ) {
       // Collision detection: push previous annotation's end back
       updatedAnnotations[annotationIndex - 1] = {
         ...updatedAnnotations[annotationIndex - 1],
@@ -193,7 +208,10 @@ function updateAnnotationBoundaries({
     }
   } else {
     // Dragging end edge
-    const constrainedEnd = Math.max(annotation.start + 0.1, Math.min(newTime, duration));
+    const constrainedEnd = Math.max(
+      annotation.start + 0.1,
+      Math.min(newTime, duration),
+    );
     const delta = constrainedEnd - annotation.end;
 
     updatedAnnotations[annotationIndex] = {
@@ -201,7 +219,10 @@ function updateAnnotationBoundaries({
       end: constrainedEnd,
     };
 
-    if (shouldLinkEndpoints && annotationIndex < updatedAnnotations.length - 1) {
+    if (
+      shouldLinkEndpoints &&
+      annotationIndex < updatedAnnotations.length - 1
+    ) {
       // Link Endpoints mode: handle both already-linked and collision scenarios
       const nextAnnotation = updatedAnnotations[annotationIndex + 1];
 
@@ -237,7 +258,11 @@ function updateAnnotationBoundaries({
           end: nextAnnotation.start,
         };
       }
-    } else if (!shouldLinkEndpoints && annotationIndex < updatedAnnotations.length - 1 && constrainedEnd > updatedAnnotations[annotationIndex + 1].start) {
+    } else if (
+      !shouldLinkEndpoints &&
+      annotationIndex < updatedAnnotations.length - 1 &&
+      constrainedEnd > updatedAnnotations[annotationIndex + 1].start
+    ) {
       // Collision detection: push next annotation's start forward
       const nextAnnotation = updatedAnnotations[annotationIndex + 1];
 

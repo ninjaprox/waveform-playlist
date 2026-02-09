@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
-import type { ClipTrack } from '@waveform-playlist/core';
+import type { Meta, StoryObj } from "@storybook/react";
+import React from "react";
+import type { ClipTrack } from "@waveform-playlist/core";
 import {
   WaveformPlaylistProvider,
   Waveform,
@@ -8,13 +8,13 @@ import {
   PauseButton,
   StopButton,
   AudioPosition,
-} from '@waveform-playlist/browser';
+} from "@waveform-playlist/browser";
 
 const meta: Meta<typeof Waveform> = {
-  title: 'Browser/Waveform',
+  title: "Browser/Waveform",
   component: Waveform,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
     docs: {
       description: {
         component: `
@@ -52,7 +52,7 @@ function MyPlaylist() {
       },
     },
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -77,8 +77,8 @@ export const EmptyPlaylist: Story = {
       tracks={createEmptyTracks(1)}
       samplesPerPixel={1024}
     >
-      <div style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+      <div style={{ padding: "1rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
           <PlayButton />
           <PauseButton />
           <StopButton />
@@ -91,7 +91,8 @@ export const EmptyPlaylist: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'An empty playlist with one track, ready for recording or loading audio.',
+        story:
+          "An empty playlist with one track, ready for recording or loading audio.",
       },
     },
   },
@@ -103,8 +104,8 @@ export const MultipleEmptyTracks: Story = {
       tracks={createEmptyTracks(3)}
       samplesPerPixel={1024}
     >
-      <div style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+      <div style={{ padding: "1rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
           <PlayButton />
           <PauseButton />
           <StopButton />
@@ -117,7 +118,7 @@ export const MultipleEmptyTracks: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Multiple empty tracks showing the track controls layout.',
+        story: "Multiple empty tracks showing the track controls layout.",
       },
     },
   },
@@ -130,8 +131,8 @@ export const WithoutTimescale: Story = {
       samplesPerPixel={1024}
       // Note: timescale is not set, so no timescale will be displayed
     >
-      <div style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+      <div style={{ padding: "1rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
           <PlayButton />
           <PauseButton />
           <StopButton />
@@ -143,7 +144,8 @@ export const WithoutTimescale: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Waveform without the timescale ruler - controlled via the `timescale` prop on WaveformPlaylistProvider. Useful for compact layouts.',
+        story:
+          "Waveform without the timescale ruler - controlled via the `timescale` prop on WaveformPlaylistProvider. Useful for compact layouts.",
       },
     },
   },
@@ -152,16 +154,48 @@ export const WithoutTimescale: Story = {
 export const CustomTrackNames: Story = {
   render: () => {
     const tracks: ClipTrack[] = [
-      { id: 'vocals', name: 'Lead Vocals', clips: [], muted: false, soloed: false, volume: 1, pan: 0 },
-      { id: 'guitar', name: 'Electric Guitar', clips: [], muted: false, soloed: false, volume: 1, pan: 0 },
-      { id: 'bass', name: 'Bass', clips: [], muted: false, soloed: false, volume: 1, pan: 0 },
-      { id: 'drums', name: 'Drums', clips: [], muted: false, soloed: false, volume: 1, pan: 0 },
+      {
+        id: "vocals",
+        name: "Lead Vocals",
+        clips: [],
+        muted: false,
+        soloed: false,
+        volume: 1,
+        pan: 0,
+      },
+      {
+        id: "guitar",
+        name: "Electric Guitar",
+        clips: [],
+        muted: false,
+        soloed: false,
+        volume: 1,
+        pan: 0,
+      },
+      {
+        id: "bass",
+        name: "Bass",
+        clips: [],
+        muted: false,
+        soloed: false,
+        volume: 1,
+        pan: 0,
+      },
+      {
+        id: "drums",
+        name: "Drums",
+        clips: [],
+        muted: false,
+        soloed: false,
+        volume: 1,
+        pan: 0,
+      },
     ];
 
     return (
       <WaveformPlaylistProvider tracks={tracks} samplesPerPixel={1024}>
-        <div style={{ padding: '1rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        <div style={{ padding: "1rem" }}>
+          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
             <PlayButton />
             <PauseButton />
             <StopButton />
@@ -175,7 +209,8 @@ export const CustomTrackNames: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Tracks with custom names showing a typical multitrack recording setup.',
+        story:
+          "Tracks with custom names showing a typical multitrack recording setup.",
       },
     },
   },

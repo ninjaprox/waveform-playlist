@@ -22,8 +22,8 @@ import {
   Limiter,
   Gate,
   StereoWidener,
-} from 'tone';
-import type { EffectDefinition } from './effectDefinitions';
+} from "tone";
+import type { EffectDefinition } from "./effectDefinitions";
 
 // Type for effect instance with common methods
 export interface EffectInstance {
@@ -72,7 +72,7 @@ const generateInstanceId = (): string => {
  */
 export function createEffectInstance(
   definition: EffectDefinition,
-  initialParams?: Record<string, number | string | boolean>
+  initialParams?: Record<string, number | string | boolean>,
 ): EffectInstance {
   const Constructor = effectConstructors[definition.id];
   if (!Constructor) {
@@ -106,7 +106,7 @@ export function createEffectInstance(
 
     setParameter(name: string, value: number | string | boolean) {
       // Handle special cases for different effect types
-      if (name === 'wet' && effect.wet) {
+      if (name === "wet" && effect.wet) {
         effect.wet.value = value as number;
       } else if (effect[name] !== undefined) {
         // Check if it's a Tone.js Signal (has .value property)
@@ -119,7 +119,7 @@ export function createEffectInstance(
     },
 
     getParameter(name: string): number | string | boolean | undefined {
-      if (name === 'wet' && effect.wet) {
+      if (name === "wet" && effect.wet) {
         return effect.wet.value;
       }
       if (effect[name] !== undefined) {
@@ -148,15 +148,13 @@ export function createEffectInstance(
 /**
  * Create a chain of effects connected in series
  */
-export function createEffectChain(
-  effects: EffectInstance[]
-): {
+export function createEffectChain(effects: EffectInstance[]): {
   input: any;
   output: any;
   dispose: () => void;
 } {
   if (effects.length === 0) {
-    throw new Error('Cannot create effect chain with no effects');
+    throw new Error("Cannot create effect chain with no effects");
   }
 
   // Connect effects in series

@@ -1,6 +1,12 @@
-import React, { FunctionComponent, useLayoutEffect, useCallback, useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import type { SpectrogramData, ColorMapValue } from '@waveform-playlist/core';
+import React, {
+  FunctionComponent,
+  useLayoutEffect,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
+import styled from "styled-components";
+import type { SpectrogramData, ColorMapValue } from "@waveform-playlist/core";
 
 const MAX_CANVAS_WIDTH = 1000;
 
@@ -107,20 +113,19 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   const channelIndex = channelIndexProp ?? index;
   const canvasesRef = useRef<HTMLCanvasElement[]>([]);
   const registeredIdsRef = useRef<string[]>([]);
-  const transferredCanvasesRef = useRef<WeakSet<HTMLCanvasElement>>(new WeakSet());
+  const transferredCanvasesRef = useRef<WeakSet<HTMLCanvasElement>>(
+    new WeakSet(),
+  );
 
   // Track whether we're in worker mode (canvas transferred)
   const isWorkerMode = !!(workerApi && clipId);
 
-  const canvasRef = useCallback(
-    (canvas: HTMLCanvasElement | null) => {
-      if (canvas !== null) {
-        const idx = parseInt(canvas.dataset.index!, 10);
-        canvasesRef.current[idx] = canvas;
-      }
-    },
-    []
-  );
+  const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
+    if (canvas !== null) {
+      const idx = parseInt(canvas.dataset.index!, 10);
+      canvasesRef.current[idx] = canvas;
+    }
+  }, []);
 
   // Worker mode: transfer canvases to worker on mount
   useEffect(() => {
@@ -148,7 +153,10 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
         ids.push(canvasId);
         widths.push(Math.min(length - i * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
       } catch (err) {
-        console.warn(`[spectrogram] transferControlToOffscreen failed for ${canvasId}:`, err);
+        console.warn(
+          `[spectrogram] transferControlToOffscreen failed for ${canvasId}:`,
+          err,
+        );
         continue;
       }
     }
@@ -165,30 +173,40 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       }
       registeredIdsRef.current = [];
     };
-  // Re-run when canvas keys change (length changes cause remount via key prop)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Re-run when canvas keys change (length changes cause remount via key prop)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWorkerMode, clipId, channelIndex, length]);
 
   const lut = colorLUT ?? defaultGetColorMap();
   const maxF = maxFrequency ?? (data ? data.sampleRate / 2 : 22050);
-  const scaleFn = frequencyScaleFn ?? ((f: number, minF: number, maxF: number) => (f - minF) / (maxF - minF));
+  const scaleFn =
+    frequencyScaleFn ??
+    ((f: number, minF: number, maxF: number) => (f - minF) / (maxF - minF));
 
   // Main-thread rendering (skipped in worker mode)
   useLayoutEffect(() => {
     if (isWorkerMode || !data) return;
 
     const canvases = canvasesRef.current;
-    const { frequencyBinCount, frameCount, hopSize, sampleRate, gainDb, rangeDb: rawRangeDb } = data;
+    const {
+      frequencyBinCount,
+      frameCount,
+      hopSize,
+      sampleRate,
+      gainDb,
+      rangeDb: rawRangeDb,
+    } = data;
     const rangeDb = rawRangeDb === 0 ? 1 : rawRangeDb;
     let globalPixelOffset = 0;
 
     // Pre-compute Y mapping: for each pixel row, which frequency bin(s) to sample
-    const binToFreq = (bin: number) => (bin / frequencyBinCount) * (sampleRate / 2);
+    const binToFreq = (bin: number) =>
+      (bin / frequencyBinCount) * (sampleRate / 2);
 
     for (let canvasIdx = 0; canvasIdx < canvases.length; canvasIdx++) {
       const canvas = canvases[canvasIdx];
       if (!canvas) continue;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (!ctx) continue;
 
       const canvasWidth = canvas.width / devicePixelRatio;
@@ -245,7 +263,10 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
           // Get dB value and normalize to [0, 1]
           const db = data.data[frameOffset + bin];
-          const normalized = Math.max(0, Math.min(1, (db + rangeDb + gainDb) / rangeDb));
+          const normalized = Math.max(
+            0,
+            Math.min(1, (db + rangeDb + gainDb) / rangeDb),
+          );
 
           // Map to color via LUT (0-255 index)
           const colorIdx = Math.floor(normalized * 255);
@@ -264,10 +285,10 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       // Scale up to fill canvas
       if (devicePixelRatio !== 1) {
         // Draw the image data at 1:1, then scale
-        const tmpCanvas = document.createElement('canvas');
+        const tmpCanvas = document.createElement("canvas");
         tmpCanvas.width = canvasWidth;
         tmpCanvas.height = canvasHeight;
-        const tmpCtx = tmpCanvas.getContext('2d');
+        const tmpCtx = tmpCanvas.getContext("2d");
         if (!tmpCtx) continue;
         tmpCtx.putImageData(imgData, 0, 0);
 
@@ -278,8 +299,19 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
       globalPixelOffset += canvasWidth;
     }
-
-  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, frequencyScaleFn, minFrequency, maxF, scaleFn]);
+  }, [
+    isWorkerMode,
+    data,
+    length,
+    waveHeight,
+    devicePixelRatio,
+    samplesPerPixel,
+    lut,
+    frequencyScaleFn,
+    minFrequency,
+    maxF,
+    scaleFn,
+  ]);
 
   // Build canvas chunks
   let totalWidth = length;
@@ -296,7 +328,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
         $waveHeight={waveHeight}
         data-index={canvasCount}
         ref={canvasRef}
-      />
+      />,
     );
     totalWidth -= currentWidth;
     canvasCount++;
@@ -308,4 +340,3 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     </Wrapper>
   );
 };
-

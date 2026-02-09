@@ -1,13 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { BaseInput } from '../styled';
+import type { Meta, StoryObj } from "@storybook/react";
+import { BaseInput } from "../styled";
 
 const meta: Meta<typeof BaseInput> = {
-  title: 'Base/Input',
+  title: "Base/Input",
   component: BaseInput,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -15,27 +15,27 @@ type Story = StoryObj<typeof BaseInput>;
 
 export const Default: Story = {
   args: {
-    placeholder: 'Enter text...',
+    placeholder: "Enter text...",
   },
 };
 
 export const WithValue: Story = {
   args: {
-    value: 'Hello World',
+    value: "Hello World",
     onChange: () => {},
   },
 };
 
 export const Disabled: Story = {
   args: {
-    placeholder: 'Disabled input',
+    placeholder: "Disabled input",
     disabled: true,
   },
 };
 
 export const ReadOnly: Story = {
   args: {
-    value: 'Read only value',
+    value: "Read only value",
     readOnly: true,
   },
 };

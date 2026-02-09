@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * BaseSlider - Themed range input for volume controls, etc.
@@ -6,7 +6,7 @@ import styled from 'styled-components';
  * Uses theme values for consistent styling across light/dark modes.
  * Provides custom styling for the track and thumb.
  */
-export const BaseSlider = styled.input.attrs({ type: 'range' })`
+export const BaseSlider = styled.input.attrs({ type: "range" })`
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -27,7 +27,9 @@ export const BaseSlider = styled.input.attrs({ type: 'range' })`
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   &::-webkit-slider-thumb:hover {
@@ -44,7 +46,9 @@ export const BaseSlider = styled.input.attrs({ type: 'range' })`
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   &::-moz-range-thumb:hover {

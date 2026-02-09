@@ -9,17 +9,27 @@
  * 5. `render-chunks` — render specific chunks from cached FFT data
  */
 
-import type { SpectrogramConfig, SpectrogramComputeConfig, SpectrogramData } from '@waveform-playlist/core';
-import { fftMagnitudeDb } from '../computation/fft';
-import { getWindowFunction } from '../computation/windowFunctions';
-import { getFrequencyScale, type FrequencyScaleName } from '../computation/frequencyScales';
+import type {
+  SpectrogramConfig,
+  SpectrogramComputeConfig,
+  SpectrogramData,
+} from "@waveform-playlist/core";
+import { fftMagnitudeDb } from "../computation/fft";
+import { getWindowFunction } from "../computation/windowFunctions";
+import {
+  getFrequencyScale,
+  type FrequencyScaleName,
+} from "../computation/frequencyScales";
 
 // --- Canvas registry ---
 const canvasRegistry = new Map<string, OffscreenCanvas>();
 
 // --- Audio data registry ---
 // Pre-transferred audio data keyed by clipId, avoiding re-transfer on compute-fft.
-const audioDataRegistry = new Map<string, { channelDataArrays: Float32Array[]; sampleRate: number }>();
+const audioDataRegistry = new Map<
+  string,
+  { channelDataArrays: Float32Array[]; sampleRate: number }
+>();
 
 // --- FFT cache ---
 // Caches raw dB spectrogram data keyed by FFT computation params.
@@ -41,13 +51,13 @@ function generateCacheKey(params: {
   mono: boolean;
 }): string {
   const { compute: c } = params;
-  return `${params.clipId}:${params.channelIndex}:${params.offsetSamples}:${params.durationSamples}:${params.sampleRate}:${c.fftSize ?? ''}:${c.zeroPaddingFactor ?? ''}:${c.hopSize ?? ''}:${c.windowFunction ?? ''}:${c.alpha ?? ''}:${params.mono ? 1 : 0}`;
+  return `${params.clipId}:${params.channelIndex}:${params.offsetSamples}:${params.durationSamples}:${params.sampleRate}:${c.fftSize ?? ""}:${c.zeroPaddingFactor ?? ""}:${c.hopSize ?? ""}:${c.windowFunction ?? ""}:${c.alpha ?? ""}:${params.mono ? 1 : 0}`;
 }
 
 // --- Message types ---
 
 interface ComputeRequest {
-  type?: 'compute';
+  type?: "compute";
   id: string;
   channelDataArrays: Float32Array[];
   config: SpectrogramConfig;
@@ -58,18 +68,18 @@ interface ComputeRequest {
 }
 
 interface RegisterCanvasMessage {
-  type: 'register-canvas';
+  type: "register-canvas";
   canvasId: string;
   canvas: OffscreenCanvas;
 }
 
 interface UnregisterCanvasMessage {
-  type: 'unregister-canvas';
+  type: "unregister-canvas";
   canvasId: string;
 }
 
 interface ComputeRenderRequest {
-  type: 'compute-render';
+  type: "compute-render";
   id: string;
   channelDataArrays: Float32Array[];
   config: SpectrogramConfig;
@@ -78,8 +88,8 @@ interface ComputeRenderRequest {
   durationSamples: number;
   mono: boolean;
   render: {
-    canvasIds: string[][];      // [channel][chunk] → canvasId
-    canvasWidths: number[];     // per-chunk CSS widths
+    canvasIds: string[][]; // [channel][chunk] → canvasId
+    canvasWidths: number[]; // per-chunk CSS widths
     canvasHeight: number;
     devicePixelRatio: number;
     samplesPerPixel: number;
@@ -91,19 +101,19 @@ interface ComputeRenderRequest {
 }
 
 interface RegisterAudioDataMessage {
-  type: 'register-audio-data';
+  type: "register-audio-data";
   clipId: string;
   channelDataArrays: Float32Array[];
   sampleRate: number;
 }
 
 interface UnregisterAudioDataMessage {
-  type: 'unregister-audio-data';
+  type: "unregister-audio-data";
   clipId: string;
 }
 
 interface ComputeFFTRequest {
-  type: 'compute-fft';
+  type: "compute-fft";
   id: string;
   clipId: string;
   channelDataArrays: Float32Array[];
@@ -116,11 +126,11 @@ interface ComputeFFTRequest {
 }
 
 interface RenderChunksRequest {
-  type: 'render-chunks';
+  type: "render-chunks";
   id: string;
   cacheKey: string;
-  canvasIds: string[];          // flat list of canvas IDs to render
-  canvasWidths: number[];       // per-chunk CSS widths
+  canvasIds: string[]; // flat list of canvas IDs to render
+  canvasWidths: number[]; // per-chunk CSS widths
   globalPixelOffsets: number[]; // pixel offset for each chunk
   canvasHeight: number;
   devicePixelRatio: number;
@@ -134,13 +144,21 @@ interface RenderChunksRequest {
   channelIndex: number;
 }
 
-type WorkerMessage = ComputeRequest | RegisterCanvasMessage | UnregisterCanvasMessage | ComputeRenderRequest | ComputeFFTRequest | RenderChunksRequest | RegisterAudioDataMessage | UnregisterAudioDataMessage;
+type WorkerMessage =
+  | ComputeRequest
+  | RegisterCanvasMessage
+  | UnregisterCanvasMessage
+  | ComputeRenderRequest
+  | ComputeFFTRequest
+  | RenderChunksRequest
+  | RegisterAudioDataMessage
+  | UnregisterAudioDataMessage;
 
 type ComputeResponse =
-  | { id: string; type: 'spectrograms'; spectrograms: SpectrogramData[] }
-  | { id: string; type: 'cache-key'; cacheKey: string }
-  | { id: string; type: 'done' }
-  | { id: string; type: 'error'; error: string };
+  | { id: string; type: "spectrograms"; spectrograms: SpectrogramData[] }
+  | { id: string; type: "cache-key"; cacheKey: string }
+  | { id: string; type: "done" }
+  | { id: string; type: "error"; error: string };
 
 // --- FFT computation (unchanged) ---
 
@@ -155,7 +173,7 @@ function computeFromChannelData(
   const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
   const actualFftSize = windowSize * zeroPaddingFactor;
   const hopSize = config.hopSize ?? Math.floor(windowSize / 4);
-  const windowName = config.windowFunction ?? 'hann';
+  const windowName = config.windowFunction ?? "hann";
   const gainDb = config.gainDb ?? 20;
   const rangeDb = config.rangeDb ?? 80;
   const alpha = config.alpha;
@@ -164,7 +182,10 @@ function computeFromChannelData(
   const totalSamples = durationSamples;
 
   const window = getWindowFunction(windowName, windowSize, alpha);
-  const frameCount = Math.max(1, Math.floor((totalSamples - windowSize) / hopSize) + 1);
+  const frameCount = Math.max(
+    1,
+    Math.floor((totalSamples - windowSize) / hopSize) + 1,
+  );
   const data = new Float32Array(frameCount * frequencyBinCount);
   const real = new Float32Array(actualFftSize);
   const dbBuf = new Float32Array(frequencyBinCount);
@@ -174,7 +195,8 @@ function computeFromChannelData(
 
     for (let i = 0; i < windowSize; i++) {
       const sampleIdx = start + i;
-      real[i] = sampleIdx < channelData.length ? channelData[sampleIdx] * window[i] : 0;
+      real[i] =
+        sampleIdx < channelData.length ? channelData[sampleIdx] * window[i] : 0;
     }
     for (let i = windowSize; i < actualFftSize; i++) {
       real[i] = 0;
@@ -184,7 +206,17 @@ function computeFromChannelData(
     data.set(dbBuf, frame * frequencyBinCount);
   }
 
-  return { fftSize: actualFftSize, windowSize, frequencyBinCount, sampleRate, hopSize, frameCount, data, gainDb, rangeDb };
+  return {
+    fftSize: actualFftSize,
+    windowSize,
+    frequencyBinCount,
+    sampleRate,
+    hopSize,
+    frameCount,
+    data,
+    gainDb,
+    rangeDb,
+  };
 }
 
 function computeMonoFromChannels(
@@ -195,14 +227,20 @@ function computeMonoFromChannels(
   durationSamples: number,
 ): SpectrogramData {
   if (channels.length === 1) {
-    return computeFromChannelData(channels[0], config, sampleRate, offsetSamples, durationSamples);
+    return computeFromChannelData(
+      channels[0],
+      config,
+      sampleRate,
+      offsetSamples,
+      durationSamples,
+    );
   }
 
   const windowSize = config.fftSize ?? 2048;
   const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
   const actualFftSize = windowSize * zeroPaddingFactor;
   const hopSize = config.hopSize ?? Math.floor(windowSize / 4);
-  const windowName = config.windowFunction ?? 'hann';
+  const windowName = config.windowFunction ?? "hann";
   const gainDb = config.gainDb ?? 20;
   const rangeDb = config.rangeDb ?? 80;
   const alpha = config.alpha;
@@ -211,7 +249,10 @@ function computeMonoFromChannels(
   const numChannels = channels.length;
 
   const window = getWindowFunction(windowName, windowSize, alpha);
-  const frameCount = Math.max(1, Math.floor((durationSamples - windowSize) / hopSize) + 1);
+  const frameCount = Math.max(
+    1,
+    Math.floor((durationSamples - windowSize) / hopSize) + 1,
+  );
   const data = new Float32Array(frameCount * frequencyBinCount);
   const real = new Float32Array(actualFftSize);
   const dbBuf = new Float32Array(frequencyBinCount);
@@ -235,7 +276,17 @@ function computeMonoFromChannels(
     data.set(dbBuf, frame * frequencyBinCount);
   }
 
-  return { fftSize: actualFftSize, windowSize, frequencyBinCount, sampleRate, hopSize, frameCount, data, gainDb, rangeDb };
+  return {
+    fftSize: actualFftSize,
+    windowSize,
+    frequencyBinCount,
+    sampleRate,
+    hopSize,
+    frameCount,
+    data,
+    gainDb,
+    rangeDb,
+  };
 }
 
 // --- Rendering ---
@@ -262,7 +313,8 @@ function renderSpectrogramToCanvas(
   const rawRangeDb = rangeDbOverride ?? specData.rangeDb;
   const rangeDb = rawRangeDb === 0 ? 1 : rawRangeDb;
   const maxF = maxFrequency > 0 ? maxFrequency : sampleRate / 2;
-  const binToFreq = (bin: number) => (bin / frequencyBinCount) * (sampleRate / 2);
+  const binToFreq = (bin: number) =>
+    (bin / frequencyBinCount) * (sampleRate / 2);
 
   let accumulatedOffset = 0;
 
@@ -270,21 +322,27 @@ function renderSpectrogramToCanvas(
     const canvasId = canvasIds[chunkIdx];
     const offscreen = canvasRegistry.get(canvasId);
     if (!offscreen) {
-      console.warn(`[spectrogram-worker] Canvas "${canvasId}" not found in registry`);
+      console.warn(
+        `[spectrogram-worker] Canvas "${canvasId}" not found in registry`,
+      );
       if (!globalPixelOffsets) accumulatedOffset += canvasWidths[chunkIdx];
       continue;
     }
 
     const canvasWidth = canvasWidths[chunkIdx];
-    const globalPixelOffset = globalPixelOffsets ? globalPixelOffsets[chunkIdx] : accumulatedOffset;
+    const globalPixelOffset = globalPixelOffsets
+      ? globalPixelOffsets[chunkIdx]
+      : accumulatedOffset;
 
     // Set physical canvas size for DPR
     offscreen.width = canvasWidth * devicePixelRatio;
     offscreen.height = canvasHeight * devicePixelRatio;
 
-    const ctx = offscreen.getContext('2d');
+    const ctx = offscreen.getContext("2d");
     if (!ctx) {
-      console.warn(`[spectrogram-worker] getContext('2d') returned null for canvas "${canvasId}"`);
+      console.warn(
+        `[spectrogram-worker] getContext('2d') returned null for canvas "${canvasId}"`,
+      );
       if (!globalPixelOffsets) accumulatedOffset += canvasWidth;
       continue;
     }
@@ -330,7 +388,10 @@ function renderSpectrogramToCanvas(
         if (bin < 0 || bin >= frequencyBinCount) continue;
 
         const db = specData.data[frameOffset + bin];
-        const normalized = Math.max(0, Math.min(1, (db + rangeDb + gainDb) / rangeDb));
+        const normalized = Math.max(
+          0,
+          Math.min(1, (db + rangeDb + gainDb) / rangeDb),
+        );
 
         const colorIdx = Math.floor(normalized * 255);
         const pixelIdx = (y * canvasWidth + x) * 4;
@@ -347,7 +408,7 @@ function renderSpectrogramToCanvas(
     } else {
       // Render at CSS size to a temporary OffscreenCanvas, then scale up
       const tmpCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
-      const tmpCtx = tmpCanvas.getContext('2d');
+      const tmpCtx = tmpCanvas.getContext("2d");
       if (!tmpCtx) continue;
       tmpCtx.putImageData(imgData, 0, 0);
 
@@ -365,40 +426,40 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
   const msg = e.data;
 
   // Register canvas
-  if (msg.type === 'register-canvas') {
+  if (msg.type === "register-canvas") {
     try {
       canvasRegistry.set(msg.canvasId, msg.canvas);
     } catch (err) {
-      console.warn('[spectrogram-worker] register-canvas failed:', err);
+      console.warn("[spectrogram-worker] register-canvas failed:", err);
     }
     return;
   }
 
   // Unregister canvas
-  if (msg.type === 'unregister-canvas') {
+  if (msg.type === "unregister-canvas") {
     try {
       canvasRegistry.delete(msg.canvasId);
     } catch (err) {
-      console.warn('[spectrogram-worker] unregister-canvas failed:', err);
+      console.warn("[spectrogram-worker] unregister-canvas failed:", err);
     }
     return;
   }
 
   // Register audio data for a clip (pre-transfer)
-  if (msg.type === 'register-audio-data') {
+  if (msg.type === "register-audio-data") {
     try {
       audioDataRegistry.set(msg.clipId, {
         channelDataArrays: msg.channelDataArrays,
         sampleRate: msg.sampleRate,
       });
     } catch (err) {
-      console.warn('[spectrogram-worker] register-audio-data failed:', err);
+      console.warn("[spectrogram-worker] register-audio-data failed:", err);
     }
     return;
   }
 
   // Unregister audio data for a clip + evict related FFT cache entries
-  if (msg.type === 'unregister-audio-data') {
+  if (msg.type === "unregister-audio-data") {
     try {
       audioDataRegistry.delete(msg.clipId);
       const prefix = `${msg.clipId}:`;
@@ -408,40 +469,60 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         }
       }
     } catch (err) {
-      console.warn('[spectrogram-worker] unregister-audio-data failed:', err);
+      console.warn("[spectrogram-worker] unregister-audio-data failed:", err);
     }
     return;
   }
 
   // Compute FFT only (with caching), return cache key
-  if (msg.type === 'compute-fft') {
+  if (msg.type === "compute-fft") {
     const { id } = msg;
     try {
-      const { clipId, config, sampleRate: msgSampleRate, offsetSamples, durationSamples, mono, sampleRange } = msg;
+      const {
+        clipId,
+        config,
+        sampleRate: msgSampleRate,
+        offsetSamples,
+        durationSamples,
+        mono,
+        sampleRange,
+      } = msg;
 
       // Use pre-registered audio data if available, otherwise use message payload
       const registered = audioDataRegistry.get(clipId);
-      const channelDataArrays = (registered && msg.channelDataArrays.length === 0)
-        ? registered.channelDataArrays
-        : msg.channelDataArrays;
-      const sampleRate = (registered && msg.channelDataArrays.length === 0)
-        ? registered.sampleRate
-        : msgSampleRate;
+      const channelDataArrays =
+        registered && msg.channelDataArrays.length === 0
+          ? registered.channelDataArrays
+          : msg.channelDataArrays;
+      const sampleRate =
+        registered && msg.channelDataArrays.length === 0
+          ? registered.sampleRate
+          : msgSampleRate;
 
       const fftSize = config.fftSize ?? 2048;
       const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
       const hopSize = config.hopSize ?? Math.floor(fftSize / 4);
-      const windowFunction = config.windowFunction ?? 'hann';
+      const windowFunction = config.windowFunction ?? "hann";
 
       // Use sampleRange if provided (visible-range-first optimization)
       const effectiveOffset = sampleRange ? sampleRange.start : offsetSamples;
       const effectiveDuration = sampleRange
-        ? (sampleRange.end - sampleRange.start)
+        ? sampleRange.end - sampleRange.start
         : durationSamples;
 
       const cacheKey = generateCacheKey({
-        clipId, channelIndex: 0, offsetSamples: effectiveOffset, durationSamples: effectiveDuration, sampleRate,
-        compute: { fftSize, zeroPaddingFactor, hopSize, windowFunction, alpha: config.alpha },
+        clipId,
+        channelIndex: 0,
+        offsetSamples: effectiveOffset,
+        durationSamples: effectiveDuration,
+        sampleRate,
+        compute: {
+          fftSize,
+          zeroPaddingFactor,
+          hopSize,
+          windowFunction,
+          alpha: config.alpha,
+        },
         mono,
       });
 
@@ -457,44 +538,79 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         const spectrograms: SpectrogramData[] = [];
         if (mono || channelDataArrays.length === 1) {
           spectrograms.push(
-            computeMonoFromChannels(channelDataArrays, config, sampleRate, effectiveOffset, effectiveDuration)
+            computeMonoFromChannels(
+              channelDataArrays,
+              config,
+              sampleRate,
+              effectiveOffset,
+              effectiveDuration,
+            ),
           );
         } else {
           for (const channelData of channelDataArrays) {
             spectrograms.push(
-              computeFromChannelData(channelData, config, sampleRate, effectiveOffset, effectiveDuration)
+              computeFromChannelData(
+                channelData,
+                config,
+                sampleRate,
+                effectiveOffset,
+                effectiveDuration,
+              ),
             );
           }
         }
         fftCache.set(cacheKey, { spectrograms, sampleOffset: effectiveOffset });
       }
 
-      const response: ComputeResponse = { id, type: 'cache-key', cacheKey };
+      const response: ComputeResponse = { id, type: "cache-key", cacheKey };
       (self as unknown as Worker).postMessage(response);
     } catch (err) {
-      const response: ComputeResponse = { id, type: 'error', error: String(err) };
+      const response: ComputeResponse = {
+        id,
+        type: "error",
+        error: String(err),
+      };
       (self as unknown as Worker).postMessage(response);
     }
     return;
   }
 
   // Render specific chunks from cached FFT data
-  if (msg.type === 'render-chunks') {
+  if (msg.type === "render-chunks") {
     const { id } = msg;
     try {
-      const { cacheKey, canvasIds, canvasWidths, globalPixelOffsets, canvasHeight,
-              devicePixelRatio, samplesPerPixel, colorLUT, frequencyScale, minFrequency,
-              maxFrequency, gainDb, rangeDb, channelIndex } = msg;
+      const {
+        cacheKey,
+        canvasIds,
+        canvasWidths,
+        globalPixelOffsets,
+        canvasHeight,
+        devicePixelRatio,
+        samplesPerPixel,
+        colorLUT,
+        frequencyScale,
+        minFrequency,
+        maxFrequency,
+        gainDb,
+        rangeDb,
+        channelIndex,
+      } = msg;
 
       const cacheEntry = fftCache.get(cacheKey);
       if (!cacheEntry || channelIndex >= cacheEntry.spectrograms.length) {
-        const response: ComputeResponse = { id, type: 'error', error: 'cache-miss' };
+        const response: ComputeResponse = {
+          id,
+          type: "error",
+          error: "cache-miss",
+        };
         (self as unknown as Worker).postMessage(response);
         return;
       }
 
-      const scaleFn = getFrequencyScale((frequencyScale ?? 'mel') as FrequencyScaleName);
-      const isNonLinear = frequencyScale !== 'linear';
+      const scaleFn = getFrequencyScale(
+        (frequencyScale ?? "mel") as FrequencyScaleName,
+      );
+      const isNonLinear = frequencyScale !== "linear";
 
       renderSpectrogramToCanvas(
         cacheEntry.spectrograms[channelIndex],
@@ -514,38 +630,64 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         cacheEntry.sampleOffset,
       );
 
-      const response: ComputeResponse = { id, type: 'done' };
+      const response: ComputeResponse = { id, type: "done" };
       (self as unknown as Worker).postMessage(response);
     } catch (err) {
-      const response: ComputeResponse = { id, type: 'error', error: String(err) };
+      const response: ComputeResponse = {
+        id,
+        type: "error",
+        error: String(err),
+      };
       (self as unknown as Worker).postMessage(response);
     }
     return;
   }
 
   // Compute + render to registered canvases (uses cache internally)
-  if (msg.type === 'compute-render') {
+  if (msg.type === "compute-render") {
     const { id } = msg;
     try {
-      const { channelDataArrays, config, sampleRate, offsetSamples, durationSamples, mono, render } = msg;
+      const {
+        channelDataArrays,
+        config,
+        sampleRate,
+        offsetSamples,
+        durationSamples,
+        mono,
+        render,
+      } = msg;
 
       // Compute spectrograms
       const spectrograms: SpectrogramData[] = [];
       if (mono || channelDataArrays.length === 1) {
         spectrograms.push(
-          computeMonoFromChannels(channelDataArrays, config, sampleRate, offsetSamples, durationSamples)
+          computeMonoFromChannels(
+            channelDataArrays,
+            config,
+            sampleRate,
+            offsetSamples,
+            durationSamples,
+          ),
         );
       } else {
         for (const channelData of channelDataArrays) {
           spectrograms.push(
-            computeFromChannelData(channelData, config, sampleRate, offsetSamples, durationSamples)
+            computeFromChannelData(
+              channelData,
+              config,
+              sampleRate,
+              offsetSamples,
+              durationSamples,
+            ),
           );
         }
       }
 
       // Render each channel's spectrogram to its canvas chunks
-      const scaleFn = getFrequencyScale((render.frequencyScale ?? 'mel') as FrequencyScaleName);
-      const isNonLinear = render.frequencyScale !== 'linear';
+      const scaleFn = getFrequencyScale(
+        (render.frequencyScale ?? "mel") as FrequencyScaleName,
+      );
+      const isNonLinear = render.frequencyScale !== "linear";
 
       for (let ch = 0; ch < spectrograms.length; ch++) {
         const channelCanvasIds = render.canvasIds[ch];
@@ -566,39 +708,67 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         );
       }
 
-      const response: ComputeResponse = { id, type: 'done' };
+      const response: ComputeResponse = { id, type: "done" };
       (self as unknown as Worker).postMessage(response);
     } catch (err) {
-      const response: ComputeResponse = { id, type: 'error', error: String(err) };
+      const response: ComputeResponse = {
+        id,
+        type: "error",
+        error: String(err),
+      };
       (self as unknown as Worker).postMessage(response);
     }
     return;
   }
 
   // Legacy compute-only (backward compat — no type field or type === 'compute')
-  const { id, channelDataArrays, config, sampleRate, offsetSamples, durationSamples, mono } = msg as ComputeRequest;
+  const {
+    id,
+    channelDataArrays,
+    config,
+    sampleRate,
+    offsetSamples,
+    durationSamples,
+    mono,
+  } = msg as ComputeRequest;
   try {
     const spectrograms: SpectrogramData[] = [];
 
     if (mono || channelDataArrays.length === 1) {
       spectrograms.push(
-        computeMonoFromChannels(channelDataArrays, config, sampleRate, offsetSamples, durationSamples)
+        computeMonoFromChannels(
+          channelDataArrays,
+          config,
+          sampleRate,
+          offsetSamples,
+          durationSamples,
+        ),
       );
     } else {
       for (const channelData of channelDataArrays) {
         spectrograms.push(
-          computeFromChannelData(channelData, config, sampleRate, offsetSamples, durationSamples)
+          computeFromChannelData(
+            channelData,
+            config,
+            sampleRate,
+            offsetSamples,
+            durationSamples,
+          ),
         );
       }
     }
 
     // Transfer the data Float32Arrays back (zero-copy)
-    const transferables = spectrograms.map(s => s.data.buffer);
+    const transferables = spectrograms.map((s) => s.data.buffer);
 
-    const response: ComputeResponse = { id, type: 'spectrograms', spectrograms };
+    const response: ComputeResponse = {
+      id,
+      type: "spectrograms",
+      spectrograms,
+    };
     (self as unknown as Worker).postMessage(response, transferables);
   } catch (err) {
-    const response: ComputeResponse = { id, type: 'error', error: String(err) };
+    const response: ComputeResponse = { id, type: "error", error: String(err) };
     (self as unknown as Worker).postMessage(response);
   }
 };

@@ -8,11 +8,15 @@ import {
   getTransport,
   getContext,
   BaseContext,
-} from 'tone';
-import { ToneTrack, ToneTrackOptions } from './ToneTrack';
+} from "tone";
+import { ToneTrack, ToneTrackOptions } from "./ToneTrack";
 
 // Effects function no longer receives ToneLib - effects should import Tone themselves
-export type EffectsFunction = (masterGainNode: Volume, destination: ToneAudioNode, isOffline: boolean) => void | (() => void);
+export type EffectsFunction = (
+  masterGainNode: Volume,
+  destination: ToneAudioNode,
+  isOffline: boolean,
+) => void | (() => void);
 
 export interface TonePlayoutOptions {
   tracks?: ToneTrack[];
@@ -36,7 +40,11 @@ export class TonePlayout {
 
     // Setup effects chain if provided, otherwise connect directly to destination
     if (options.effects) {
-      const cleanup = options.effects(this.masterVolume, getDestination(), false);
+      const cleanup = options.effects(
+        this.masterVolume,
+        getDestination(),
+        false,
+      );
       if (cleanup) {
         this.effectsCleanup = cleanup;
       }
@@ -45,7 +53,7 @@ export class TonePlayout {
     }
 
     if (options.tracks) {
-      options.tracks.forEach(track => {
+      options.tracks.forEach((track) => {
         this.tracks.set(track.id, track);
         // Initialize manual mute state for constructor-provided tracks
         this.manualMuteState.set(track.id, track.muted);
@@ -105,7 +113,7 @@ export class TonePlayout {
 
   play(when?: number, offset?: number, duration?: number): void {
     if (!this.isInitialized) {
-      console.warn('TonePlayout not initialized. Call init() first.');
+      console.warn("TonePlayout not initialized. Call init() first.");
       return;
     }
 
@@ -134,7 +142,10 @@ export class TonePlayout {
             // Only process if this track is still in activeTracks with matching session ID
             if (this.activeTracks.get(toneTrack.id) === currentSessionId) {
               this.activeTracks.delete(toneTrack.id);
-              if (this.activeTracks.size === 0 && this.onPlaybackCompleteCallback) {
+              if (
+                this.activeTracks.size === 0 &&
+                this.onPlaybackCompleteCallback
+              ) {
                 this.onPlaybackCompleteCallback();
               }
             }
@@ -152,7 +163,10 @@ export class TonePlayout {
             // Only process if this track is still in activeTracks with matching session ID
             if (this.activeTracks.get(toneTrack.id) === currentSessionId) {
               this.activeTracks.delete(toneTrack.id);
-              if (this.activeTracks.size === 0 && this.onPlaybackCompleteCallback) {
+              if (
+                this.activeTracks.size === 0 &&
+                this.onPlaybackCompleteCallback
+              ) {
                 this.onPlaybackCompleteCallback();
               }
             }
@@ -175,14 +189,14 @@ export class TonePlayout {
 
   pause(): void {
     getTransport().pause();
-    this.tracks.forEach(track => {
+    this.tracks.forEach((track) => {
       track.pause();
     });
   }
 
   stop(): void {
     getTransport().stop();
-    this.tracks.forEach(track => {
+    this.tracks.forEach((track) => {
       track.stop();
     });
   }
@@ -245,7 +259,7 @@ export class TonePlayout {
   }
 
   dispose(): void {
-    this.tracks.forEach(track => {
+    this.tracks.forEach((track) => {
       track.dispose();
     });
     this.tracks.clear();

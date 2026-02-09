@@ -1,6 +1,16 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { ClipTrack, createTrack, createClipFromSeconds, type Fade, type TrackEffectsFunction, type WaveformDataObject, type RenderMode, type SpectrogramConfig, type ColorMapValue } from '@waveform-playlist/core';
-import * as Tone from 'tone';
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  ClipTrack,
+  createTrack,
+  createClipFromSeconds,
+  type Fade,
+  type TrackEffectsFunction,
+  type WaveformDataObject,
+  type RenderMode,
+  type SpectrogramConfig,
+  type ColorMapValue,
+} from "@waveform-playlist/core";
+import * as Tone from "tone";
 
 /**
  * Configuration for a single audio track to load
@@ -26,12 +36,12 @@ export interface AudioTrackConfig {
   color?: string;
   effects?: TrackEffectsFunction;
   // Multi-clip support
-  startTime?: number;  // When the clip starts on the timeline (default: 0)
-  duration?: number;   // Duration of the clip (default: full audio duration)
-  offset?: number;     // Offset into the source audio file (default: 0)
+  startTime?: number; // When the clip starts on the timeline (default: 0)
+  duration?: number; // Duration of the clip (default: full audio duration)
+  offset?: number; // Offset into the source audio file (default: 0)
   // Fade support
-  fadeIn?: Fade;       // Fade in configuration
-  fadeOut?: Fade;      // Fade out configuration
+  fadeIn?: Fade; // Fade in configuration
+  fadeOut?: Fade; // Fade out configuration
   // Pre-computed waveform data (BBC audiowaveform format)
   // For peaks-first rendering, provide this without audioBuffer/src
   // Sample rate and duration are derived from waveformData.sample_rate and waveformData.duration
@@ -98,7 +108,7 @@ export interface UseAudioTracksOptions {
  */
 export function useAudioTracks(
   configs: AudioTrackConfig[],
-  options: UseAudioTracksOptions = {}
+  options: UseAudioTracksOptions = {},
 ) {
   const { progressive = false } = options;
   const [tracks, setTracks] = useState<ClipTrack[]>([]);
@@ -124,7 +134,7 @@ export function useAudioTracks(
     const createTrackFromConfig = (
       config: AudioTrackConfig,
       index: number,
-      audioBuffer?: AudioBuffer
+      audioBuffer?: AudioBuffer,
     ): ClipTrack => {
       // Use provided audioBuffer, config's audioBuffer, or undefined for peaks-only
       const buffer = audioBuffer ?? config.audioBuffer;
@@ -132,7 +142,7 @@ export function useAudioTracks(
       // For peaks-first rendering, we need waveformData if no buffer
       if (!buffer && !config.waveformData) {
         throw new Error(
-          `Track ${index + 1}: Must provide src, audioBuffer, or waveformData`
+          `Track ${index + 1}: Must provide src, audioBuffer, or waveformData`,
         );
       }
 
@@ -152,8 +162,12 @@ export function useAudioTracks(
       });
 
       // Validate clip values
-      if (isNaN(clip.startSample) || isNaN(clip.durationSamples) || isNaN(clip.offsetSamples)) {
-        console.error('Invalid clip values:', clip);
+      if (
+        isNaN(clip.startSample) ||
+        isNaN(clip.durationSamples) ||
+        isNaN(clip.offsetSamples)
+      ) {
+        console.error("Invalid clip values:", clip);
         throw new Error(`Invalid clip values for track ${index + 1}`);
       }
 
@@ -189,15 +203,20 @@ export function useAudioTracks(
         const loadPromises = configs.map(async (config, index) => {
           // Case 1: Already have audioBuffer - no loading needed
           if (config.audioBuffer) {
-            const track = createTrackFromConfig(config, index, config.audioBuffer);
+            const track = createTrackFromConfig(
+              config,
+              index,
+              config.audioBuffer,
+            );
 
             if (progressive && !cancelled) {
               loadedTracksMap.set(index, track);
-              setLoadedCount(prev => prev + 1);
+              setLoadedCount((prev) => prev + 1);
               // Update tracks maintaining order
               setTracks(
-                Array.from({ length: configs.length }, (_, i) => loadedTracksMap.get(i))
-                  .filter((t): t is ClipTrack => t !== undefined)
+                Array.from({ length: configs.length }, (_, i) =>
+                  loadedTracksMap.get(i),
+                ).filter((t): t is ClipTrack => t !== undefined),
               );
             }
 
@@ -210,10 +229,11 @@ export function useAudioTracks(
 
             if (progressive && !cancelled) {
               loadedTracksMap.set(index, track);
-              setLoadedCount(prev => prev + 1);
+              setLoadedCount((prev) => prev + 1);
               setTracks(
-                Array.from({ length: configs.length }, (_, i) => loadedTracksMap.get(i))
-                  .filter((t): t is ClipTrack => t !== undefined)
+                Array.from({ length: configs.length }, (_, i) =>
+                  loadedTracksMap.get(i),
+                ).filter((t): t is ClipTrack => t !== undefined),
               );
             }
 
@@ -222,19 +242,27 @@ export function useAudioTracks(
 
           // Case 3: Need to fetch and decode audio from src
           if (!config.src) {
-            throw new Error(`Track ${index + 1}: Must provide src, audioBuffer, or waveformData`);
+            throw new Error(
+              `Track ${index + 1}: Must provide src, audioBuffer, or waveformData`,
+            );
           }
 
           const response = await fetch(config.src);
           if (!response.ok) {
-            throw new Error(`Failed to fetch ${config.src}: ${response.statusText}`);
+            throw new Error(
+              `Failed to fetch ${config.src}: ${response.statusText}`,
+            );
           }
 
           const arrayBuffer = await response.arrayBuffer();
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
           // Validate audioBuffer
-          if (!audioBuffer || !audioBuffer.sampleRate || !audioBuffer.duration) {
+          if (
+            !audioBuffer ||
+            !audioBuffer.sampleRate ||
+            !audioBuffer.duration
+          ) {
             throw new Error(`Invalid audio buffer for ${config.src}`);
           }
 
@@ -242,11 +270,12 @@ export function useAudioTracks(
 
           if (progressive && !cancelled) {
             loadedTracksMap.set(index, track);
-            setLoadedCount(prev => prev + 1);
+            setLoadedCount((prev) => prev + 1);
             // Update tracks maintaining original config order
             setTracks(
-              Array.from({ length: configs.length }, (_, i) => loadedTracksMap.get(i))
-                .filter((t): t is ClipTrack => t !== undefined)
+              Array.from({ length: configs.length }, (_, i) =>
+                loadedTracksMap.get(i),
+              ).filter((t): t is ClipTrack => t !== undefined),
             );
           }
 
@@ -265,10 +294,11 @@ export function useAudioTracks(
         }
       } catch (err) {
         if (!cancelled) {
-          const errorMessage = err instanceof Error ? err.message : 'Unknown error loading audio';
+          const errorMessage =
+            err instanceof Error ? err.message : "Unknown error loading audio";
           setError(errorMessage);
           setLoading(false);
-          console.error('Error loading audio tracks:', err);
+          console.error("Error loading audio tracks:", err);
         }
       }
     };

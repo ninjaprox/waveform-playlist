@@ -1,4 +1,7 @@
-import type { SpectrogramConfig, SpectrogramData } from '@waveform-playlist/core';
+import type {
+  SpectrogramConfig,
+  SpectrogramData,
+} from "@waveform-playlist/core";
 
 export interface SpectrogramWorkerComputeParams {
   channelDataArrays: Float32Array[];
@@ -9,7 +12,8 @@ export interface SpectrogramWorkerComputeParams {
   mono: boolean;
 }
 
-export interface SpectrogramWorkerRenderParams extends SpectrogramWorkerComputeParams {
+export interface SpectrogramWorkerRenderParams
+  extends SpectrogramWorkerComputeParams {
   render: {
     canvasIds: string[][];
     canvasWidths: number[];
@@ -52,10 +56,10 @@ export interface SpectrogramWorkerRenderChunksParams {
 }
 
 type ComputeResponse =
-  | { id: string; type: 'spectrograms'; spectrograms: SpectrogramData[] }
-  | { id: string; type: 'cache-key'; cacheKey: string }
-  | { id: string; type: 'done' }
-  | { id: string; type: 'error'; error: string };
+  | { id: string; type: "spectrograms"; spectrograms: SpectrogramData[] }
+  | { id: string; type: "cache-key"; cacheKey: string }
+  | { id: string; type: "done" }
+  | { id: string; type: "error"; error: string };
 
 export interface SpectrogramWorkerApi {
   compute(params: SpectrogramWorkerComputeParams): Promise<SpectrogramData[]>;
@@ -63,7 +67,11 @@ export interface SpectrogramWorkerApi {
   renderChunks(params: SpectrogramWorkerRenderChunksParams): Promise<void>;
   registerCanvas(canvasId: string, canvas: OffscreenCanvas): void;
   unregisterCanvas(canvasId: string): void;
-  registerAudioData(clipId: string, channelDataArrays: Float32Array[], sampleRate: number): void;
+  registerAudioData(
+    clipId: string,
+    channelDataArrays: Float32Array[],
+    sampleRate: number,
+  ): void;
   unregisterAudioData(clipId: string): void;
   computeAndRender(params: SpectrogramWorkerRenderParams): Promise<void>;
   terminate(): void;
@@ -84,10 +92,13 @@ let idCounter = 0;
  * ```
  */
 export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
-  const pending = new Map<string, {
-    resolve: (value: any) => void;
-    reject: (reason: unknown) => void;
-  }>();
+  const pending = new Map<
+    string,
+    {
+      resolve: (value: any) => void;
+      reject: (reason: unknown) => void;
+    }
+  >();
 
   // Track which clipIds have pre-registered audio data in the worker
   const registeredClipIds = new Set<string>();
@@ -99,21 +110,23 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     if (entry) {
       pending.delete(msg.id);
       switch (msg.type) {
-        case 'error':
+        case "error":
           entry.reject(new Error(msg.error));
           break;
-        case 'cache-key':
+        case "cache-key":
           entry.resolve({ cacheKey: msg.cacheKey });
           break;
-        case 'done':
+        case "done":
           entry.resolve(undefined);
           break;
-        case 'spectrograms':
+        case "spectrograms":
           entry.resolve(msg.spectrograms);
           break;
       }
     } else if (msg.id) {
-      console.warn(`[spectrogram] Received response for unknown message ID: ${msg.id}`);
+      console.warn(
+        `[spectrogram] Received response for unknown message ID: ${msg.id}`,
+      );
     }
   };
 
@@ -126,16 +139,20 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
   };
 
   return {
-    compute(params: SpectrogramWorkerComputeParams): Promise<SpectrogramData[]> {
-      if (terminated) return Promise.reject(new Error('Worker terminated'));
+    compute(
+      params: SpectrogramWorkerComputeParams,
+    ): Promise<SpectrogramData[]> {
+      if (terminated) return Promise.reject(new Error("Worker terminated"));
       const id = String(++idCounter);
 
       return new Promise<SpectrogramData[]>((resolve, reject) => {
         pending.set(id, { resolve, reject });
 
         // Slice channel data so we can transfer without detaching the original AudioBuffer views
-        const transferableArrays = params.channelDataArrays.map(arr => arr.slice());
-        const transferables = transferableArrays.map(arr => arr.buffer);
+        const transferableArrays = params.channelDataArrays.map((arr) =>
+          arr.slice(),
+        );
+        const transferables = transferableArrays.map((arr) => arr.buffer);
 
         worker.postMessage(
           {
@@ -152,8 +169,10 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
       });
     },
 
-    computeFFT(params: SpectrogramWorkerFFTParams): Promise<{ cacheKey: string }> {
-      if (terminated) return Promise.reject(new Error('Worker terminated'));
+    computeFFT(
+      params: SpectrogramWorkerFFTParams,
+    ): Promise<{ cacheKey: string }> {
+      if (terminated) return Promise.reject(new Error("Worker terminated"));
       const id = String(++idCounter);
 
       return new Promise<{ cacheKey: string }>((resolve, reject) => {
@@ -161,12 +180,14 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
 
         // Skip transfer if audio data is pre-registered in the worker
         const isPreRegistered = registeredClipIds.has(params.clipId);
-        const transferableArrays = isPreRegistered ? [] : params.channelDataArrays.map(arr => arr.slice());
-        const transferables = transferableArrays.map(arr => arr.buffer);
+        const transferableArrays = isPreRegistered
+          ? []
+          : params.channelDataArrays.map((arr) => arr.slice());
+        const transferables = transferableArrays.map((arr) => arr.buffer);
 
         worker.postMessage(
           {
-            type: 'compute-fft',
+            type: "compute-fft",
             id,
             clipId: params.clipId,
             channelDataArrays: transferableArrays,
@@ -183,14 +204,14 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     },
 
     renderChunks(params: SpectrogramWorkerRenderChunksParams): Promise<void> {
-      if (terminated) return Promise.reject(new Error('Worker terminated'));
+      if (terminated) return Promise.reject(new Error("Worker terminated"));
       const id = String(++idCounter);
 
       return new Promise<void>((resolve, reject) => {
         pending.set(id, { resolve, reject });
 
         worker.postMessage({
-          type: 'render-chunks',
+          type: "render-chunks",
           id,
           cacheKey: params.cacheKey,
           canvasIds: params.canvasIds,
@@ -211,44 +232,56 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
     },
 
     registerCanvas(canvasId: string, canvas: OffscreenCanvas): void {
-      worker.postMessage(
-        { type: 'register-canvas', canvasId, canvas },
-        [canvas],
-      );
+      worker.postMessage({ type: "register-canvas", canvasId, canvas }, [
+        canvas,
+      ]);
     },
 
     unregisterCanvas(canvasId: string): void {
-      worker.postMessage({ type: 'unregister-canvas', canvasId });
+      worker.postMessage({ type: "unregister-canvas", canvasId });
     },
 
-    registerAudioData(clipId: string, channelDataArrays: Float32Array[], sampleRate: number): void {
-      const transferableArrays = channelDataArrays.map(arr => arr.slice());
-      const transferables = transferableArrays.map(arr => arr.buffer);
+    registerAudioData(
+      clipId: string,
+      channelDataArrays: Float32Array[],
+      sampleRate: number,
+    ): void {
+      const transferableArrays = channelDataArrays.map((arr) => arr.slice());
+      const transferables = transferableArrays.map((arr) => arr.buffer);
       worker.postMessage(
-        { type: 'register-audio-data', clipId, channelDataArrays: transferableArrays, sampleRate },
+        {
+          type: "register-audio-data",
+          clipId,
+          channelDataArrays: transferableArrays,
+          sampleRate,
+        },
         transferables,
       );
       registeredClipIds.add(clipId);
     },
 
     unregisterAudioData(clipId: string): void {
-      worker.postMessage({ type: 'unregister-audio-data', clipId });
+      worker.postMessage({ type: "unregister-audio-data", clipId });
       registeredClipIds.delete(clipId);
     },
 
     computeAndRender(params: SpectrogramWorkerRenderParams): Promise<void> {
-      if (terminated) return Promise.reject(new Error('Worker terminated'));
+      if (terminated) return Promise.reject(new Error("Worker terminated"));
       const id = String(++idCounter);
 
       return new Promise<void>((resolve, reject) => {
         pending.set(id, { resolve, reject });
 
-        const transferableArrays = params.channelDataArrays.map(arr => arr.slice());
-        const transferables: Transferable[] = transferableArrays.map(arr => arr.buffer);
+        const transferableArrays = params.channelDataArrays.map((arr) =>
+          arr.slice(),
+        );
+        const transferables: Transferable[] = transferableArrays.map(
+          (arr) => arr.buffer,
+        );
 
         worker.postMessage(
           {
-            type: 'compute-render',
+            type: "compute-render",
             id,
             channelDataArrays: transferableArrays,
             config: params.config,
@@ -267,7 +300,7 @@ export function createSpectrogramWorker(worker: Worker): SpectrogramWorkerApi {
       terminated = true;
       worker.terminate();
       for (const [, entry] of pending) {
-        entry.reject(new Error('Worker terminated'));
+        entry.reject(new Error("Worker terminated"));
       }
       pending.clear();
     },

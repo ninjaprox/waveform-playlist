@@ -10,7 +10,7 @@
  * By dofuuz, licensed under CC0 1.0 Universal.
  */
 
-import type { ColorMapName, ColorMapValue } from '@waveform-playlist/core';
+import type { ColorMapName, ColorMapValue } from "@waveform-playlist/core";
 
 // Pre-computed 256-entry LUT: Uint8Array of length 768 (256 * 3 RGB)
 type ColorLUT = Uint8Array;
@@ -25,8 +25,12 @@ function interpolateLUT(stops: number[][]): ColorLUT {
     const hi = Math.min(lo + 1, n - 1);
     const frac = pos - lo;
     lut[i * 3] = Math.round(stops[lo][0] * (1 - frac) + stops[hi][0] * frac);
-    lut[i * 3 + 1] = Math.round(stops[lo][1] * (1 - frac) + stops[hi][1] * frac);
-    lut[i * 3 + 2] = Math.round(stops[lo][2] * (1 - frac) + stops[hi][2] * frac);
+    lut[i * 3 + 1] = Math.round(
+      stops[lo][1] * (1 - frac) + stops[hi][1] * frac,
+    );
+    lut[i * 3 + 2] = Math.round(
+      stops[lo][2] * (1 - frac) + stops[hi][2] * frac,
+    );
   }
   return lut;
 }
@@ -178,26 +182,26 @@ const ROSEUS_LUT = new Uint8Array([
 const lutCache = new Map<string, ColorLUT>();
 
 function grayscaleLUT(): ColorLUT {
-  let lut = lutCache.get('grayscale');
+  let lut = lutCache.get("grayscale");
   if (!lut) {
     lut = new Uint8Array(256 * 3);
     for (let i = 0; i < 256; i++) {
       lut[i * 3] = lut[i * 3 + 1] = lut[i * 3 + 2] = i;
     }
-    lutCache.set('grayscale', lut);
+    lutCache.set("grayscale", lut);
   }
   return lut;
 }
 
 function igrayLUT(): ColorLUT {
-  let lut = lutCache.get('igray');
+  let lut = lutCache.get("igray");
   if (!lut) {
     lut = new Uint8Array(256 * 3);
     for (let i = 0; i < 256; i++) {
       const v = 255 - i;
       lut[i * 3] = lut[i * 3 + 1] = lut[i * 3 + 2] = v;
     }
-    lutCache.set('igray', lut);
+    lutCache.set("igray", lut);
   }
   return lut;
 }
@@ -211,12 +215,19 @@ export function getColorMap(value: ColorMapValue): ColorLUT {
   }
 
   switch (value) {
-    case 'viridis': return VIRIDIS_LUT;
-    case 'magma': return MAGMA_LUT;
-    case 'inferno': return INFERNO_LUT;
-    case 'roseus': return ROSEUS_LUT;
-    case 'grayscale': return grayscaleLUT();
-    case 'igray': return igrayLUT();
-    default: return VIRIDIS_LUT;
+    case "viridis":
+      return VIRIDIS_LUT;
+    case "magma":
+      return MAGMA_LUT;
+    case "inferno":
+      return INFERNO_LUT;
+    case "roseus":
+      return ROSEUS_LUT;
+    case "grayscale":
+      return grayscaleLUT();
+    case "igray":
+      return igrayLUT();
+    default:
+      return VIRIDIS_LUT;
   }
 }

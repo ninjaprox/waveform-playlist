@@ -1,6 +1,9 @@
-import { useCallback } from 'react';
-import { type ClipTrack, createClip } from '@waveform-playlist/core';
-import { usePlaybackAnimation, usePlaylistState } from '../WaveformPlaylistContext';
+import { useCallback } from "react";
+import { type ClipTrack, createClip } from "@waveform-playlist/core";
+import {
+  usePlaybackAnimation,
+  usePlaylistState,
+} from "../WaveformPlaylistContext";
 
 export interface UseClipSplittingOptions {
   tracks: ClipTrack[];
@@ -11,7 +14,11 @@ export interface UseClipSplittingOptions {
 
 export interface UseClipSplittingResult {
   splitClipAtPlayhead: () => boolean;
-  splitClipAt: (trackIndex: number, clipIndex: number, splitTime: number) => boolean;
+  splitClipAt: (
+    trackIndex: number,
+    clipIndex: number,
+    splitTime: number,
+  ) => boolean;
 }
 
 /**
@@ -36,7 +43,9 @@ export interface UseClipSplittingResult {
  * };
  * ```
  */
-export const useClipSplitting = (options: UseClipSplittingOptions): UseClipSplittingResult => {
+export const useClipSplitting = (
+  options: UseClipSplittingOptions,
+): UseClipSplittingResult => {
   const { tracks, onTracksChange, sampleRate } = options;
   const { currentTimeRef } = usePlaybackAnimation();
   const { selectedTrackId } = usePlaylistState();
@@ -64,11 +73,12 @@ export const useClipSplitting = (options: UseClipSplittingOptions): UseClipSplit
 
       // Convert clip positions from samples to seconds for bounds checking
       const clipStartTime = clip.startSample / sampleRate;
-      const clipEndTime = (clip.startSample + clip.durationSamples) / sampleRate;
+      const clipEndTime =
+        (clip.startSample + clip.durationSamples) / sampleRate;
 
       // Validate that split time is within clip bounds
       if (splitTime <= clipStartTime || splitTime >= clipEndTime) {
-        console.warn('Split time is outside clip bounds');
+        console.warn("Split time is outside clip bounds");
         return false;
       }
 
@@ -85,7 +95,8 @@ export const useClipSplitting = (options: UseClipSplittingOptions): UseClipSplit
 
       // First clip: starts at clip's original start, ends at split pixel boundary
       const firstClipStartSample = clip.startSample;
-      const firstClipDurationSamples = snappedSplitSample - firstClipStartSample;
+      const firstClipDurationSamples =
+        snappedSplitSample - firstClipStartSample;
 
       // Second clip: starts at split pixel boundary, ends at clip's original end
       const secondClipStartSample = snappedSplitSample;
@@ -140,7 +151,7 @@ export const useClipSplitting = (options: UseClipSplittingOptions): UseClipSplit
       onTracksChange(newTracks);
       return true;
     },
-    [tracks, onTracksChange, options]
+    [tracks, onTracksChange, options],
   );
 
   /**
@@ -152,14 +163,16 @@ export const useClipSplitting = (options: UseClipSplittingOptions): UseClipSplit
   const splitClipAtPlayhead = useCallback((): boolean => {
     // If no track is selected, cannot split
     if (!selectedTrackId) {
-      console.log('No track selected - click a clip to select a track first');
+      console.log("No track selected - click a clip to select a track first");
       return false;
     }
 
     // Find the selected track
-    const trackIndex = tracks.findIndex(track => track.id === selectedTrackId);
+    const trackIndex = tracks.findIndex(
+      (track) => track.id === selectedTrackId,
+    );
     if (trackIndex === -1) {
-      console.warn('Selected track not found');
+      console.warn("Selected track not found");
       return false;
     }
 
@@ -172,12 +185,15 @@ export const useClipSplitting = (options: UseClipSplittingOptions): UseClipSplit
     for (let clipIndex = 0; clipIndex < track.clips.length; clipIndex++) {
       const clip = track.clips[clipIndex];
       const clipStartTime = clip.startSample / sampleRate;
-      const clipEndTime = (clip.startSample + clip.durationSamples) / sampleRate;
+      const clipEndTime =
+        (clip.startSample + clip.durationSamples) / sampleRate;
 
       // Check if currentTime is within this clip (not at boundaries)
       if (currentTime > clipStartTime && currentTime < clipEndTime) {
         // Found a clip! Split it
-        console.log(`Splitting clip on track "${track.name}" at ${currentTime}s`);
+        console.log(
+          `Splitting clip on track "${track.name}" at ${currentTime}s`,
+        );
         return splitClipAt(trackIndex, clipIndex, currentTime);
       }
     }

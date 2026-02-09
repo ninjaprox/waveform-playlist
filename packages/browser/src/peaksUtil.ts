@@ -1,4 +1,4 @@
-import extractPeaks, { type PeakData } from '@waveform-playlist/webaudio-peaks';
+import extractPeaks, { type PeakData } from "@waveform-playlist/webaudio-peaks";
 
 /**
  * Generate peaks from an AudioBuffer for waveform visualization
@@ -17,12 +17,18 @@ export function generatePeaks(
   isMono: boolean = true,
   bits: 8 | 16 = 8,
   offsetSamples: number = 0,
-  durationSamples?: number
+  durationSamples?: number,
 ): PeakData {
   // Calculate cueOut from offset + duration (both in samples)
-  const cueOut = durationSamples !== undefined
-    ? offsetSamples + durationSamples
-    : undefined;
+  const cueOut =
+    durationSamples !== undefined ? offsetSamples + durationSamples : undefined;
 
-  return extractPeaks(audioBuffer, samplesPerPixel, isMono, offsetSamples, cueOut, bits);
+  return extractPeaks(
+    audioBuffer,
+    samplesPerPixel,
+    isMono,
+    offsetSamples,
+    cueOut,
+    bits,
+  );
 }

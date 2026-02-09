@@ -5,36 +5,36 @@
 export function getWindowFunction(
   name: string,
   size: number,
-  alpha?: number
+  alpha?: number,
 ): Float32Array {
   const window = new Float32Array(size);
   const N = size;
 
   switch (name) {
-    case 'rectangular':
+    case "rectangular":
       for (let i = 0; i < size; i++) window[i] = 1;
       break;
 
-    case 'bartlett':
+    case "bartlett":
       for (let i = 0; i < size; i++) {
         window[i] = 1 - Math.abs((2 * i - N) / N);
       }
       break;
 
-    case 'hann':
+    case "hann":
       for (let i = 0; i < size; i++) {
         window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / N));
       }
       break;
 
-    case 'hamming':
+    case "hamming":
       for (let i = 0; i < size; i++) {
         const a = alpha ?? 0.54;
         window[i] = a - (1 - a) * Math.cos((2 * Math.PI * i) / N);
       }
       break;
 
-    case 'blackman': {
+    case "blackman": {
       const a0 = 0.42;
       const a1 = 0.5;
       const a2 = 0.08;
@@ -47,7 +47,7 @@ export function getWindowFunction(
       break;
     }
 
-    case 'blackman-harris': {
+    case "blackman-harris": {
       const c0 = 0.35875;
       const c1 = 0.48829;
       const c2 = 0.14128;
@@ -63,7 +63,9 @@ export function getWindowFunction(
     }
 
     default:
-      console.warn(`[spectrogram] Unknown window function "${name}", falling back to hann`);
+      console.warn(
+        `[spectrogram] Unknown window function "${name}", falling back to hann`,
+      );
       for (let i = 0; i < size; i++) {
         window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / N));
       }

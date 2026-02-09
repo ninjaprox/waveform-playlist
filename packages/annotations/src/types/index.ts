@@ -3,4 +3,4 @@ export type {
   AnnotationFormat,
   AnnotationListOptions,
   AnnotationEventMap,
-} from '@waveform-playlist/core';
+} from "@waveform-playlist/core";

@@ -1,8 +1,18 @@
-import React, { useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import { getContext } from 'tone';
-import { SmartChannel, type SmartChannelProps, useTheme, usePlaylistInfo, type WaveformPlaylistTheme, waveformColorToCss } from '@waveform-playlist/ui-components';
-import { usePlaybackAnimation, usePlaylistData } from '../WaveformPlaylistContext';
+import React, { useRef, useEffect } from "react";
+import styled from "styled-components";
+import { getContext } from "tone";
+import {
+  SmartChannel,
+  type SmartChannelProps,
+  useTheme,
+  usePlaylistInfo,
+  type WaveformPlaylistTheme,
+  waveformColorToCss,
+} from "@waveform-playlist/ui-components";
+import {
+  usePlaybackAnimation,
+  usePlaylistData,
+} from "../WaveformPlaylistContext";
 
 const ChannelWrapper = styled.div`
   position: relative;
@@ -79,10 +89,15 @@ export const ChannelWithProgress: React.FC<ChannelWithProgressProps> = ({
   const theme = useTheme() as WaveformPlaylistTheme;
   const { waveHeight } = usePlaylistInfo();
 
-  const { isPlaying, currentTimeRef, playbackStartTimeRef, audioStartPositionRef } = usePlaybackAnimation();
+  const {
+    isPlaying,
+    currentTimeRef,
+    playbackStartTimeRef,
+    audioStartPositionRef,
+  } = usePlaybackAnimation();
   const { samplesPerPixel, sampleRate } = usePlaylistData();
 
-  const progressColor = theme?.waveProgressColor || 'rgba(0, 0, 0, 0.1)';
+  const progressColor = theme?.waveProgressColor || "rgba(0, 0, 0, 0.1)";
 
   useEffect(() => {
     const updateProgress = () => {
@@ -90,7 +105,8 @@ export const ChannelWithProgress: React.FC<ChannelWithProgressProps> = ({
         // Calculate current time from audio context
         let currentTime: number;
         if (isPlaying) {
-          const elapsed = getContext().currentTime - (playbackStartTimeRef.current ?? 0);
+          const elapsed =
+            getContext().currentTime - (playbackStartTimeRef.current ?? 0);
           currentTime = (audioStartPositionRef.current ?? 0) + elapsed;
         } else {
           currentTime = currentTimeRef.current ?? 0;
@@ -138,7 +154,17 @@ export const ChannelWithProgress: React.FC<ChannelWithProgressProps> = ({
         animationFrameRef.current = null;
       }
     };
-  }, [isPlaying, sampleRate, samplesPerPixel, clipStartSample, clipDurationSamples, smartChannelProps.length, currentTimeRef, playbackStartTimeRef, audioStartPositionRef]);
+  }, [
+    isPlaying,
+    sampleRate,
+    samplesPerPixel,
+    clipStartSample,
+    clipDurationSamples,
+    smartChannelProps.length,
+    currentTimeRef,
+    playbackStartTimeRef,
+    audioStartPositionRef,
+  ]);
 
   // Also update when not playing (for seeks, stops, etc.)
   useEffect(() => {
@@ -162,25 +188,29 @@ export const ChannelWithProgress: React.FC<ChannelWithProgressProps> = ({
   });
 
   // Get the draw mode from theme (defaults to 'inverted')
-  const drawMode = theme?.waveformDrawMode || 'inverted';
+  const drawMode = theme?.waveformDrawMode || "inverted";
 
   let backgroundColor;
-  if (drawMode === 'inverted') {
-
-    backgroundColor = smartChannelProps.isSelected && theme
-      ? theme.selectedWaveFillColor
-      : theme?.waveFillColor || 'white';
-
+  if (drawMode === "inverted") {
+    backgroundColor =
+      smartChannelProps.isSelected && theme
+        ? theme.selectedWaveFillColor
+        : theme?.waveFillColor || "white";
   } else {
-    backgroundColor = smartChannelProps.isSelected && theme
-      ? theme.selectedWaveOutlineColor
-      : theme?.waveOutlineColor || 'grey';
+    backgroundColor =
+      smartChannelProps.isSelected && theme
+        ? theme.selectedWaveOutlineColor
+        : theme?.waveOutlineColor || "grey";
   }
 
   // Use black background for spectrogram mode
-  const isSpectrogramMode = smartChannelProps.renderMode === 'spectrogram' || smartChannelProps.renderMode === 'both';
-  const isBothMode = smartChannelProps.renderMode === 'both';
-  const backgroundCss = isSpectrogramMode ? '#000' : waveformColorToCss(backgroundColor);
+  const isSpectrogramMode =
+    smartChannelProps.renderMode === "spectrogram" ||
+    smartChannelProps.renderMode === "both";
+  const isBothMode = smartChannelProps.renderMode === "both";
+  const backgroundCss = isSpectrogramMode
+    ? "#000"
+    : waveformColorToCss(backgroundColor);
 
   // In "both" mode each half (spectrogram + waveform) is waveHeight/2 so the track
   // container stays the same height as a single-mode track.

@@ -1,4 +1,4 @@
-import FFT from 'fft.js';
+import FFT from "fft.js";
 
 /**
  * Cache fft.js instances per size (pre-computes twiddle factors).
@@ -73,7 +73,10 @@ export function fftMagnitudeDb(real: Float32Array, out: Float32Array): void {
  * Compute magnitude spectrum from FFT output.
  * Returns only the first half (positive frequencies).
  */
-export function magnitudeSpectrum(real: Float32Array, imag: Float32Array): Float32Array {
+export function magnitudeSpectrum(
+  real: Float32Array,
+  imag: Float32Array,
+): Float32Array {
   const n = real.length >> 1;
   const magnitudes = new Float32Array(n);
   for (let i = 0; i < n; i++) {

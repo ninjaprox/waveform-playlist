@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
-import { SelectionTimeInputs } from '../components/SelectionTimeInputs';
+import type { Meta, StoryObj } from "@storybook/react";
+import { useState } from "react";
+import { SelectionTimeInputs } from "../components/SelectionTimeInputs";
 
 const meta: Meta<typeof SelectionTimeInputs> = {
-  title: 'Components/SelectionTimeInputs',
+  title: "Components/SelectionTimeInputs",
   component: SelectionTimeInputs,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -52,7 +52,7 @@ export const Interactive: Story = {
           selectionEnd={end}
           onSelectionChange={handleChange}
         />
-        <p style={{ marginTop: '1rem' }}>
+        <p style={{ marginTop: "1rem" }}>
           Start: {start.toFixed(3)}s, End: {end.toFixed(3)}s
         </p>
         <p>Duration: {(end - start).toFixed(3)}s</p>

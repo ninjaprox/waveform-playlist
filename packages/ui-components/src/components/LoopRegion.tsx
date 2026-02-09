@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react';
-import styled from 'styled-components';
+import React, { useCallback, useRef, useState } from "react";
+import styled from "styled-components";
 
 interface LoopRegionOverlayProps {
   readonly $left: number;
@@ -7,12 +7,14 @@ interface LoopRegionOverlayProps {
   readonly $color: string;
 }
 
-const LoopRegionOverlayDiv = styled.div.attrs<LoopRegionOverlayProps>((props) => ({
-  style: {
-    left: `${props.$left}px`,
-    width: `${props.$width}px`,
-  },
-}))<LoopRegionOverlayProps>`
+const LoopRegionOverlayDiv = styled.div.attrs<LoopRegionOverlayProps>(
+  (props) => ({
+    style: {
+      left: `${props.$left}px`,
+      width: `${props.$width}px`,
+    },
+  }),
+)<LoopRegionOverlayProps>`
   position: absolute;
   top: 0;
   background: ${(props) => props.$color};
@@ -43,23 +45,23 @@ const LoopMarker = styled.div.attrs<LoopMarkerProps>((props) => ({
 
   /* Triangle marker at top */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
-    ${(props) => props.$isStart ? 'left: 0' : 'right: 0'};
+    ${(props) => (props.$isStart ? "left: 0" : "right: 0")};
     width: 0;
     height: 0;
     border-top: 8px solid ${(props) => props.$color};
-    ${(props) => props.$isStart
-      ? 'border-right: 8px solid transparent;'
-      : 'border-left: 8px solid transparent;'
-    }
+    ${(props) =>
+      props.$isStart
+        ? "border-right: 8px solid transparent;"
+        : "border-left: 8px solid transparent;"}
   }
 `;
 
 export interface LoopRegionProps {
   startPosition: number; // Start position in pixels
-  endPosition: number;   // End position in pixels
+  endPosition: number; // End position in pixels
   regionColor?: string;
   markerColor?: string;
 }
@@ -71,8 +73,8 @@ export interface LoopRegionProps {
 export const LoopRegion: React.FC<LoopRegionProps> = ({
   startPosition,
   endPosition,
-  regionColor = 'rgba(59, 130, 246, 0.3)',
-  markerColor = '#3b82f6'
+  regionColor = "rgba(59, 130, 246, 0.3)",
+  markerColor = "#3b82f6",
 }) => {
   const width = Math.max(0, endPosition - startPosition);
 
@@ -112,11 +114,13 @@ interface DraggableMarkerHandleProps {
   readonly $isDragging?: boolean;
 }
 
-const DraggableMarkerHandle = styled.div.attrs<DraggableMarkerHandleProps>((props) => ({
-  style: {
-    left: `${props.$left}px`,
-  },
-}))<DraggableMarkerHandleProps>`
+const DraggableMarkerHandle = styled.div.attrs<DraggableMarkerHandleProps>(
+  (props) => ({
+    style: {
+      left: `${props.$left}px`,
+    },
+  }),
+)<DraggableMarkerHandleProps>`
   position: absolute;
   top: 0;
   width: 12px;
@@ -128,29 +132,29 @@ const DraggableMarkerHandle = styled.div.attrs<DraggableMarkerHandleProps>((prop
 
   /* Visual marker line */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 5px;
     width: 2px;
     height: 100%;
     background: ${(props) => props.$color};
-    opacity: ${(props) => props.$isDragging ? 1 : 0.8};
+    opacity: ${(props) => (props.$isDragging ? 1 : 0.8)};
   }
 
   /* Triangle marker at top */
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
-    ${(props) => props.$isStart ? 'left: 5px' : 'left: -1px'};
+    ${(props) => (props.$isStart ? "left: 5px" : "left: -1px")};
     width: 0;
     height: 0;
     border-top: 10px solid ${(props) => props.$color};
-    ${(props) => props.$isStart
-      ? 'border-right: 10px solid transparent;'
-      : 'border-left: 10px solid transparent;'
-    }
+    ${(props) =>
+      props.$isStart
+        ? "border-right: 10px solid transparent;"
+        : "border-left: 10px solid transparent;"}
   }
 
   &:hover::before {
@@ -166,12 +170,14 @@ interface TimescaleLoopShadeProps {
   readonly $isDragging?: boolean;
 }
 
-const TimescaleLoopShade = styled.div.attrs<TimescaleLoopShadeProps>((props) => ({
-  style: {
-    left: `${props.$left}px`,
-    width: `${props.$width}px`,
-  },
-}))<TimescaleLoopShadeProps>`
+const TimescaleLoopShade = styled.div.attrs<TimescaleLoopShadeProps>(
+  (props) => ({
+    style: {
+      left: `${props.$left}px`,
+      width: `${props.$width}px`,
+    },
+  }),
+)<TimescaleLoopShadeProps>`
   position: absolute;
   top: 0;
   height: 100%;
@@ -186,7 +192,7 @@ const TimescaleLoopShade = styled.div.attrs<TimescaleLoopShadeProps>((props) => 
 
 export interface LoopRegionMarkersProps {
   startPosition: number; // Start position in pixels
-  endPosition: number;   // End position in pixels
+  endPosition: number; // End position in pixels
   markerColor?: string;
   regionColor?: string;
   onLoopStartChange?: (newPositionPixels: number) => void;
@@ -207,15 +213,17 @@ export interface LoopRegionMarkersProps {
 export const LoopRegionMarkers: React.FC<LoopRegionMarkersProps> = ({
   startPosition,
   endPosition,
-  markerColor = '#3b82f6',
-  regionColor = 'rgba(59, 130, 246, 0.3)',
+  markerColor = "#3b82f6",
+  regionColor = "rgba(59, 130, 246, 0.3)",
   onLoopStartChange,
   onLoopEndChange,
   onLoopRegionMove,
   minPosition = 0,
   maxPosition = Infinity,
 }) => {
-  const [draggingMarker, setDraggingMarker] = useState<'start' | 'end' | 'region' | null>(null);
+  const [draggingMarker, setDraggingMarker] = useState<
+    "start" | "end" | "region" | null
+  >(null);
   const dragStartX = useRef<number>(0);
   const dragStartPosition = useRef<number>(0);
   const dragStartEnd = useRef<number>(0);
@@ -223,79 +231,96 @@ export const LoopRegionMarkers: React.FC<LoopRegionMarkersProps> = ({
   const width = Math.max(0, endPosition - startPosition);
 
   // Handle dragging individual markers
-  const handleMarkerMouseDown = useCallback((
-    e: React.MouseEvent,
-    marker: 'start' | 'end'
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDraggingMarker(marker);
-    dragStartX.current = e.clientX;
-    dragStartPosition.current = marker === 'start' ? startPosition : endPosition;
+  const handleMarkerMouseDown = useCallback(
+    (e: React.MouseEvent, marker: "start" | "end") => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDraggingMarker(marker);
+      dragStartX.current = e.clientX;
+      dragStartPosition.current =
+        marker === "start" ? startPosition : endPosition;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const delta = moveEvent.clientX - dragStartX.current;
-      const newPosition = dragStartPosition.current + delta;
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const delta = moveEvent.clientX - dragStartX.current;
+        const newPosition = dragStartPosition.current + delta;
 
-      if (marker === 'start') {
-        // Start marker can't go past end marker or outside bounds
-        const clampedPosition = Math.max(minPosition, Math.min(endPosition - 10, newPosition));
-        onLoopStartChange?.(clampedPosition);
-      } else {
-        // End marker can't go before start marker or outside bounds
-        const clampedPosition = Math.max(startPosition + 10, Math.min(maxPosition, newPosition));
-        onLoopEndChange?.(clampedPosition);
-      }
-    };
+        if (marker === "start") {
+          // Start marker can't go past end marker or outside bounds
+          const clampedPosition = Math.max(
+            minPosition,
+            Math.min(endPosition - 10, newPosition),
+          );
+          onLoopStartChange?.(clampedPosition);
+        } else {
+          // End marker can't go before start marker or outside bounds
+          const clampedPosition = Math.max(
+            startPosition + 10,
+            Math.min(maxPosition, newPosition),
+          );
+          onLoopEndChange?.(clampedPosition);
+        }
+      };
 
-    const handleMouseUp = () => {
-      setDraggingMarker(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
+      const handleMouseUp = () => {
+        setDraggingMarker(null);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [startPosition, endPosition, minPosition, maxPosition, onLoopStartChange, onLoopEndChange]);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [
+      startPosition,
+      endPosition,
+      minPosition,
+      maxPosition,
+      onLoopStartChange,
+      onLoopEndChange,
+    ],
+  );
 
   // Handle dragging the entire region
-  const handleRegionMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDraggingMarker('region');
-    dragStartX.current = e.clientX;
-    dragStartPosition.current = startPosition;
-    dragStartEnd.current = endPosition;
+  const handleRegionMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDraggingMarker("region");
+      dragStartX.current = e.clientX;
+      dragStartPosition.current = startPosition;
+      dragStartEnd.current = endPosition;
 
-    const regionWidth = endPosition - startPosition;
+      const regionWidth = endPosition - startPosition;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const delta = moveEvent.clientX - dragStartX.current;
-      let newStart = dragStartPosition.current + delta;
-      let newEnd = dragStartEnd.current + delta;
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const delta = moveEvent.clientX - dragStartX.current;
+        let newStart = dragStartPosition.current + delta;
+        let newEnd = dragStartEnd.current + delta;
 
-      // Clamp to bounds while maintaining region width
-      if (newStart < minPosition) {
-        newStart = minPosition;
-        newEnd = minPosition + regionWidth;
-      }
-      if (newEnd > maxPosition) {
-        newEnd = maxPosition;
-        newStart = maxPosition - regionWidth;
-      }
+        // Clamp to bounds while maintaining region width
+        if (newStart < minPosition) {
+          newStart = minPosition;
+          newEnd = minPosition + regionWidth;
+        }
+        if (newEnd > maxPosition) {
+          newEnd = maxPosition;
+          newStart = maxPosition - regionWidth;
+        }
 
-      onLoopRegionMove?.(newStart, newEnd);
-    };
+        onLoopRegionMove?.(newStart, newEnd);
+      };
 
-    const handleMouseUp = () => {
-      setDraggingMarker(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
+      const handleMouseUp = () => {
+        setDraggingMarker(null);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [startPosition, endPosition, minPosition, maxPosition, onLoopRegionMove]);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [startPosition, endPosition, minPosition, maxPosition, onLoopRegionMove],
+  );
 
   if (width <= 0) {
     return null;
@@ -307,7 +332,7 @@ export const LoopRegionMarkers: React.FC<LoopRegionMarkersProps> = ({
         $left={startPosition}
         $width={width}
         $color={regionColor}
-        $isDragging={draggingMarker === 'region'}
+        $isDragging={draggingMarker === "region"}
         onMouseDown={handleRegionMouseDown}
         data-loop-region-timescale
       />
@@ -315,16 +340,16 @@ export const LoopRegionMarkers: React.FC<LoopRegionMarkersProps> = ({
         $left={startPosition}
         $color={markerColor}
         $isStart={true}
-        $isDragging={draggingMarker === 'start'}
-        onMouseDown={(e) => handleMarkerMouseDown(e, 'start')}
+        $isDragging={draggingMarker === "start"}
+        onMouseDown={(e) => handleMarkerMouseDown(e, "start")}
         data-loop-marker-handle="start"
       />
       <DraggableMarkerHandle
         $left={endPosition}
         $color={markerColor}
         $isStart={false}
-        $isDragging={draggingMarker === 'end'}
-        onMouseDown={(e) => handleMarkerMouseDown(e, 'end')}
+        $isDragging={draggingMarker === "end"}
+        onMouseDown={(e) => handleMarkerMouseDown(e, "end")}
         data-loop-marker-handle="end"
       />
     </>
@@ -336,11 +361,13 @@ interface TimescaleLoopCreatorProps {
   readonly $leftOffset?: number;
 }
 
-const TimescaleLoopCreator = styled.div.attrs<TimescaleLoopCreatorProps>((props) => ({
-  style: {
-    left: `${props.$leftOffset || 0}px`,
-  },
-}))<TimescaleLoopCreatorProps>`
+const TimescaleLoopCreator = styled.div.attrs<TimescaleLoopCreatorProps>(
+  (props) => ({
+    style: {
+      left: `${props.$leftOffset || 0}px`,
+    },
+  }),
+)<TimescaleLoopCreatorProps>`
   position: absolute;
   top: 0;
   right: 0;
@@ -375,8 +402,8 @@ export interface TimescaleLoopRegionProps {
 export const TimescaleLoopRegion: React.FC<TimescaleLoopRegionProps> = ({
   startPosition,
   endPosition,
-  markerColor = '#3b82f6',
-  regionColor = 'rgba(59, 130, 246, 0.3)',
+  markerColor = "#3b82f6",
+  regionColor = "rgba(59, 130, 246, 0.3)",
   onLoopRegionChange,
   minPosition = 0,
   maxPosition = Infinity,
@@ -389,45 +416,54 @@ export const TimescaleLoopRegion: React.FC<TimescaleLoopRegionProps> = ({
   const hasLoopRegion = endPosition > startPosition;
 
   // Handle creating a new loop region by clicking and dragging
-  const handleBackgroundMouseDown = useCallback((e: React.MouseEvent) => {
-    // Only create new region if clicking on the background (not on markers or region)
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-loop-marker-handle]') || target.closest('[data-loop-region-timescale]')) {
-      return;
-    }
+  const handleBackgroundMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      // Only create new region if clicking on the background (not on markers or region)
+      const target = e.target as HTMLElement;
+      if (
+        target.closest("[data-loop-marker-handle]") ||
+        target.closest("[data-loop-region-timescale]")
+      ) {
+        return;
+      }
 
-    e.preventDefault();
-    setIsCreating(true);
+      e.preventDefault();
+      setIsCreating(true);
 
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const clickX = e.clientX - rect.left;
-    const clampedX = Math.max(minPosition, Math.min(maxPosition, clickX));
-    createStartX.current = clampedX;
+      const clickX = e.clientX - rect.left;
+      const clampedX = Math.max(minPosition, Math.min(maxPosition, clickX));
+      createStartX.current = clampedX;
 
-    // Set initial position (will be a point until dragged)
-    onLoopRegionChange?.(clampedX, clampedX);
+      // Set initial position (will be a point until dragged)
+      onLoopRegionChange?.(clampedX, clampedX);
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const currentX = moveEvent.clientX - rect.left;
-      const clampedCurrentX = Math.max(minPosition, Math.min(maxPosition, currentX));
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const currentX = moveEvent.clientX - rect.left;
+        const clampedCurrentX = Math.max(
+          minPosition,
+          Math.min(maxPosition, currentX),
+        );
 
-      const newStart = Math.min(createStartX.current, clampedCurrentX);
-      const newEnd = Math.max(createStartX.current, clampedCurrentX);
+        const newStart = Math.min(createStartX.current, clampedCurrentX);
+        const newEnd = Math.max(createStartX.current, clampedCurrentX);
 
-      onLoopRegionChange?.(newStart, newEnd);
-    };
+        onLoopRegionChange?.(newStart, newEnd);
+      };
 
-    const handleMouseUp = () => {
-      setIsCreating(false);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
+      const handleMouseUp = () => {
+        setIsCreating(false);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [minPosition, maxPosition, onLoopRegionChange]);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [minPosition, maxPosition, onLoopRegionChange],
+  );
 
   return (
     <TimescaleLoopCreator
@@ -444,9 +480,15 @@ export const TimescaleLoopRegion: React.FC<TimescaleLoopRegionProps> = ({
           regionColor={regionColor}
           minPosition={minPosition}
           maxPosition={maxPosition}
-          onLoopStartChange={(newStart) => onLoopRegionChange?.(newStart, endPosition)}
-          onLoopEndChange={(newEnd) => onLoopRegionChange?.(startPosition, newEnd)}
-          onLoopRegionMove={(newStart, newEnd) => onLoopRegionChange?.(newStart, newEnd)}
+          onLoopStartChange={(newStart) =>
+            onLoopRegionChange?.(newStart, endPosition)
+          }
+          onLoopEndChange={(newEnd) =>
+            onLoopRegionChange?.(startPosition, newEnd)
+          }
+          onLoopRegionMove={(newStart, newEnd) =>
+            onLoopRegionChange?.(newStart, newEnd)
+          }
         />
       )}
     </TimescaleLoopCreator>

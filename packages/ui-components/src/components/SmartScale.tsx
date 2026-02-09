@@ -1,9 +1,12 @@
-import React, { FunctionComponent, useContext, type ReactNode } from 'react';
-import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
-import { StyledTimeScale } from './TimeScale';
+import React, { FunctionComponent, useContext, type ReactNode } from "react";
+import { PlaylistInfoContext } from "../contexts/PlaylistInfo";
+import { StyledTimeScale } from "./TimeScale";
 
 export interface SmartScaleProps {
-  readonly renderTimestamp?: (timeMs: number, pixelPosition: number) => ReactNode;
+  readonly renderTimestamp?: (
+    timeMs: number,
+    pixelPosition: number,
+  ) => ReactNode;
 }
 
 const timeinfo = new Map([
@@ -82,7 +85,9 @@ function getScaleInfo(samplesPerPixel: number) {
   return config;
 }
 
-export const SmartScale: FunctionComponent<SmartScaleProps> = ({ renderTimestamp }) => {
+export const SmartScale: FunctionComponent<SmartScaleProps> = ({
+  renderTimestamp,
+}) => {
   const { samplesPerPixel, duration } = useContext(PlaylistInfoContext);
   let config = getScaleInfo(samplesPerPixel);
 

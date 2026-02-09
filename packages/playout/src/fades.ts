@@ -5,7 +5,7 @@
  * using various curve types.
  */
 
-export type FadeType = 'linear' | 'logarithmic' | 'exponential' | 'sCurve';
+export type FadeType = "linear" | "logarithmic" | "exponential" | "sCurve";
 
 /**
  * Simple fade configuration - just duration and type
@@ -65,7 +65,11 @@ function sCurveCurve(length: number, fadeIn: boolean): Float32Array {
 /**
  * Generate a logarithmic fade curve
  */
-function logarithmicCurve(length: number, fadeIn: boolean, base: number = 10): Float32Array {
+function logarithmicCurve(
+  length: number,
+  fadeIn: boolean,
+  base: number = 10,
+): Float32Array {
   const curve = new Float32Array(length);
 
   for (let i = 0; i < length; i++) {
@@ -80,15 +84,19 @@ function logarithmicCurve(length: number, fadeIn: boolean, base: number = 10): F
 /**
  * Generate a fade curve of the specified type
  */
-function generateCurve(type: FadeType, length: number, fadeIn: boolean): Float32Array {
+function generateCurve(
+  type: FadeType,
+  length: number,
+  fadeIn: boolean,
+): Float32Array {
   switch (type) {
-    case 'linear':
+    case "linear":
       return linearCurve(length, fadeIn);
-    case 'exponential':
+    case "exponential":
       return exponentialCurve(length, fadeIn);
-    case 'sCurve':
+    case "sCurve":
       return sCurveCurve(length, fadeIn);
-    case 'logarithmic':
+    case "logarithmic":
       return logarithmicCurve(length, fadeIn);
     default:
       return linearCurve(length, fadeIn);
@@ -109,20 +117,23 @@ export function applyFadeIn(
   param: AudioParam,
   startTime: number,
   duration: number,
-  type: FadeType = 'linear',
+  type: FadeType = "linear",
   startValue: number = 0,
-  endValue: number = 1
+  endValue: number = 1,
 ): void {
   if (duration <= 0) return;
 
-  if (type === 'linear') {
+  if (type === "linear") {
     // Use native linear ramp for better performance
     param.setValueAtTime(startValue, startTime);
     param.linearRampToValueAtTime(endValue, startTime + duration);
-  } else if (type === 'exponential') {
+  } else if (type === "exponential") {
     // Exponential ramp can't start/end at 0, use small value
     param.setValueAtTime(Math.max(startValue, 0.001), startTime);
-    param.exponentialRampToValueAtTime(Math.max(endValue, 0.001), startTime + duration);
+    param.exponentialRampToValueAtTime(
+      Math.max(endValue, 0.001),
+      startTime + duration,
+    );
   } else {
     // Use curve for sCurve and logarithmic
     const curve = generateCurve(type, 10000, true);
@@ -150,20 +161,23 @@ export function applyFadeOut(
   param: AudioParam,
   startTime: number,
   duration: number,
-  type: FadeType = 'linear',
+  type: FadeType = "linear",
   startValue: number = 1,
-  endValue: number = 0
+  endValue: number = 0,
 ): void {
   if (duration <= 0) return;
 
-  if (type === 'linear') {
+  if (type === "linear") {
     // Use native linear ramp for better performance
     param.setValueAtTime(startValue, startTime);
     param.linearRampToValueAtTime(endValue, startTime + duration);
-  } else if (type === 'exponential') {
+  } else if (type === "exponential") {
     // Exponential ramp can't start/end at 0, use small value
     param.setValueAtTime(Math.max(startValue, 0.001), startTime);
-    param.exponentialRampToValueAtTime(Math.max(endValue, 0.001), startTime + duration);
+    param.exponentialRampToValueAtTime(
+      Math.max(endValue, 0.001),
+      startTime + duration,
+    );
   } else {
     // Use curve for sCurve and logarithmic
     const curve = generateCurve(type, 10000, false);

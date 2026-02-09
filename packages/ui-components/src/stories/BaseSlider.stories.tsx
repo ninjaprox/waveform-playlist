@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
-import { BaseSlider } from '../styled';
+import type { Meta, StoryObj } from "@storybook/react";
+import React, { useState } from "react";
+import { BaseSlider } from "../styled";
 
 const meta: Meta<typeof BaseSlider> = {
-  title: 'Base/Slider',
+  title: "Base/Slider",
   component: BaseSlider,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -19,7 +19,7 @@ export const Default: Story = {
     min: 0,
     max: 100,
     defaultValue: 50,
-    style: { width: '200px' },
+    style: { width: "200px" },
   },
 };
 
@@ -27,13 +27,13 @@ export const Volume: Story = {
   render: () => {
     const [value, setValue] = useState(75);
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         <BaseSlider
           min={0}
           max={100}
           value={value}
           onChange={(e) => setValue(Number(e.target.value))}
-          style={{ width: '200px' }}
+          style={{ width: "200px" }}
         />
         <span>{value}%</span>
       </div>
@@ -47,6 +47,6 @@ export const Disabled: Story = {
     max: 100,
     defaultValue: 30,
     disabled: true,
-    style: { width: '200px' },
+    style: { width: "200px" },
   },
 };

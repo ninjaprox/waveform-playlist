@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState, useEffect } from 'react';
+import type { Meta, StoryObj } from "@storybook/react";
+import React, { useState, useEffect } from "react";
 import {
   loadWaveformData,
   waveformDataToPeaks,
   getWaveformDataMetadata,
-} from '@waveform-playlist/browser';
-import { Channel } from '../components/Channel';
+} from "@waveform-playlist/browser";
+import { Channel } from "../components/Channel";
 
 /**
  * BBC Waveform Data Loading
@@ -21,7 +21,10 @@ import { Channel } from '../components/Channel';
  */
 
 // Demo component for loading and displaying BBC peaks
-const WaveformDataDemo: React.FC<{ src: string; title: string }> = ({ src, title }) => {
+const WaveformDataDemo: React.FC<{ src: string; title: string }> = ({
+  src,
+  title,
+}) => {
   const [peaks, setPeaks] = useState<Int8Array | Int16Array | null>(null);
   const [bits, setBits] = useState<8 | 16>(8);
   const [metadata, setMetadata] = useState<{
@@ -36,7 +39,8 @@ const WaveformDataDemo: React.FC<{ src: string; title: string }> = ({ src, title
   const [error, setError] = useState<string | null>(null);
 
   // Use actual device pixel ratio for crisp rendering on high-DPI displays
-  const devicePixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
+  const devicePixelRatio =
+    typeof window !== "undefined" ? window.devicePixelRatio : 1;
 
   useEffect(() => {
     async function loadPeaks() {
@@ -54,7 +58,9 @@ const WaveformDataDemo: React.FC<{ src: string; title: string }> = ({ src, title
         setPeaks(peaksData.data);
         setBits(peaksData.bits);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load waveform data');
+        setError(
+          err instanceof Error ? err.message : "Failed to load waveform data",
+        );
       } finally {
         setLoading(false);
       }
@@ -65,48 +71,64 @@ const WaveformDataDemo: React.FC<{ src: string; title: string }> = ({ src, title
 
   if (loading) {
     return (
-      <div style={{ padding: '1rem', textAlign: 'center' }}>
+      <div style={{ padding: "1rem", textAlign: "center" }}>
         Loading waveform data...
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div style={{ padding: '1rem', color: 'red' }}>
-        Error: {error}
-      </div>
-    );
+    return <div style={{ padding: "1rem", color: "red" }}>Error: {error}</div>;
   }
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <h3 style={{ margin: '0 0 0.5rem 0' }}>{title}</h3>
+    <div style={{ padding: "1rem" }}>
+      <h3 style={{ margin: "0 0 0.5rem 0" }}>{title}</h3>
 
       {metadata && (
-        <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#666' }}>
-          <div><strong>Sample Rate:</strong> {metadata.sampleRate} Hz</div>
-          <div><strong>Channels:</strong> {metadata.channels}</div>
-          <div><strong>Duration:</strong> {metadata.duration.toFixed(2)}s</div>
-          <div><strong>Samples/Pixel:</strong> {metadata.samplesPerPixel}</div>
-          <div><strong>Peak Length:</strong> {metadata.length} points</div>
-          <div><strong>Bit Depth:</strong> {metadata.bits}-bit</div>
+        <div
+          style={{ marginBottom: "1rem", fontSize: "0.875rem", color: "#666" }}
+        >
+          <div>
+            <strong>Sample Rate:</strong> {metadata.sampleRate} Hz
+          </div>
+          <div>
+            <strong>Channels:</strong> {metadata.channels}
+          </div>
+          <div>
+            <strong>Duration:</strong> {metadata.duration.toFixed(2)}s
+          </div>
+          <div>
+            <strong>Samples/Pixel:</strong> {metadata.samplesPerPixel}
+          </div>
+          <div>
+            <strong>Peak Length:</strong> {metadata.length} points
+          </div>
+          <div>
+            <strong>Bit Depth:</strong> {metadata.bits}-bit
+          </div>
         </div>
       )}
 
       {peaks && metadata && (
         <div
           style={{
-            position: 'relative',
-            width: '100%',
+            position: "relative",
+            width: "100%",
             height: 128,
-            backgroundColor: '#1a1a2e',
-            borderRadius: '4px',
-            overflowX: 'auto',
-            overflowY: 'hidden',
+            backgroundColor: "#1a1a2e",
+            borderRadius: "4px",
+            overflowX: "auto",
+            overflowY: "hidden",
           }}
         >
-          <div style={{ width: metadata.length, height: 128, position: 'relative' }}>
+          <div
+            style={{
+              width: metadata.length,
+              height: 128,
+              position: "relative",
+            }}
+          >
             <Channel
               key={src}
               index={0}
@@ -128,16 +150,22 @@ const WaveformDataDemo: React.FC<{ src: string; title: string }> = ({ src, title
 // Multiple tracks demo - Albert Kader "Ubiquitous" minimal techno
 const MultiTrackDemo: React.FC = () => {
   const tracks = [
-    { src: 'media/audio/AlbertKader_Ubiquitous/01_Kick.dat', name: 'Kick' },
-    { src: 'media/audio/AlbertKader_Ubiquitous/08_Bass.dat', name: 'Bass' },
-    { src: 'media/audio/AlbertKader_Ubiquitous/09_Synth1_Unmodulated.dat', name: 'Synth 1' },
-    { src: 'media/audio/AlbertKader_Ubiquitous/11_Synth2.dat', name: 'Synth 2' },
+    { src: "media/audio/AlbertKader_Ubiquitous/01_Kick.dat", name: "Kick" },
+    { src: "media/audio/AlbertKader_Ubiquitous/08_Bass.dat", name: "Bass" },
+    {
+      src: "media/audio/AlbertKader_Ubiquitous/09_Synth1_Unmodulated.dat",
+      name: "Synth 1",
+    },
+    {
+      src: "media/audio/AlbertKader_Ubiquitous/11_Synth2.dat",
+      name: "Synth 2",
+    },
   ];
 
   return (
     <div>
-      <h2 style={{ margin: '0 0 1rem 0' }}>Multi-Track BBC Peaks</h2>
-      <p style={{ marginBottom: '1rem', color: '#666' }}>
+      <h2 style={{ margin: "0 0 1rem 0" }}>Multi-Track BBC Peaks</h2>
+      <p style={{ marginBottom: "1rem", color: "#666" }}>
         Pre-computed peaks from BBC audiowaveform tool at 30 samples/pixel.
       </p>
       {tracks.map((track) => (
@@ -150,17 +178,32 @@ const MultiTrackDemo: React.FC = () => {
 // Bit depth comparison demo - using same 8-bit files (all new tracks are 8-bit)
 const BitDepthComparisonDemo: React.FC = () => {
   const tracks = [
-    { src: 'media/audio/AlbertKader_Ubiquitous/01_Kick.dat', name: 'Kick (8-bit, mono)' },
-    { src: 'media/audio/AlbertKader_Ubiquitous/02_HiHat1.dat', name: 'HiHat (8-bit, mono)' },
-    { src: 'media/audio/AlbertKader_Whiptails/03_Kick.dat', name: 'Kick 2 (8-bit, mono)' },
-    { src: 'media/audio/AlbertKader_Whiptails/06_HiHat.dat', name: 'HiHat 2 (8-bit, mono)' },
+    {
+      src: "media/audio/AlbertKader_Ubiquitous/01_Kick.dat",
+      name: "Kick (8-bit, mono)",
+    },
+    {
+      src: "media/audio/AlbertKader_Ubiquitous/02_HiHat1.dat",
+      name: "HiHat (8-bit, mono)",
+    },
+    {
+      src: "media/audio/AlbertKader_Whiptails/03_Kick.dat",
+      name: "Kick 2 (8-bit, mono)",
+    },
+    {
+      src: "media/audio/AlbertKader_Whiptails/06_HiHat.dat",
+      name: "HiHat 2 (8-bit, mono)",
+    },
   ];
 
   return (
     <div>
-      <h2 style={{ margin: '0 0 1rem 0' }}>Bit Depth Comparison (Version 1 - Mono)</h2>
-      <p style={{ marginBottom: '1rem', color: '#666' }}>
-        Compare 8-bit vs 16-bit waveform data. 8-bit files are half the size but have less precision.
+      <h2 style={{ margin: "0 0 1rem 0" }}>
+        Bit Depth Comparison (Version 1 - Mono)
+      </h2>
+      <p style={{ marginBottom: "1rem", color: "#666" }}>
+        Compare 8-bit vs 16-bit waveform data. 8-bit files are half the size but
+        have less precision.
       </p>
       {tracks.map((track) => (
         <WaveformDataDemo key={track.src} src={track.src} title={track.name} />
@@ -170,9 +213,16 @@ const BitDepthComparisonDemo: React.FC = () => {
 };
 
 // Stereo demo component - renders both left and right channels
-const StereoWaveformDemo: React.FC<{ src: string; title: string }> = ({ src, title }) => {
-  const [leftPeaks, setLeftPeaks] = useState<Int8Array | Int16Array | null>(null);
-  const [rightPeaks, setRightPeaks] = useState<Int8Array | Int16Array | null>(null);
+const StereoWaveformDemo: React.FC<{ src: string; title: string }> = ({
+  src,
+  title,
+}) => {
+  const [leftPeaks, setLeftPeaks] = useState<Int8Array | Int16Array | null>(
+    null,
+  );
+  const [rightPeaks, setRightPeaks] = useState<Int8Array | Int16Array | null>(
+    null,
+  );
   const [bits, setBits] = useState<8 | 16>(8);
   const [metadata, setMetadata] = useState<{
     sampleRate: number;
@@ -185,7 +235,8 @@ const StereoWaveformDemo: React.FC<{ src: string; title: string }> = ({ src, tit
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const devicePixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
+  const devicePixelRatio =
+    typeof window !== "undefined" ? window.devicePixelRatio : 1;
   const channelHeight = 64; // Height per channel
 
   useEffect(() => {
@@ -210,7 +261,9 @@ const StereoWaveformDemo: React.FC<{ src: string; title: string }> = ({ src, tit
           setRightPeaks(rightData.data);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load waveform data');
+        setError(
+          err instanceof Error ? err.message : "Failed to load waveform data",
+        );
       } finally {
         setLoading(false);
       }
@@ -221,58 +274,78 @@ const StereoWaveformDemo: React.FC<{ src: string; title: string }> = ({ src, tit
 
   if (loading) {
     return (
-      <div style={{ padding: '1rem', textAlign: 'center' }}>
+      <div style={{ padding: "1rem", textAlign: "center" }}>
         Loading waveform data...
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div style={{ padding: '1rem', color: 'red' }}>
-        Error: {error}
-      </div>
-    );
+    return <div style={{ padding: "1rem", color: "red" }}>Error: {error}</div>;
   }
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <h3 style={{ margin: '0 0 0.5rem 0' }}>{title}</h3>
+    <div style={{ padding: "1rem" }}>
+      <h3 style={{ margin: "0 0 0.5rem 0" }}>{title}</h3>
 
       {metadata && (
-        <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#666' }}>
-          <div><strong>Sample Rate:</strong> {metadata.sampleRate} Hz</div>
-          <div><strong>Channels:</strong> {metadata.channels}</div>
-          <div><strong>Duration:</strong> {metadata.duration.toFixed(2)}s</div>
-          <div><strong>Samples/Pixel:</strong> {metadata.samplesPerPixel}</div>
-          <div><strong>Peak Length:</strong> {metadata.length} points</div>
-          <div><strong>Bit Depth:</strong> {metadata.bits}-bit</div>
+        <div
+          style={{ marginBottom: "1rem", fontSize: "0.875rem", color: "#666" }}
+        >
+          <div>
+            <strong>Sample Rate:</strong> {metadata.sampleRate} Hz
+          </div>
+          <div>
+            <strong>Channels:</strong> {metadata.channels}
+          </div>
+          <div>
+            <strong>Duration:</strong> {metadata.duration.toFixed(2)}s
+          </div>
+          <div>
+            <strong>Samples/Pixel:</strong> {metadata.samplesPerPixel}
+          </div>
+          <div>
+            <strong>Peak Length:</strong> {metadata.length} points
+          </div>
+          <div>
+            <strong>Bit Depth:</strong> {metadata.bits}-bit
+          </div>
         </div>
       )}
 
       {leftPeaks && metadata && (
         <div
           style={{
-            position: 'relative',
-            width: '100%',
+            position: "relative",
+            width: "100%",
             height: channelHeight * (rightPeaks ? 2 : 1),
-            backgroundColor: '#1a1a2e',
-            borderRadius: '4px',
-            overflowX: 'auto',
-            overflowY: 'hidden',
+            backgroundColor: "#1a1a2e",
+            borderRadius: "4px",
+            overflowX: "auto",
+            overflowY: "hidden",
           }}
         >
-          <div style={{ width: metadata.length, height: channelHeight * (rightPeaks ? 2 : 1), position: 'relative' }}>
+          <div
+            style={{
+              width: metadata.length,
+              height: channelHeight * (rightPeaks ? 2 : 1),
+              position: "relative",
+            }}
+          >
             {/* Left channel */}
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%' }}>
-              <div style={{
-                fontSize: '10px',
-                color: '#888',
-                position: 'absolute',
-                top: 2,
-                left: 4,
-                zIndex: 1
-              }}>
+            <div
+              style={{ position: "absolute", top: 0, left: 0, width: "100%" }}
+            >
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: "#888",
+                  position: "absolute",
+                  top: 2,
+                  left: 4,
+                  zIndex: 1,
+                }}
+              >
                 L
               </div>
               <Channel
@@ -290,15 +363,24 @@ const StereoWaveformDemo: React.FC<{ src: string; title: string }> = ({ src, tit
 
             {/* Right channel */}
             {rightPeaks && (
-              <div style={{ position: 'absolute', top: channelHeight, left: 0, width: '100%' }}>
-                <div style={{
-                  fontSize: '10px',
-                  color: '#888',
-                  position: 'absolute',
-                  top: 2,
-                  left: 4,
-                  zIndex: 1
-                }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: channelHeight,
+                  left: 0,
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "#888",
+                    position: "absolute",
+                    top: 2,
+                    left: 4,
+                    zIndex: 1,
+                  }}
+                >
                   R
                 </div>
                 <Channel
@@ -324,28 +406,39 @@ const StereoWaveformDemo: React.FC<{ src: string; title: string }> = ({ src, tit
 // Stereo/Version 2 comparison demo - using stereo tracks from Ubiquitous
 const StereoComparisonDemo: React.FC = () => {
   const tracks = [
-    { src: 'media/audio/AlbertKader_Ubiquitous/09_Synth1_Unmodulated.dat', name: 'Synth 1 (stereo)' },
-    { src: 'media/audio/AlbertKader_Ubiquitous/11_Synth2.dat', name: 'Synth 2 (stereo)' },
+    {
+      src: "media/audio/AlbertKader_Ubiquitous/09_Synth1_Unmodulated.dat",
+      name: "Synth 1 (stereo)",
+    },
+    {
+      src: "media/audio/AlbertKader_Ubiquitous/11_Synth2.dat",
+      name: "Synth 2 (stereo)",
+    },
   ];
 
   return (
     <div>
-      <h2 style={{ margin: '0 0 1rem 0' }}>Stereo / Version 2 Files</h2>
-      <p style={{ marginBottom: '1rem', color: '#666' }}>
-        Version 2 files support multiple channels. These are stereo files generated with --split-channels.
-        Left (L) and Right (R) channels are displayed separately.
+      <h2 style={{ margin: "0 0 1rem 0" }}>Stereo / Version 2 Files</h2>
+      <p style={{ marginBottom: "1rem", color: "#666" }}>
+        Version 2 files support multiple channels. These are stereo files
+        generated with --split-channels. Left (L) and Right (R) channels are
+        displayed separately.
       </p>
       {tracks.map((track) => (
-        <StereoWaveformDemo key={track.src} src={track.src} title={track.name} />
+        <StereoWaveformDemo
+          key={track.src}
+          src={track.src}
+          title={track.name}
+        />
       ))}
     </div>
   );
 };
 
 const meta: Meta = {
-  title: 'Browser/WaveformData',
+  title: "Browser/WaveformData",
   parameters: {
-    layout: 'padded',
+    layout: "padded",
     docs: {
       description: {
         component: `
@@ -392,17 +485,23 @@ const peaks = await loadPeaksFromWaveformData('/path/to/peaks.dat');
       },
     },
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
 
 export const SingleTrack: StoryObj = {
-  render: () => <WaveformDataDemo src="media/audio/AlbertKader_Ubiquitous/08_Bass.dat" title="Bass Track" />,
+  render: () => (
+    <WaveformDataDemo
+      src="media/audio/AlbertKader_Ubiquitous/08_Bass.dat"
+      title="Bass Track"
+    />
+  ),
   parameters: {
     docs: {
       description: {
-        story: 'Load a single BBC peaks file and display the waveform with metadata.',
+        story:
+          "Load a single BBC peaks file and display the waveform with metadata.",
       },
     },
   },
@@ -413,7 +512,7 @@ export const MultipleFiles: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'Load multiple BBC peaks files for a multi-track visualization.',
+        story: "Load multiple BBC peaks files for a multi-track visualization.",
       },
     },
   },
@@ -424,7 +523,8 @@ export const BitDepthComparison: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'Compare 8-bit and 16-bit waveform data files (Version 1 - mono). 8-bit files are half the size.',
+        story:
+          "Compare 8-bit and 16-bit waveform data files (Version 1 - mono). 8-bit files are half the size.",
       },
     },
   },
@@ -435,7 +535,8 @@ export const StereoVersion2: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'Stereo waveform data files using Version 2 format. Generated with --split-channels flag.',
+        story:
+          "Stereo waveform data files using Version 2 format. Generated with --split-channels flag.",
       },
     },
   },
@@ -447,7 +548,7 @@ export const MetadataOnly: StoryObj = {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-      getWaveformDataMetadata('media/audio/AlbertKader_Ubiquitous/08_Bass.dat')
+      getWaveformDataMetadata("media/audio/AlbertKader_Ubiquitous/08_Bass.dat")
         .then(setMetadata)
         .finally(() => setLoading(false));
     }, []);
@@ -455,9 +556,15 @@ export const MetadataOnly: StoryObj = {
     if (loading) return <div>Loading...</div>;
 
     return (
-      <div style={{ padding: '1rem' }}>
+      <div style={{ padding: "1rem" }}>
         <h3>Waveform Data Metadata</h3>
-        <pre style={{ background: '#f5f5f5', padding: '1rem', borderRadius: '4px' }}>
+        <pre
+          style={{
+            background: "#f5f5f5",
+            padding: "1rem",
+            borderRadius: "4px",
+          }}
+        >
           {JSON.stringify(metadata, null, 2)}
         </pre>
       </div>
@@ -466,7 +573,8 @@ export const MetadataOnly: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'Extract metadata from a BBC peaks file without loading the full peaks data.',
+        story:
+          "Extract metadata from a BBC peaks file without loading the full peaks data.",
       },
     },
   },

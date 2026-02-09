@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import styled from 'styled-components';
-import { DotsIcon } from './TrackControls/DotsIcon';
+import React, { useState, useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import styled from "styled-components";
+import { DotsIcon } from "./TrackControls/DotsIcon";
 
 export interface TrackMenuItem {
   id: string;
@@ -36,11 +36,11 @@ const MenuButton = styled.button`
 
 const Dropdown = styled.div<{ $top: number; $left: number }>`
   position: fixed;
-  top: ${p => p.$top}px;
-  left: ${p => p.$left}px;
+  top: ${(p) => p.$top}px;
+  left: ${(p) => p.$left}px;
   z-index: 10000;
-  background: ${p => p.theme.timescaleBackgroundColor ?? '#222'};
-  color: ${p => p.theme.textColor ?? 'inherit'};
+  background: ${(p) => p.theme.timescaleBackgroundColor ?? "#222"};
+  color: ${(p) => p.theme.textColor ?? "inherit"};
   border: 1px solid rgba(128, 128, 128, 0.4);
   border-radius: 6px;
   padding: 0.5rem 0;
@@ -54,12 +54,10 @@ const Divider = styled.hr`
   margin: 0.35rem 0;
 `;
 
-export const TrackMenu: React.FC<TrackMenuProps> = ({
-  items: itemsProp,
-}) => {
+export const TrackMenu: React.FC<TrackMenuProps> = ({ items: itemsProp }) => {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
-  const items = typeof itemsProp === 'function' ? itemsProp(close) : itemsProp;
+  const items = typeof itemsProp === "function" ? itemsProp(close) : itemsProp;
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -82,14 +80,16 @@ export const TrackMenu: React.FC<TrackMenuProps> = ({
     const handleClick = (e: MouseEvent) => {
       const target = e.target as Node;
       if (
-        buttonRef.current && !buttonRef.current.contains(target) &&
-        dropdownRef.current && !dropdownRef.current.contains(target)
+        buttonRef.current &&
+        !buttonRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
       ) {
         setOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
   return (
@@ -98,7 +98,7 @@ export const TrackMenu: React.FC<TrackMenuProps> = ({
         ref={buttonRef}
         onClick={(e) => {
           e.stopPropagation();
-          setOpen(prev => !prev);
+          setOpen((prev) => !prev);
         }}
         onMouseDown={(e) => e.stopPropagation()}
         title="Track menu"
@@ -106,22 +106,24 @@ export const TrackMenu: React.FC<TrackMenuProps> = ({
       >
         <DotsIcon size={16} />
       </MenuButton>
-      {open && typeof document !== 'undefined' && createPortal(
-        <Dropdown
-          ref={dropdownRef}
-          $top={dropdownPos.top}
-          $left={dropdownPos.left}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          {items.map((item, index) => (
-            <React.Fragment key={item.id}>
-              {index > 0 && <Divider />}
-              {item.content}
-            </React.Fragment>
-          ))}
-        </Dropdown>,
-        document.body
-      )}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <Dropdown
+            ref={dropdownRef}
+            $top={dropdownPos.top}
+            $left={dropdownPos.left}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {items.map((item, index) => (
+              <React.Fragment key={item.id}>
+                {index > 0 && <Divider />}
+                {item.content}
+              </React.Fragment>
+            ))}
+          </Dropdown>,
+          document.body,
+        )}
     </MenuContainer>
   );
 };

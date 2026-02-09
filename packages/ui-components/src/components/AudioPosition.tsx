@@ -1,11 +1,11 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 const PositionDisplay = styled.span`
-  font-family: 'Courier New', Monaco, monospace;
+  font-family: "Courier New", Monaco, monospace;
   font-size: 1rem;
   font-weight: 600;
-  color: ${props => props.theme?.textColor || '#333'};
+  color: ${(props) => props.theme?.textColor || "#333"};
   user-select: none;
 `;
 

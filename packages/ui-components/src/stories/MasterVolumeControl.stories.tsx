@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
-import { MasterVolumeControl } from '../components/MasterVolumeControl';
+import type { Meta, StoryObj } from "@storybook/react";
+import React, { useState } from "react";
+import { MasterVolumeControl } from "../components/MasterVolumeControl";
 
 const meta: Meta<typeof MasterVolumeControl> = {
-  title: 'Components/MasterVolumeControl',
+  title: "Components/MasterVolumeControl",
   component: MasterVolumeControl,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;

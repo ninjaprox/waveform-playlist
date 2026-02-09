@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useRef, useEffect } from "react";
+import styled from "styled-components";
 
 interface PlayheadLineProps {
   readonly $position: number;
@@ -59,7 +59,10 @@ export type RenderPlayheadFunction = (props: PlayheadProps) => React.ReactNode;
  * Default playhead component - a simple vertical line.
  * Uses GPU-accelerated transform for smooth animation.
  */
-export const Playhead: React.FC<PlayheadProps> = ({ position, color = '#ff0000' }) => {
+export const Playhead: React.FC<PlayheadProps> = ({
+  position,
+  color = "#ff0000",
+}) => {
   return <PlayheadLine $position={position} $color={color} />;
 };
 
@@ -101,7 +104,7 @@ const MarkerLine = styled.div<{ $color: string }>`
  * Uses requestAnimationFrame for smooth 60fps animation during playback.
  */
 export const PlayheadWithMarker: React.FC<PlayheadProps> = ({
-  color = '#ff0000',
+  color = "#ff0000",
   isPlaying,
   currentTimeRef,
   playbackStartTimeRef,
@@ -119,7 +122,8 @@ export const PlayheadWithMarker: React.FC<PlayheadProps> = ({
       if (containerRef.current) {
         let time: number;
         if (isPlaying && getAudioContextTime) {
-          const elapsed = getAudioContextTime() - (playbackStartTimeRef.current ?? 0);
+          const elapsed =
+            getAudioContextTime() - (playbackStartTimeRef.current ?? 0);
           time = (audioStartPositionRef.current ?? 0) + elapsed;
         } else {
           time = currentTimeRef.current ?? 0;
@@ -145,7 +149,16 @@ export const PlayheadWithMarker: React.FC<PlayheadProps> = ({
         animationFrameRef.current = null;
       }
     };
-  }, [isPlaying, sampleRate, samplesPerPixel, controlsOffset, currentTimeRef, playbackStartTimeRef, audioStartPositionRef, getAudioContextTime]);
+  }, [
+    isPlaying,
+    sampleRate,
+    samplesPerPixel,
+    controlsOffset,
+    currentTimeRef,
+    playbackStartTimeRef,
+    audioStartPositionRef,
+    getAudioContextTime,
+  ]);
 
   // Update position when stopped (for seeks)
   useEffect(() => {

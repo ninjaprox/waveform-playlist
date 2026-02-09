@@ -1,15 +1,18 @@
-import React, { useCallback } from 'react';
+import React, { useCallback } from "react";
 import type {
   AnnotationData,
   AnnotationAction,
   AnnotationActionOptions,
   RenderAnnotationItemProps,
-} from '@waveform-playlist/core';
-import { useAnnotationIntegration } from '../AnnotationIntegrationContext';
-import { useMediaElementState, useMediaElementControls } from '../MediaElementPlaylistContext';
-import type { OnAnnotationUpdateFn } from '../types/annotations';
+} from "@waveform-playlist/core";
+import { useAnnotationIntegration } from "../AnnotationIntegrationContext";
+import {
+  useMediaElementState,
+  useMediaElementControls,
+} from "../MediaElementPlaylistContext";
+import type { OnAnnotationUpdateFn } from "../types/annotations";
 
-export type { OnAnnotationUpdateFn } from '../types/annotations';
+export type { OnAnnotationUpdateFn } from "../types/annotations";
 
 export interface MediaElementAnnotationListProps {
   /** Height in pixels for the annotation text list */
@@ -39,7 +42,7 @@ export interface MediaElementAnnotationListProps {
   /** Where to position the active annotation when auto-scrolling. Defaults to 'center'. */
   scrollActivePosition?: ScrollLogicalPosition;
   /** Which scrollable containers to scroll: 'nearest' or 'all'. Defaults to 'nearest'. */
-  scrollActiveContainer?: 'nearest' | 'all';
+  scrollActiveContainer?: "nearest" | "all";
 }
 
 /**
@@ -48,26 +51,35 @@ export interface MediaElementAnnotationListProps {
  * Requires @waveform-playlist/annotations with AnnotationProvider.
  * Throws if used without `<AnnotationProvider>` wrapping the component tree.
  */
-export const MediaElementAnnotationList: React.FC<MediaElementAnnotationListProps> = ({
+export const MediaElementAnnotationList: React.FC<
+  MediaElementAnnotationListProps
+> = ({
   height,
   renderAnnotationItem,
   onAnnotationUpdate,
   editable = false,
   controls,
   annotationListConfig,
-  scrollActivePosition = 'center',
-  scrollActiveContainer = 'nearest',
+  scrollActivePosition = "center",
+  scrollActiveContainer = "nearest",
 }) => {
-  const { annotations, activeAnnotationId, continuousPlay } = useMediaElementState();
+  const { annotations, activeAnnotationId, continuousPlay } =
+    useMediaElementState();
   const integration = useAnnotationIntegration();
   const { setAnnotations } = useMediaElementControls();
 
-  const resolvedConfig = annotationListConfig ?? { linkEndpoints: false, continuousPlay };
+  const resolvedConfig = annotationListConfig ?? {
+    linkEndpoints: false,
+    continuousPlay,
+  };
 
-  const handleAnnotationUpdate = useCallback((updatedAnnotations: AnnotationData[]) => {
-    setAnnotations(updatedAnnotations);
-    onAnnotationUpdate?.(updatedAnnotations);
-  }, [setAnnotations, onAnnotationUpdate]);
+  const handleAnnotationUpdate = useCallback(
+    (updatedAnnotations: AnnotationData[]) => {
+      setAnnotations(updatedAnnotations);
+      onAnnotationUpdate?.(updatedAnnotations);
+    },
+    [setAnnotations, onAnnotationUpdate],
+  );
 
   const { AnnotationText } = integration;
 

@@ -1,12 +1,12 @@
-import React, { FunctionComponent } from 'react';
-import styled, { useTheme } from 'styled-components';
-import type { FadeType } from '@waveform-playlist/core';
-import type { WaveformPlaylistTheme } from '../wfpl-theme';
+import React, { FunctionComponent } from "react";
+import styled, { useTheme } from "styled-components";
+import type { FadeType } from "@waveform-playlist/core";
+import type { WaveformPlaylistTheme } from "../wfpl-theme";
 
 interface FadeContainerProps {
   readonly $left: number;
   readonly $width: number;
-  readonly $type: 'fadeIn' | 'fadeOut';
+  readonly $type: "fadeIn" | "fadeOut";
 }
 
 // Use .attrs() for left/width to avoid generating new CSS classes on every render
@@ -24,7 +24,7 @@ const FadeContainer = styled.div.attrs<FadeContainerProps>((props) => ({
 `;
 
 interface FadeSvgProps {
-  readonly $type: 'fadeIn' | 'fadeOut';
+  readonly $type: "fadeIn" | "fadeOut";
 }
 
 const FadeSvg = styled.svg<FadeSvgProps>`
@@ -32,7 +32,7 @@ const FadeSvg = styled.svg<FadeSvgProps>`
   height: 100%;
   display: block;
   /* Flip horizontally for fadeOut - makes it mirror of fadeIn */
-  transform: ${props => props.$type === 'fadeOut' ? 'scaleX(-1)' : 'none'};
+  transform: ${(props) => (props.$type === "fadeOut" ? "scaleX(-1)" : "none")};
 `;
 
 export interface FadeOverlayProps {
@@ -41,7 +41,7 @@ export interface FadeOverlayProps {
   /** Width of the fade region in pixels */
   width: number;
   /** Type of fade: fadeIn or fadeOut */
-  type: 'fadeIn' | 'fadeOut';
+  type: "fadeIn" | "fadeOut";
   /** Fade curve type */
   curveType?: FadeType;
   /** Custom fill color (defaults to theme.fadeOverlayColor) */
@@ -57,7 +57,7 @@ export interface FadeOverlayProps {
 function generateFadePath(
   width: number,
   height: number,
-  curveType: FadeType = 'logarithmic'
+  curveType: FadeType = "logarithmic",
 ): string {
   const points: string[] = [];
   const numPoints = Math.max(20, Math.min(width, 100)); // More points for smoother curves
@@ -69,17 +69,17 @@ function generateFadePath(
     // Apply curve transformation based on type
     let curvedProgress: number;
     switch (curveType) {
-      case 'linear':
+      case "linear":
         curvedProgress = progress;
         break;
-      case 'exponential':
+      case "exponential":
         curvedProgress = progress * progress;
         break;
-      case 'sCurve':
+      case "sCurve":
         // S-curve using sine
         curvedProgress = (1 - Math.cos(progress * Math.PI)) / 2;
         break;
-      case 'logarithmic':
+      case "logarithmic":
       default:
         // Logarithmic curve (more natural for audio)
         curvedProgress = Math.log10(1 + progress * 9) / Math.log10(10);
@@ -94,7 +94,7 @@ function generateFadePath(
   }
 
   // Path: start at bottom-left, draw curve, go to top-right, top-left, close
-  return `M 0,${height} L ${points.join(' L ')} L ${width},0 L 0,0 Z`;
+  return `M 0,${height} L ${points.join(" L ")} L ${width},0 L 0,0 Z`;
 }
 
 /**
@@ -107,7 +107,7 @@ export const FadeOverlay: FunctionComponent<FadeOverlayProps> = ({
   left,
   width,
   type,
-  curveType = 'logarithmic',
+  curveType = "logarithmic",
   color,
 }) => {
   const theme = useTheme() as WaveformPlaylistTheme;
@@ -116,15 +116,16 @@ export const FadeOverlay: FunctionComponent<FadeOverlayProps> = ({
   if (width < 1) return null;
 
   // Use color prop, then theme color, then fallback
-  const fillColor = color || theme?.fadeOverlayColor || 'rgba(0, 0, 0, 0.4)';
+  const fillColor = color || theme?.fadeOverlayColor || "rgba(0, 0, 0, 0.4)";
 
   return (
     <FadeContainer $left={left} $width={width} $type={type}>
-      <FadeSvg $type={type} viewBox={`0 0 ${width} 100`} preserveAspectRatio="none">
-        <path
-          d={generateFadePath(width, 100, curveType)}
-          fill={fillColor}
-        />
+      <FadeSvg
+        $type={type}
+        viewBox={`0 0 ${width} 100`}
+        preserveAspectRatio="none"
+      >
+        <path d={generateFadePath(width, 100, curveType)} fill={fillColor} />
       </FadeSvg>
     </FadeContainer>
   );

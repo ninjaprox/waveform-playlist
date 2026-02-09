@@ -5,7 +5,13 @@
  * Supports both desktop (immediate feedback) and mobile (delay-based) interactions.
  */
 
-import { useSensor, useSensors, PointerSensor, TouchSensor, MouseSensor } from '@dnd-kit/core';
+import {
+  useSensor,
+  useSensors,
+  PointerSensor,
+  TouchSensor,
+  MouseSensor,
+} from "@dnd-kit/core";
 
 export interface DragSensorOptions {
   /**
@@ -94,6 +100,6 @@ export function useDragSensors(options: DragSensorOptions = {}) {
   // When touch-optimized, use separate sensors for better control
   // Otherwise, use unified PointerSensor for backwards compatibility
   return useSensors(
-    ...(touchOptimized ? [mouseSensor, touchSensor] : [pointerSensor])
+    ...(touchOptimized ? [mouseSensor, touchSensor] : [pointerSensor]),
   );
 }

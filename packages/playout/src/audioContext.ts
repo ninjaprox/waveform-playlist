@@ -8,7 +8,7 @@
  * cross-browser compatibility (fixes Firefox AudioListener issues).
  */
 
-import { Context, setContext } from 'tone';
+import { Context, setContext } from "tone";
 
 let globalToneContext: Context | null = null;
 
@@ -51,7 +51,7 @@ export function getGlobalToneContext(): Context {
  */
 export async function resumeGlobalAudioContext(): Promise<void> {
   const context = getGlobalContext();
-  if (context.state !== 'running') {
+  if (context.state !== "running") {
     await context.resume();
   }
 }
@@ -61,7 +61,7 @@ export async function resumeGlobalAudioContext(): Promise<void> {
  * @returns The AudioContext state ('suspended', 'running', or 'closed')
  */
 export function getGlobalAudioContextState(): AudioContextState {
-  return globalToneContext?.rawContext.state || 'suspended';
+  return globalToneContext?.rawContext.state || "suspended";
 }
 
 /**
@@ -69,7 +69,7 @@ export function getGlobalAudioContextState(): AudioContextState {
  * Should only be called when the application is shutting down
  */
 export async function closeGlobalAudioContext(): Promise<void> {
-  if (globalToneContext && globalToneContext.rawContext.state !== 'closed') {
+  if (globalToneContext && globalToneContext.rawContext.state !== "closed") {
     await globalToneContext.close();
     globalToneContext = null;
   }

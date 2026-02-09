@@ -2,20 +2,20 @@
  * Main recording hook using AudioWorklet
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { UseRecordingReturn, RecordingOptions } from '../types';
-import { concatenateAudioData, createAudioBuffer } from '../utils/audioBufferUtils';
-import { appendPeaks } from '../utils/peaksGenerator';
-import { getContext } from 'tone';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { UseRecordingReturn, RecordingOptions } from "../types";
+import {
+  concatenateAudioData,
+  createAudioBuffer,
+} from "../utils/audioBufferUtils";
+import { appendPeaks } from "../utils/peaksGenerator";
+import { getContext } from "tone";
 
 export function useRecording(
   stream: MediaStream | null,
-  options: RecordingOptions = {}
+  options: RecordingOptions = {},
 ): UseRecordingReturn {
-  const {
-    channelCount = 1,
-    samplesPerPixel = 1024,
-  } = options;
+  const { channelCount = 1, samplesPerPixel = 1024 } = options;
 
   // State
   const [isRecording, setIsRecording] = useState(false);
@@ -55,23 +55,23 @@ export function useRecording(
       // Load the worklet module
       // Use a relative path that works when bundled
       const workletUrl = new URL(
-        './worklet/recording-processor.worklet.js',
-        import.meta.url
+        "./worklet/recording-processor.worklet.js",
+        import.meta.url,
       ).href;
 
       // Use Tone's addAudioWorkletModule for cross-browser compatibility
       await context.addAudioWorkletModule(workletUrl);
       workletLoadedRef.current = true;
     } catch (err) {
-      console.error('Failed to load AudioWorklet module:', err);
-      throw new Error('Failed to load recording processor');
+      console.error("Failed to load AudioWorklet module:", err);
+      throw new Error("Failed to load recording processor");
     }
   }, []);
 
   // Start recording
   const startRecording = useCallback(async () => {
     if (!stream) {
-      setError(new Error('No microphone stream available'));
+      setError(new Error("No microphone stream available"));
       return;
     }
 
@@ -82,7 +82,7 @@ export function useRecording(
       const context = getContext();
 
       // Resume AudioContext if suspended
-      if (context.state === 'suspended') {
+      if (context.state === "suspended") {
         await context.resume();
       }
 
@@ -95,7 +95,7 @@ export function useRecording(
       mediaStreamSourceRef.current = source;
 
       // Create AudioWorklet node using Tone's method
-      const workletNode = context.createAudioWorkletNode('recording-processor');
+      const workletNode = context.createAudioWorkletNode("recording-processor");
       workletNodeRef.current = workletNode;
 
       // Connect source to worklet (but not to destination - no monitoring)
@@ -116,8 +116,8 @@ export function useRecording(
             samples,
             samplesPerPixel,
             totalSamplesRef.current - samples.length,
-            bits
-          )
+            bits,
+          ),
         );
 
         // Note: VU meter levels come from useMicrophoneLevel (AnalyserNode)
@@ -126,7 +126,7 @@ export function useRecording(
 
       // Start the worklet processor
       workletNode.port.postMessage({
-        command: 'start',
+        command: "start",
         sampleRate: context.sampleRate,
         channelCount,
       });
@@ -154,10 +154,19 @@ export function useRecording(
       };
       updateDuration();
     } catch (err) {
-      console.error('Failed to start recording:', err);
-      setError(err instanceof Error ? err : new Error('Failed to start recording'));
+      console.error("Failed to start recording:", err);
+      setError(
+        err instanceof Error ? err : new Error("Failed to start recording"),
+      );
     }
-  }, [stream, channelCount, samplesPerPixel, loadWorklet, isRecording, isPaused]);
+  }, [
+    stream,
+    channelCount,
+    samplesPerPixel,
+    loadWorklet,
+    isRecording,
+    isPaused,
+  ]);
 
   // Stop recording
   const stopRecording = useCallback(async (): Promise<AudioBuffer | null> => {
@@ -168,7 +177,7 @@ export function useRecording(
     try {
       // Stop the worklet
       if (workletNodeRef.current) {
-        workletNodeRef.current.port.postMessage({ command: 'stop' });
+        workletNodeRef.current.port.postMessage({ command: "stop" });
 
         // Disconnect worklet from source
         if (mediaStreamSourceRef.current) {
@@ -197,7 +206,7 @@ export function useRecording(
         rawContext,
         allSamples,
         rawContext.sampleRate,
-        channelCount
+        channelCount,
       );
 
       setAudioBuffer(buffer);
@@ -211,8 +220,10 @@ export function useRecording(
 
       return buffer;
     } catch (err) {
-      console.error('Failed to stop recording:', err);
-      setError(err instanceof Error ? err : new Error('Failed to stop recording'));
+      console.error("Failed to stop recording:", err);
+      setError(
+        err instanceof Error ? err : new Error("Failed to stop recording"),
+      );
       return null;
     }
   }, [isRecording, channelCount]);
@@ -251,7 +262,7 @@ export function useRecording(
   useEffect(() => {
     return () => {
       if (workletNodeRef.current) {
-        workletNodeRef.current.port.postMessage({ command: 'stop' });
+        workletNodeRef.current.port.postMessage({ command: "stop" });
 
         // Disconnect worklet from source
         if (mediaStreamSourceRef.current) {

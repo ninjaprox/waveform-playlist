@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
-import { BaseSelect } from '../styled';
+import type { Meta, StoryObj } from "@storybook/react";
+import React from "react";
+import { BaseSelect } from "../styled";
 
 const meta: Meta<typeof BaseSelect> = {
-  title: 'Base/Select',
+  title: "Base/Select",
   component: BaseSelect,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;

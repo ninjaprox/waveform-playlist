@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
-import { useTheme } from 'styled-components';
-import { TimeScale } from '../components/TimeScale';
-import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
-import { DevicePixelRatioProvider } from '../contexts/DevicePixelRatio';
-import type { WaveformPlaylistTheme } from '../wfpl-theme';
+import type { Meta, StoryObj } from "@storybook/react";
+import React from "react";
+import { useTheme } from "styled-components";
+import { TimeScale } from "../components/TimeScale";
+import { PlaylistInfoContext } from "../contexts/PlaylistInfo";
+import { DevicePixelRatioProvider } from "../contexts/DevicePixelRatio";
+import type { WaveformPlaylistTheme } from "../wfpl-theme";
 
 const playlistInfo = {
   sampleRate: 48000,
@@ -28,27 +28,30 @@ const playlistInfoWithControls = {
 };
 
 // Wrapper component that gets theme from context and passes it as prop
-const TimeScaleWithTheme = (props: Omit<React.ComponentProps<typeof TimeScale>, 'theme'>) => {
+const TimeScaleWithTheme = (
+  props: Omit<React.ComponentProps<typeof TimeScale>, "theme">,
+) => {
   const theme = useTheme() as WaveformPlaylistTheme;
   return <TimeScale {...props} theme={theme} />;
 };
 
 const meta: Meta<typeof TimeScaleWithTheme> = {
-  title: 'Components/TimeScale',
+  title: "Components/TimeScale",
   component: TimeScaleWithTheme,
   parameters: {
-    layout: 'padded',
+    layout: "padded",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   decorators: [
     (Story, context) => {
-      const theme = context.globals.theme === 'dark'
-        ? { backgroundColor: '#1e1e1e' }
-        : { backgroundColor: '#f5f5f5' };
+      const theme =
+        context.globals.theme === "dark"
+          ? { backgroundColor: "#1e1e1e" }
+          : { backgroundColor: "#f5f5f5" };
       return (
         <DevicePixelRatioProvider>
           <PlaylistInfoContext.Provider value={playlistInfo}>
-            <div style={{ background: theme.backgroundColor, padding: '1rem' }}>
+            <div style={{ background: theme.backgroundColor, padding: "1rem" }}>
               <Story />
             </div>
           </PlaylistInfoContext.Provider>
@@ -106,13 +109,14 @@ export const WithControlsOffset: Story = {
   },
   decorators: [
     (Story, context) => {
-      const theme = context.globals.theme === 'dark'
-        ? { backgroundColor: '#1e1e1e' }
-        : { backgroundColor: '#f5f5f5' };
+      const theme =
+        context.globals.theme === "dark"
+          ? { backgroundColor: "#1e1e1e" }
+          : { backgroundColor: "#f5f5f5" };
       return (
         <DevicePixelRatioProvider>
           <PlaylistInfoContext.Provider value={playlistInfoWithControls}>
-            <div style={{ background: theme.backgroundColor, padding: '1rem' }}>
+            <div style={{ background: theme.backgroundColor, padding: "1rem" }}>
               <Story />
             </div>
           </PlaylistInfoContext.Provider>
@@ -131,11 +135,11 @@ export const CustomTimestampRenderer: Story = {
     renderTimestamp: (timeMs: number, pixelPosition: number) => (
       <div
         style={{
-          position: 'absolute',
+          position: "absolute",
           left: `${pixelPosition + 4}px`,
-          fontSize: '0.7rem',
-          color: '#0066cc',
-          fontWeight: 'bold',
+          fontSize: "0.7rem",
+          color: "#0066cc",
+          fontWeight: "bold",
         }}
       >
         {Math.floor(timeMs / 1000)}s

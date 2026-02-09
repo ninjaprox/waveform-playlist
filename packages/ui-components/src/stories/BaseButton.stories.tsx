@@ -1,13 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { BaseButton } from '../styled';
+import type { Meta, StoryObj } from "@storybook/react";
+import { BaseButton } from "../styled";
 
 const meta: Meta<typeof BaseButton> = {
-  title: 'Base/Button',
+  title: "Base/Button",
   component: BaseButton,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -15,13 +15,13 @@ type Story = StoryObj<typeof BaseButton>;
 
 export const Default: Story = {
   args: {
-    children: 'Button',
+    children: "Button",
   },
 };
 
 export const Disabled: Story = {
   args: {
-    children: 'Disabled Button',
+    children: "Disabled Button",
     disabled: true,
   },
 };

@@ -1,15 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
-import { TimeFormatSelect } from '../components/TimeFormatSelect';
-import type { TimeFormat } from '../utils/timeFormat';
+import type { Meta, StoryObj } from "@storybook/react";
+import { useState } from "react";
+import { TimeFormatSelect } from "../components/TimeFormatSelect";
+import type { TimeFormat } from "../utils/timeFormat";
 
 const meta: Meta<typeof TimeFormatSelect> = {
-  title: 'Components/TimeFormatSelect',
+  title: "Components/TimeFormatSelect",
   component: TimeFormatSelect,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -17,28 +17,28 @@ type Story = StoryObj<typeof TimeFormatSelect>;
 
 export const Default: Story = {
   args: {
-    value: 'hh:mm:ss.uuu',
+    value: "hh:mm:ss.uuu",
     onChange: () => {},
   },
 };
 
 export const Seconds: Story = {
   args: {
-    value: 'seconds',
+    value: "seconds",
     onChange: () => {},
   },
 };
 
 export const Thousandths: Story = {
   args: {
-    value: 'thousandths',
+    value: "thousandths",
     onChange: () => {},
   },
 };
 
 export const Disabled: Story = {
   args: {
-    value: 'hh:mm:ss',
+    value: "hh:mm:ss",
     onChange: () => {},
     disabled: true,
   },
@@ -46,11 +46,11 @@ export const Disabled: Story = {
 
 export const Interactive: Story = {
   render: () => {
-    const [format, setFormat] = useState<TimeFormat>('hh:mm:ss.uuu');
+    const [format, setFormat] = useState<TimeFormat>("hh:mm:ss.uuu");
     return (
       <div>
         <TimeFormatSelect value={format} onChange={setFormat} />
-        <p style={{ marginTop: '1rem' }}>Selected: {format}</p>
+        <p style={{ marginTop: "1rem" }}>Selected: {format}</p>
       </div>
     );
   },

@@ -1,2 +1,2 @@
-export * from './effectDefinitions';
-export * from './effectFactory';
+export * from "./effectDefinitions";
+export * from "./effectFactory";

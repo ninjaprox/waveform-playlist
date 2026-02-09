@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { getContext } from 'tone';
+import React, { useRef, useEffect } from "react";
+import { getContext } from "tone";
 import {
   MasterVolumeControl as BaseMasterVolumeControl,
   TimeFormatSelect as BaseTimeFormatSelect,
@@ -7,14 +7,21 @@ import {
   SelectionTimeInputs as BaseSelectionTimeInputs,
   formatTime,
   type TimeFormat,
-} from '@waveform-playlist/ui-components';
-import styled from 'styled-components';
-import { usePlaybackAnimation, usePlaylistState, usePlaylistControls, usePlaylistData } from '../WaveformPlaylistContext';
+} from "@waveform-playlist/ui-components";
+import styled from "styled-components";
+import {
+  usePlaybackAnimation,
+  usePlaylistState,
+  usePlaylistControls,
+  usePlaylistData,
+} from "../WaveformPlaylistContext";
 
 /**
  * Master volume control that uses the playlist context
  */
-export const MasterVolumeControl: React.FC<{ className?: string }> = ({ className }) => {
+export const MasterVolumeControl: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const { masterVolume } = usePlaylistData();
   const { setMasterVolume } = usePlaylistControls();
 
@@ -30,7 +37,9 @@ export const MasterVolumeControl: React.FC<{ className?: string }> = ({ classNam
 /**
  * Time format selector that uses the playlist context
  */
-export const TimeFormatSelect: React.FC<{ className?: string }> = ({ className }) => {
+export const TimeFormatSelect: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const { timeFormat } = usePlaylistData();
   const { setTimeFormat } = usePlaylistControls();
 
@@ -44,10 +53,10 @@ export const TimeFormatSelect: React.FC<{ className?: string }> = ({ className }
 };
 
 const PositionDisplay = styled.span`
-  font-family: 'Courier New', Monaco, monospace;
+  font-family: "Courier New", Monaco, monospace;
   font-size: 1rem;
   font-weight: 600;
-  color: ${props => props.theme?.textColor || '#333'};
+  color: ${(props) => props.theme?.textColor || "#333"};
   user-select: none;
 `;
 
@@ -56,10 +65,17 @@ const PositionDisplay = styled.span`
  * Uses requestAnimationFrame for smooth 60fps updates during playback.
  * Direct DOM manipulation avoids React re-renders.
  */
-export const AudioPosition: React.FC<{ className?: string }> = ({ className }) => {
+export const AudioPosition: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const timeRef = useRef<HTMLSpanElement>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const { isPlaying, currentTimeRef, playbackStartTimeRef, audioStartPositionRef } = usePlaybackAnimation();
+  const {
+    isPlaying,
+    currentTimeRef,
+    playbackStartTimeRef,
+    audioStartPositionRef,
+  } = usePlaybackAnimation();
   const { timeFormat } = usePlaylistData();
   const format = timeFormat as TimeFormat;
 
@@ -68,7 +84,8 @@ export const AudioPosition: React.FC<{ className?: string }> = ({ className }) =
       if (timeRef.current) {
         let time: number;
         if (isPlaying) {
-          const elapsed = getContext().currentTime - (playbackStartTimeRef.current ?? 0);
+          const elapsed =
+            getContext().currentTime - (playbackStartTimeRef.current ?? 0);
           time = (audioStartPositionRef.current ?? 0) + elapsed;
         } else {
           time = currentTimeRef.current ?? 0;
@@ -93,17 +110,30 @@ export const AudioPosition: React.FC<{ className?: string }> = ({ className }) =
         animationFrameRef.current = null;
       }
     };
-  }, [isPlaying, format, currentTimeRef, playbackStartTimeRef, audioStartPositionRef]);
+  }, [
+    isPlaying,
+    format,
+    currentTimeRef,
+    playbackStartTimeRef,
+    audioStartPositionRef,
+  ]);
 
   // Update when stopped (for seeks)
   useEffect(() => {
     if (!isPlaying && timeRef.current) {
-      timeRef.current.textContent = formatTime(currentTimeRef.current ?? 0, format);
+      timeRef.current.textContent = formatTime(
+        currentTimeRef.current ?? 0,
+        format,
+      );
     }
   });
 
   return (
-    <PositionDisplay ref={timeRef} className={className} aria-label="Audio position">
+    <PositionDisplay
+      ref={timeRef}
+      className={className}
+      aria-label="Audio position"
+    >
       {formatTime(currentTimeRef.current ?? 0, format)}
     </PositionDisplay>
   );
@@ -112,7 +142,9 @@ export const AudioPosition: React.FC<{ className?: string }> = ({ className }) =
 /**
  * Selection time inputs that use the playlist context
  */
-export const SelectionTimeInputs: React.FC<{ className?: string }> = ({ className }) => {
+export const SelectionTimeInputs: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const { selectionStart, selectionEnd } = usePlaylistState();
   const { setSelection } = usePlaylistControls();
 
@@ -130,7 +162,9 @@ export const SelectionTimeInputs: React.FC<{ className?: string }> = ({ classNam
  * Automatic scroll checkbox that uses the playlist context
  * Uses split contexts to avoid re-rendering during animation
  */
-export const AutomaticScrollCheckbox: React.FC<{ className?: string }> = ({ className }) => {
+export const AutomaticScrollCheckbox: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const { isAutomaticScroll } = usePlaylistState();
   const { setAutomaticScroll } = usePlaylistControls();
 

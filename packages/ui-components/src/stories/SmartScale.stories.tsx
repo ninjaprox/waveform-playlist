@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { SmartScale } from '../components/SmartScale';
-import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
-import { DevicePixelRatioProvider } from '../contexts/DevicePixelRatio';
+import type { Meta, StoryObj } from "@storybook/react";
+import { SmartScale } from "../components/SmartScale";
+import { PlaylistInfoContext } from "../contexts/PlaylistInfo";
+import { DevicePixelRatioProvider } from "../contexts/DevicePixelRatio";
 
 // Different zoom levels to demonstrate SmartScale behavior
 const createPlaylistInfo = (samplesPerPixel: number, duration: number) => ({
@@ -18,12 +18,12 @@ const createPlaylistInfo = (samplesPerPixel: number, duration: number) => ({
 });
 
 const meta: Meta<typeof SmartScale> = {
-  title: 'Components/SmartScale',
+  title: "Components/SmartScale",
   component: SmartScale,
   parameters: {
-    layout: 'padded',
+    layout: "padded",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -34,8 +34,8 @@ export const ZoomedIn: Story = {
     (Story) => (
       <DevicePixelRatioProvider>
         <PlaylistInfoContext.Provider value={createPlaylistInfo(500, 30000)}>
-          <div style={{ padding: '1rem' }}>
-            <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+          <div style={{ padding: "1rem" }}>
+            <p style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
               Samples per pixel: 500 (zoomed in)
             </p>
             <Story />
@@ -51,8 +51,8 @@ export const MediumZoom: Story = {
     (Story) => (
       <DevicePixelRatioProvider>
         <PlaylistInfoContext.Provider value={createPlaylistInfo(1500, 60000)}>
-          <div style={{ padding: '1rem' }}>
-            <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+          <div style={{ padding: "1rem" }}>
+            <p style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
               Samples per pixel: 1500 (medium zoom)
             </p>
             <Story />
@@ -68,8 +68,8 @@ export const ZoomedOut: Story = {
     (Story) => (
       <DevicePixelRatioProvider>
         <PlaylistInfoContext.Provider value={createPlaylistInfo(5000, 180000)}>
-          <div style={{ padding: '1rem' }}>
-            <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+          <div style={{ padding: "1rem" }}>
+            <p style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
               Samples per pixel: 5000 (zoomed out)
             </p>
             <Story />
@@ -85,8 +85,8 @@ export const VeryZoomedOut: Story = {
     (Story) => (
       <DevicePixelRatioProvider>
         <PlaylistInfoContext.Provider value={createPlaylistInfo(12000, 300000)}>
-          <div style={{ padding: '1rem' }}>
-            <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+          <div style={{ padding: "1rem" }}>
+            <p style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
               Samples per pixel: 12000 (very zoomed out)
             </p>
             <Story />
@@ -102,8 +102,8 @@ export const ShortDuration: Story = {
     (Story) => (
       <DevicePixelRatioProvider>
         <PlaylistInfoContext.Provider value={createPlaylistInfo(500, 10000)}>
-          <div style={{ padding: '1rem' }}>
-            <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+          <div style={{ padding: "1rem" }}>
+            <p style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
               Short duration: 10 seconds
             </p>
             <Story />
@@ -119,8 +119,8 @@ export const LongDuration: Story = {
     (Story) => (
       <DevicePixelRatioProvider>
         <PlaylistInfoContext.Provider value={createPlaylistInfo(10000, 600000)}>
-          <div style={{ padding: '1rem' }}>
-            <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+          <div style={{ padding: "1rem" }}>
+            <p style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
               Long duration: 10 minutes
             </p>
             <Story />

@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * BaseLabel - A styled label component that uses theme values

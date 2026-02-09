@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { TimeInput } from './TimeInput';
-import { type TimeFormat } from '../utils/timeFormat';
+import React, { useEffect, useState } from "react";
+import { TimeInput } from "./TimeInput";
+import { type TimeFormat } from "../utils/timeFormat";
 
 export interface SelectionTimeInputsProps {
   selectionStart: number; // Time in seconds
@@ -15,11 +15,13 @@ export const SelectionTimeInputs: React.FC<SelectionTimeInputsProps> = ({
   onSelectionChange,
   className,
 }) => {
-  const [timeFormat, setTimeFormat] = useState<TimeFormat>('hh:mm:ss.uuu');
+  const [timeFormat, setTimeFormat] = useState<TimeFormat>("hh:mm:ss.uuu");
 
   // Listen to the external time-format dropdown
   useEffect(() => {
-    const timeFormatSelect = document.querySelector('.time-format') as HTMLSelectElement;
+    const timeFormatSelect = document.querySelector(
+      ".time-format",
+    ) as HTMLSelectElement;
 
     const handleFormatChange = () => {
       if (timeFormatSelect) {
@@ -30,11 +32,11 @@ export const SelectionTimeInputs: React.FC<SelectionTimeInputsProps> = ({
     // Set initial value
     if (timeFormatSelect) {
       setTimeFormat(timeFormatSelect.value as TimeFormat);
-      timeFormatSelect.addEventListener('change', handleFormatChange);
+      timeFormatSelect.addEventListener("change", handleFormatChange);
     }
 
     return () => {
-      timeFormatSelect?.removeEventListener('change', handleFormatChange);
+      timeFormatSelect?.removeEventListener("change", handleFormatChange);
     };
   }, []);
 

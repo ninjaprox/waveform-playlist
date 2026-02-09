@@ -4,8 +4,8 @@
  * Uses Tone.js Meter for real-time audio level monitoring.
  */
 
-import { useEffect, useState, useRef } from 'react';
-import { Meter, getContext, connect } from 'tone';
+import { useEffect, useState, useRef } from "react";
+import { Meter, getContext, connect } from "tone";
 
 export interface UseMicrophoneLevelOptions {
   /**
@@ -63,12 +63,9 @@ export interface UseMicrophoneLevelReturn {
  */
 export function useMicrophoneLevel(
   stream: MediaStream | null,
-  options: UseMicrophoneLevelOptions = {}
+  options: UseMicrophoneLevelOptions = {},
 ): UseMicrophoneLevelReturn {
-  const {
-    updateRate = 60,
-    smoothingTimeConstant = 0.8,
-  } = options;
+  const { updateRate = 60, smoothingTimeConstant = 0.8 } = options;
 
   const [level, setLevel] = useState(0);
   const [peakLevel, setPeakLevel] = useState(0);
@@ -94,7 +91,7 @@ export function useMicrophoneLevel(
 
       // Get Tone's context and resume if needed
       const context = getContext();
-      if (context.state === 'suspended') {
+      if (context.state === "suspended") {
         await context.resume();
       }
 
@@ -126,13 +123,13 @@ export function useMicrophoneLevel(
 
           // Meter.getValue() returns dB, convert to 0-1 range
           const db = meterRef.current.getValue();
-          const dbValue = typeof db === 'number' ? db : db[0];
+          const dbValue = typeof db === "number" ? db : db[0];
           // dB is typically -Infinity to 0, map -100dB..0dB to 0..1
           // Using -100dB as floor since Firefox seems to report lower values
           const normalized = Math.max(0, Math.min(1, (dbValue + 100) / 100));
 
           setLevel(normalized);
-          setPeakLevel(prev => Math.max(prev, normalized));
+          setPeakLevel((prev) => Math.max(prev, normalized));
         }
 
         animationFrameRef.current = requestAnimationFrame(updateLevel);

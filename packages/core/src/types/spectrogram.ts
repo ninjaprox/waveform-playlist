@@ -8,7 +8,9 @@
 export type FFTSize = 256 | 512 | 1024 | 2048 | 4096 | 8192;
 
 /** A single color map entry: [r, g, b] or [r, g, b, a] */
-export type ColorMapEntry = [number, number, number] | [number, number, number, number];
+export type ColorMapEntry =
+  | [number, number, number]
+  | [number, number, number, number];
 
 /**
  * Computed spectrogram data ready for rendering.
@@ -43,11 +45,17 @@ export interface SpectrogramConfig {
   /** Hop size between frames in samples. Default: fftSize / 4 */
   hopSize?: number;
   /** Window function applied before FFT. Default: 'hann' */
-  windowFunction?: 'hann' | 'hamming' | 'blackman' | 'rectangular' | 'bartlett' | 'blackman-harris';
+  windowFunction?:
+    | "hann"
+    | "hamming"
+    | "blackman"
+    | "rectangular"
+    | "bartlett"
+    | "blackman-harris";
   /** Window function parameter (0-1), used by some window functions */
   alpha?: number;
   /** Frequency axis scale. Default: 'mel' */
-  frequencyScale?: 'linear' | 'logarithmic' | 'mel' | 'bark' | 'erb';
+  frequencyScale?: "linear" | "logarithmic" | "mel" | "bark" | "erb";
   /** Minimum frequency in Hz. Default: 0 */
   minFrequency?: number;
   /** Maximum frequency in Hz. Default: sampleRate / 2 */
@@ -67,19 +75,38 @@ export interface SpectrogramConfig {
 }
 
 /** Built-in color map names */
-export type ColorMapName = 'viridis' | 'magma' | 'inferno' | 'grayscale' | 'igray' | 'roseus';
+export type ColorMapName =
+  | "viridis"
+  | "magma"
+  | "inferno"
+  | "grayscale"
+  | "igray"
+  | "roseus";
 
 /** Color map can be a named preset or a custom array of [r, g, b, a?] entries */
 export type ColorMapValue = ColorMapName | ColorMapEntry[];
 
 /** Subset of SpectrogramConfig fields that affect FFT computation (used for cache keys) */
-export type SpectrogramComputeConfig = Pick<SpectrogramConfig, 'fftSize' | 'hopSize' | 'windowFunction' | 'alpha' | 'zeroPaddingFactor'>;
+export type SpectrogramComputeConfig = Pick<
+  SpectrogramConfig,
+  "fftSize" | "hopSize" | "windowFunction" | "alpha" | "zeroPaddingFactor"
+>;
 
 /** Subset of SpectrogramConfig fields that only affect display/rendering (not FFT computation) */
-export type SpectrogramDisplayConfig = Pick<SpectrogramConfig, 'frequencyScale' | 'minFrequency' | 'maxFrequency' | 'gainDb' | 'rangeDb' | 'labels' | 'labelsColor' | 'labelsBackground'>;
+export type SpectrogramDisplayConfig = Pick<
+  SpectrogramConfig,
+  | "frequencyScale"
+  | "minFrequency"
+  | "maxFrequency"
+  | "gainDb"
+  | "rangeDb"
+  | "labels"
+  | "labelsColor"
+  | "labelsBackground"
+>;
 
 /** Render mode for a track's visualization */
-export type RenderMode = 'waveform' | 'spectrogram' | 'both';
+export type RenderMode = "waveform" | "spectrogram" | "both";
 
 /** Per-track overrides for spectrogram rendering (render mode, config, color map) */
 export interface TrackSpectrogramOverrides {

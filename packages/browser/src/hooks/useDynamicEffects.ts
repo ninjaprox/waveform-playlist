@@ -1,15 +1,15 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import type { EffectsFunction } from '@waveform-playlist/playout';
+import { useState, useCallback, useRef, useEffect } from "react";
+import type { EffectsFunction } from "@waveform-playlist/playout";
 import {
   effectDefinitions,
   getEffectDefinition,
   type EffectDefinition,
-} from '../effects/effectDefinitions';
+} from "../effects/effectDefinitions";
 import {
   createEffectInstance,
   type EffectInstance,
-} from '../effects/effectFactory';
-import { Analyser } from 'tone';
+} from "../effects/effectFactory";
+import { Analyser } from "tone";
 
 export interface ActiveEffect {
   instanceId: string;
@@ -27,7 +27,11 @@ export interface UseDynamicEffectsReturn {
   // Actions
   addEffect: (effectId: string) => void;
   removeEffect: (instanceId: string) => void;
-  updateParameter: (instanceId: string, paramName: string, value: number | string | boolean) => void;
+  updateParameter: (
+    instanceId: string,
+    paramName: string,
+    value: number | string | boolean,
+  ) => void;
   toggleBypass: (instanceId: string) => void;
   reorderEffects: (fromIndex: number, toIndex: number) => void;
   clearAllEffects: () => void;
@@ -48,7 +52,9 @@ export interface UseDynamicEffectsReturn {
 /**
  * Hook for managing a dynamic chain of audio effects with real-time parameter updates
  */
-export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsReturn {
+export function useDynamicEffects(
+  fftSize: number = 256,
+): UseDynamicEffectsReturn {
   // Track active effects in state (for UI)
   const [activeEffects, setActiveEffects] = useState<ActiveEffect[]>([]);
 
@@ -156,7 +162,11 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
 
   // Update a parameter in real-time
   const updateParameter = useCallback(
-    (instanceId: string, paramName: string, value: number | string | boolean) => {
+    (
+      instanceId: string,
+      paramName: string,
+      value: number | string | boolean,
+    ) => {
       // Update the actual effect instance
       const instance = effectInstancesRef.current.get(instanceId);
       if (instance) {
@@ -168,40 +178,39 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
         prev.map((e) =>
           e.instanceId === instanceId
             ? { ...e, params: { ...e.params, [paramName]: value } }
-            : e
-        )
+            : e,
+        ),
       );
     },
-    []
+    [],
   );
 
   // Toggle bypass for an effect (uses wet parameter - 0 = bypass, restore original for active)
-  const toggleBypass = useCallback(
-    (instanceId: string) => {
-      // Get current state from ref to determine new bypassed value (avoids stale closure)
-      const effect = activeEffectsRef.current.find((e) => e.instanceId === instanceId);
-      if (!effect) return;
+  const toggleBypass = useCallback((instanceId: string) => {
+    // Get current state from ref to determine new bypassed value (avoids stale closure)
+    const effect = activeEffectsRef.current.find(
+      (e) => e.instanceId === instanceId,
+    );
+    if (!effect) return;
 
-      const newBypassed = !effect.bypassed;
+    const newBypassed = !effect.bypassed;
 
-      // Update the actual effect instance
-      // When bypassing: set wet to 0
-      // When un-bypassing: restore the original wet value from params
-      const instance = effectInstancesRef.current.get(instanceId);
-      if (instance) {
-        const originalWet = effect.params.wet as number ?? 1;
-        instance.setParameter('wet', newBypassed ? 0 : originalWet);
-      }
+    // Update the actual effect instance
+    // When bypassing: set wet to 0
+    // When un-bypassing: restore the original wet value from params
+    const instance = effectInstancesRef.current.get(instanceId);
+    if (instance) {
+      const originalWet = (effect.params.wet as number) ?? 1;
+      instance.setParameter("wet", newBypassed ? 0 : originalWet);
+    }
 
-      // Update state for UI
-      setActiveEffects((prev) =>
-        prev.map((e) =>
-          e.instanceId === instanceId ? { ...e, bypassed: newBypassed } : e
-        )
-      );
-    },
-    []
-  );
+    // Update state for UI
+    setActiveEffects((prev) =>
+      prev.map((e) =>
+        e.instanceId === instanceId ? { ...e, bypassed: newBypassed } : e,
+      ),
+    );
+  }, []);
 
   // Reorder effects in the chain
   const reorderEffects = useCallback((fromIndex: number, toIndex: number) => {
@@ -232,7 +241,7 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
   const masterEffects: EffectsFunction = useCallback(
     (masterGainNode, destination, _isOffline) => {
       // Create analyser for visualization
-      const analyserNode = new Analyser('fft', fftSize);
+      const analyserNode = new Analyser("fft", fftSize);
       analyserRef.current = analyserNode;
 
       // Store references for rebuilding chain
@@ -272,7 +281,7 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
         graphNodesRef.current = null;
       };
     },
-    [fftSize] // Only fftSize - reads effects from ref
+    [fftSize], // Only fftSize - reads effects from ref
   );
 
   // Cleanup on unmount
@@ -288,7 +297,9 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
    * This creates new effect instances in the offline context, avoiding the
    * AudioContext mismatch issue that occurs when reusing real-time effects.
    */
-  const createOfflineEffectsFunction = useCallback((): EffectsFunction | undefined => {
+  const createOfflineEffectsFunction = useCallback(():
+    | EffectsFunction
+    | undefined => {
     // Get non-bypassed effects
     const nonBypassedEffects = activeEffects.filter((e) => !e.bypassed);
 
@@ -302,7 +313,10 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
       const offlineInstances: EffectInstance[] = [];
 
       for (const activeEffect of nonBypassedEffects) {
-        const instance = createEffectInstance(activeEffect.definition, activeEffect.params);
+        const instance = createEffectInstance(
+          activeEffect.definition,
+          activeEffect.params,
+        );
         offlineInstances.push(instance);
       }
 

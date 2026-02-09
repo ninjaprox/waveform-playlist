@@ -1,14 +1,14 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import type { TrackEffectsFunction } from '../index';
+import { useState, useCallback, useRef, useEffect } from "react";
+import type { TrackEffectsFunction } from "../index";
 import {
   effectDefinitions,
   getEffectDefinition,
   type EffectDefinition,
-} from '../effects/effectDefinitions';
+} from "../effects/effectDefinitions";
 import {
   createEffectInstance,
   type EffectInstance,
-} from '../effects/effectFactory';
+} from "../effects/effectFactory";
 
 export interface TrackActiveEffect {
   instanceId: string;
@@ -34,17 +34,21 @@ export interface UseTrackDynamicEffectsReturn {
     trackId: string,
     instanceId: string,
     paramName: string,
-    value: number | string | boolean
+    value: number | string | boolean,
   ) => void;
   toggleBypass: (trackId: string, instanceId: string) => void;
   clearTrackEffects: (trackId: string) => void;
-  getTrackEffectsFunction: (trackId: string) => TrackEffectsFunction | undefined;
+  getTrackEffectsFunction: (
+    trackId: string,
+  ) => TrackEffectsFunction | undefined;
 
   /**
    * Creates a fresh effects function for a track for offline rendering.
    * This creates new effect instances that work in the offline AudioContext.
    */
-  createOfflineTrackEffectsFunction: (trackId: string) => TrackEffectsFunction | undefined;
+  createOfflineTrackEffectsFunction: (
+    trackId: string,
+  ) => TrackEffectsFunction | undefined;
 
   // Available effects
   availableEffects: EffectDefinition[];
@@ -55,12 +59,14 @@ export interface UseTrackDynamicEffectsReturn {
  */
 export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
   // Track effects state per track (for UI)
-  const [trackEffectsState, setTrackEffectsState] = useState<Map<string, TrackActiveEffect[]>>(
-    new Map()
-  );
+  const [trackEffectsState, setTrackEffectsState] = useState<
+    Map<string, TrackActiveEffect[]>
+  >(new Map());
 
   // Track effect instances per track (for audio processing)
-  const trackEffectInstancesRef = useRef<Map<string, Map<string, EffectInstance>>>(new Map());
+  const trackEffectInstancesRef = useRef<
+    Map<string, Map<string, EffectInstance>>
+  >(new Map());
 
   // Track graph nodes per track for rebuilding chains
   const trackGraphNodesRef = useRef<
@@ -75,46 +81,49 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
 
   // Rebuild the effect chain for a specific track
   // Note: trackEffects is passed as parameter to avoid stale closure issues
-  const rebuildTrackChain = useCallback((trackId: string, trackEffects: TrackActiveEffect[]) => {
-    const nodes = trackGraphNodesRef.current.get(trackId);
-    if (!nodes) return;
+  const rebuildTrackChain = useCallback(
+    (trackId: string, trackEffects: TrackActiveEffect[]) => {
+      const nodes = trackGraphNodesRef.current.get(trackId);
+      if (!nodes) return;
 
-    const { graphEnd, masterGainNode } = nodes;
-    const instancesMap = trackEffectInstancesRef.current.get(trackId);
+      const { graphEnd, masterGainNode } = nodes;
+      const instancesMap = trackEffectInstancesRef.current.get(trackId);
 
-    // Disconnect everything first
-    try {
-      graphEnd.disconnect();
-    } catch (e) {
-      // Ignore disconnect errors
-    }
+      // Disconnect everything first
+      try {
+        graphEnd.disconnect();
+      } catch (e) {
+        // Ignore disconnect errors
+      }
 
-    // Get effect instances in order
-    const instances = trackEffects
-      .map((ae) => instancesMap?.get(ae.instanceId))
-      .filter((inst): inst is EffectInstance => inst !== undefined);
+      // Get effect instances in order
+      const instances = trackEffects
+        .map((ae) => instancesMap?.get(ae.instanceId))
+        .filter((inst): inst is EffectInstance => inst !== undefined);
 
-    if (instances.length === 0) {
-      // No effects - connect directly
-      graphEnd.connect(masterGainNode);
-    } else {
-      // Connect: graphEnd -> effect1 -> effect2 -> ... -> masterGainNode
-      let currentNode: any = graphEnd;
+      if (instances.length === 0) {
+        // No effects - connect directly
+        graphEnd.connect(masterGainNode);
+      } else {
+        // Connect: graphEnd -> effect1 -> effect2 -> ... -> masterGainNode
+        let currentNode: any = graphEnd;
 
-      instances.forEach((inst) => {
-        try {
-          inst.disconnect();
-        } catch (e) {
-          // Ignore
-        }
-        currentNode.connect(inst.effect);
-        currentNode = inst.effect;
-      });
+        instances.forEach((inst) => {
+          try {
+            inst.disconnect();
+          } catch (e) {
+            // Ignore
+          }
+          currentNode.connect(inst.effect);
+          currentNode = inst.effect;
+        });
 
-      // Connect last effect to master
-      currentNode.connect(masterGainNode);
-    }
-  }, []);
+        // Connect last effect to master
+        currentNode.connect(masterGainNode);
+      }
+    },
+    [],
+  );
 
   // Add a new effect to a track
   const addEffectToTrack = useCallback((trackId: string, effectId: string) => {
@@ -137,7 +146,9 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
     if (!trackEffectInstancesRef.current.has(trackId)) {
       trackEffectInstancesRef.current.set(trackId, new Map());
     }
-    trackEffectInstancesRef.current.get(trackId)!.set(instance.instanceId, instance);
+    trackEffectInstancesRef.current
+      .get(trackId)!
+      .set(instance.instanceId, instance);
 
     // Add to state
     const newActiveEffect: TrackActiveEffect = {
@@ -157,25 +168,36 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
   }, []);
 
   // Remove an effect from a track
-  const removeEffectFromTrack = useCallback((trackId: string, instanceId: string) => {
-    const instancesMap = trackEffectInstancesRef.current.get(trackId);
-    const instance = instancesMap?.get(instanceId);
-    if (instance) {
-      instance.dispose();
-      instancesMap?.delete(instanceId);
-    }
+  const removeEffectFromTrack = useCallback(
+    (trackId: string, instanceId: string) => {
+      const instancesMap = trackEffectInstancesRef.current.get(trackId);
+      const instance = instancesMap?.get(instanceId);
+      if (instance) {
+        instance.dispose();
+        instancesMap?.delete(instanceId);
+      }
 
-    setTrackEffectsState((prev) => {
-      const newState = new Map(prev);
-      const existing = newState.get(trackId) || [];
-      newState.set(trackId, existing.filter((e) => e.instanceId !== instanceId));
-      return newState;
-    });
-  }, []);
+      setTrackEffectsState((prev) => {
+        const newState = new Map(prev);
+        const existing = newState.get(trackId) || [];
+        newState.set(
+          trackId,
+          existing.filter((e) => e.instanceId !== instanceId),
+        );
+        return newState;
+      });
+    },
+    [],
+  );
 
   // Update a parameter in real-time
   const updateTrackEffectParameter = useCallback(
-    (trackId: string, instanceId: string, paramName: string, value: number | string | boolean) => {
+    (
+      trackId: string,
+      instanceId: string,
+      paramName: string,
+      value: number | string | boolean,
+    ) => {
       // Update the actual effect instance
       const instancesMap = trackEffectInstancesRef.current.get(trackId);
       const instance = instancesMap?.get(instanceId);
@@ -192,50 +214,47 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
           existing.map((e) =>
             e.instanceId === instanceId
               ? { ...e, params: { ...e.params, [paramName]: value } }
-              : e
-          )
+              : e,
+          ),
         );
         return newState;
       });
     },
-    []
+    [],
   );
 
   // Toggle bypass for an effect (uses wet parameter - 0 = bypass, restore original for active)
-  const toggleBypass = useCallback(
-    (trackId: string, instanceId: string) => {
-      // Get current state from ref to determine new bypassed value (avoids stale closure)
-      const trackEffects = trackEffectsStateRef.current.get(trackId) || [];
-      const effect = trackEffects.find((e) => e.instanceId === instanceId);
-      if (!effect) return;
+  const toggleBypass = useCallback((trackId: string, instanceId: string) => {
+    // Get current state from ref to determine new bypassed value (avoids stale closure)
+    const trackEffects = trackEffectsStateRef.current.get(trackId) || [];
+    const effect = trackEffects.find((e) => e.instanceId === instanceId);
+    if (!effect) return;
 
-      const newBypassed = !effect.bypassed;
+    const newBypassed = !effect.bypassed;
 
-      // Update the actual effect instance
-      // When bypassing: set wet to 0
-      // When un-bypassing: restore the original wet value from params
-      const instancesMap = trackEffectInstancesRef.current.get(trackId);
-      const instance = instancesMap?.get(instanceId);
-      if (instance) {
-        const originalWet = effect.params.wet as number ?? 1;
-        instance.setParameter('wet', newBypassed ? 0 : originalWet);
-      }
+    // Update the actual effect instance
+    // When bypassing: set wet to 0
+    // When un-bypassing: restore the original wet value from params
+    const instancesMap = trackEffectInstancesRef.current.get(trackId);
+    const instance = instancesMap?.get(instanceId);
+    if (instance) {
+      const originalWet = (effect.params.wet as number) ?? 1;
+      instance.setParameter("wet", newBypassed ? 0 : originalWet);
+    }
 
-      // Update state for UI
-      setTrackEffectsState((prev) => {
-        const newState = new Map(prev);
-        const existing = newState.get(trackId) || [];
-        newState.set(
-          trackId,
-          existing.map((e) =>
-            e.instanceId === instanceId ? { ...e, bypassed: newBypassed } : e
-          )
-        );
-        return newState;
-      });
-    },
-    []
-  );
+    // Update state for UI
+    setTrackEffectsState((prev) => {
+      const newState = new Map(prev);
+      const existing = newState.get(trackId) || [];
+      newState.set(
+        trackId,
+        existing.map((e) =>
+          e.instanceId === instanceId ? { ...e, bypassed: newBypassed } : e,
+        ),
+      );
+      return newState;
+    });
+  }, []);
 
   // Clear all effects from a track
   const clearTrackEffects = useCallback((trackId: string) => {
@@ -255,7 +274,8 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
 
   // Ref to store the current trackEffectsState for reading in effects function
   // This avoids stale closure issues when the effects function is called later
-  const trackEffectsStateRef = useRef<Map<string, TrackActiveEffect[]>>(trackEffectsState);
+  const trackEffectsStateRef =
+    useRef<Map<string, TrackActiveEffect[]>>(trackEffectsState);
   trackEffectsStateRef.current = trackEffectsState;
 
   // Get the effects function for a track to pass to useAudioTracks
@@ -300,7 +320,7 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
         };
       };
     },
-    [] // No dependencies - stable function that reads from refs
+    [], // No dependencies - stable function that reads from refs
   );
 
   // Rebuild chains when effects change
@@ -342,7 +362,10 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
         const offlineInstances: EffectInstance[] = [];
 
         for (const activeEffect of nonBypassedEffects) {
-          const instance = createEffectInstance(activeEffect.definition, activeEffect.params);
+          const instance = createEffectInstance(
+            activeEffect.definition,
+            activeEffect.params,
+          );
           offlineInstances.push(instance);
         }
 
@@ -367,7 +390,7 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
         };
       };
     },
-    [trackEffectsState]
+    [trackEffectsState],
   );
 
   return {

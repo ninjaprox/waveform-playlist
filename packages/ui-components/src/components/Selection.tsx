@@ -1,5 +1,5 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 interface SelectionOverlayProps {
   readonly $left: number;
@@ -24,14 +24,14 @@ const SelectionOverlay = styled.div.attrs<SelectionOverlayProps>((props) => ({
 
 export interface SelectionProps {
   startPosition: number; // Start position in pixels
-  endPosition: number;   // End position in pixels
+  endPosition: number; // End position in pixels
   color?: string;
 }
 
 export const Selection: React.FC<SelectionProps> = ({
   startPosition,
   endPosition,
-  color = '#00ff00'
+  color = "#00ff00",
 }) => {
   const width = Math.max(0, endPosition - startPosition);
 
@@ -39,5 +39,12 @@ export const Selection: React.FC<SelectionProps> = ({
     return null;
   }
 
-  return <SelectionOverlay $left={startPosition} $width={width} $color={color} data-selection />;
+  return (
+    <SelectionOverlay
+      $left={startPosition}
+      $width={width}
+      $color={color}
+      data-selection
+    />
+  );
 };

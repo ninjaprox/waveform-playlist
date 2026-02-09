@@ -41,7 +41,7 @@ export interface Fade {
   type?: FadeType;
 }
 
-export type FadeType = 'logarithmic' | 'linear' | 'sCurve' | 'exponential';
+export type FadeType = "logarithmic" | "linear" | "sCurve" | "exponential";
 
 export interface PlaylistConfig {
   samplesPerPixel?: number;
@@ -74,18 +74,18 @@ export interface TimeSelection {
 }
 
 export enum InteractionState {
-  Cursor = 'cursor',
-  Select = 'select',
-  Shift = 'shift',
-  FadeIn = 'fadein',
-  FadeOut = 'fadeout',
+  Cursor = "cursor",
+  Select = "select",
+  Shift = "shift",
+  FadeIn = "fadein",
+  FadeOut = "fadeout",
 }
 
 // Export clip-based model types
-export * from './clip';
+export * from "./clip";
 
 // Export spectrogram types
-export * from './spectrogram';
+export * from "./spectrogram";
 
 // Export annotation types
-export * from './annotations';
+export * from "./annotations";

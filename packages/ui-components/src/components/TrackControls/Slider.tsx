@@ -1,5 +1,5 @@
-import styled from 'styled-components';
-import { BaseSlider } from '../../styled/index';
+import styled from "styled-components";
+import { BaseSlider } from "../../styled/index";
 
 /**
  * TrackControls Slider - Compact slider for volume/pan controls

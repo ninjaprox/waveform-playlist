@@ -7,21 +7,21 @@ import React, {
   useCallback,
   useMemo,
   type ReactNode,
-} from 'react';
-import { ThemeProvider } from 'styled-components';
+} from "react";
+import { ThemeProvider } from "styled-components";
 import {
   MediaElementPlayout,
   type MediaElementTrackOptions,
-} from '@waveform-playlist/media-element-playout';
-import { type WaveformDataObject } from '@waveform-playlist/core';
+} from "@waveform-playlist/media-element-playout";
+import { type WaveformDataObject } from "@waveform-playlist/core";
 import {
   type WaveformPlaylistTheme,
   defaultTheme,
-} from '@waveform-playlist/ui-components';
-import type { AnnotationData } from '@waveform-playlist/core';
-import { extractPeaksFromWaveformData } from './waveformDataLoader';
-import type { PeakData } from '@waveform-playlist/webaudio-peaks';
-import type { ClipPeaks, TrackClipPeaks } from './WaveformPlaylistContext';
+} from "@waveform-playlist/ui-components";
+import type { AnnotationData } from "@waveform-playlist/core";
+import { extractPeaksFromWaveformData } from "./waveformDataLoader";
+import type { PeakData } from "@waveform-playlist/webaudio-peaks";
+import type { ClipPeaks, TrackClipPeaks } from "./WaveformPlaylistContext";
 
 // Configuration for a single media element track
 export interface MediaElementTrackConfig {
@@ -171,13 +171,17 @@ export const MediaElementPlaylistProvider: React.FC<
   // In v6, annotations must be pre-parsed (numeric start/end). Use parseAeneas() from @waveform-playlist/annotations before passing.
   const annotations = useMemo(() => {
     if (!annotationList?.annotations) return [];
-    if (process.env.NODE_ENV !== 'production' && annotationList.annotations.length > 0) {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      annotationList.annotations.length > 0
+    ) {
       const first = annotationList.annotations[0] as Record<string, unknown>;
-      if (typeof first.start !== 'number' || typeof first.end !== 'number') {
+      if (typeof first.start !== "number" || typeof first.end !== "number") {
         console.error(
-          '[waveform-playlist] Annotations must have numeric start/end values. ' +
-          'In v6, use parseAeneas() from @waveform-playlist/annotations before passing annotations. ' +
-          'Received start type: ' + typeof first.start
+          "[waveform-playlist] Annotations must have numeric start/end values. " +
+            "In v6, use parseAeneas() from @waveform-playlist/annotations before passing annotations. " +
+            "Received start type: " +
+            typeof first.start,
         );
         return [];
       }
@@ -193,7 +197,7 @@ export const MediaElementPlaylistProvider: React.FC<
     string | null
   >(null);
   const [continuousPlay, setContinuousPlayState] = useState(
-    annotationList?.isContinuousPlay ?? false
+    annotationList?.isContinuousPlay ?? false,
   );
   const [samplesPerPixel] = useState(initialSamplesPerPixel);
   const [isAutomaticScroll, setIsAutomaticScroll] = useState(automaticScroll);
@@ -249,7 +253,7 @@ export const MediaElementPlaylistProvider: React.FC<
     });
 
     // Set up time update callback
-    const mediaTrack = playout.getTrack(playout['track']?.id ?? '');
+    const mediaTrack = playout.getTrack(playout["track"]?.id ?? "");
     if (mediaTrack) {
       mediaTrack.setOnTimeUpdateCallback((time) => {
         currentTimeRef.current = time;
@@ -278,7 +282,13 @@ export const MediaElementPlaylistProvider: React.FC<
       }
       playout.dispose();
     };
-  }, [track.source, track.waveformData, track.name, initialPlaybackRate, onReady]);
+  }, [
+    track.source,
+    track.waveformData,
+    track.name,
+    initialPlaybackRate,
+    onReady,
+  ]);
 
   // Generate peaks from waveform data
   useEffect(() => {
@@ -287,12 +297,12 @@ export const MediaElementPlaylistProvider: React.FC<
       samplesPerPixel,
       0, // channel index
       0, // offset
-      Math.ceil(track.waveformData.duration * sampleRate) // duration in samples
+      Math.ceil(track.waveformData.duration * sampleRate), // duration in samples
     );
 
     const clipPeaks: ClipPeaks = {
-      clipId: 'media-element-clip',
-      trackName: track.name ?? 'Track',
+      clipId: "media-element-clip",
+      trackName: track.name ?? "Track",
       peaks: {
         length: extractedPeaks.length,
         data: [extractedPeaks.data],
@@ -316,12 +326,11 @@ export const MediaElementPlaylistProvider: React.FC<
       currentTimeRef.current = time;
       setCurrentTime(time);
 
-
       // Handle annotation playback
       const currentAnnotations = annotationsRef.current;
       if (currentAnnotations.length > 0) {
         const currentAnnotation = currentAnnotations.find(
-          (ann) => time >= ann.start && time < ann.end
+          (ann) => time >= ann.start && time < ann.end,
         );
 
         if (continuousPlayRef.current) {
@@ -330,7 +339,10 @@ export const MediaElementPlaylistProvider: React.FC<
             currentAnnotation.id !== activeAnnotationIdRef.current
           ) {
             setActiveAnnotationId(currentAnnotation.id);
-          } else if (!currentAnnotation && activeAnnotationIdRef.current !== null) {
+          } else if (
+            !currentAnnotation &&
+            activeAnnotationIdRef.current !== null
+          ) {
             // Clear the active annotation when we're past it, but don't stop playback
             // Let playback continue until the audio element fires its 'ended' event
             setActiveAnnotationId(null);
@@ -338,10 +350,9 @@ export const MediaElementPlaylistProvider: React.FC<
         } else {
           if (activeAnnotationIdRef.current) {
             const activeAnnotation = currentAnnotations.find(
-              (ann) => ann.id === activeAnnotationIdRef.current
+              (ann) => ann.id === activeAnnotationIdRef.current,
             );
             if (activeAnnotation && time >= activeAnnotation.end) {
-
               playoutRef.current?.stop();
               setIsPlaying(false);
               return;
@@ -363,7 +374,10 @@ export const MediaElementPlaylistProvider: React.FC<
         const visualPosition = pixelPosition + controlWidth;
 
         // Continuously scroll to keep playhead centered
-        const targetScrollLeft = Math.max(0, visualPosition - containerWidth / 2);
+        const targetScrollLeft = Math.max(
+          0,
+          visualPosition - containerWidth / 2,
+        );
         container.scrollLeft = targetScrollLeft;
       }
 
@@ -390,7 +404,7 @@ export const MediaElementPlaylistProvider: React.FC<
       setIsPlaying(true);
       startAnimationLoop();
     },
-    [startAnimationLoop]
+    [startAnimationLoop],
   );
 
   const pause = useCallback(() => {
@@ -423,7 +437,7 @@ export const MediaElementPlaylistProvider: React.FC<
         playoutRef.current.seekTo(clampedTime);
       }
     },
-    [duration]
+    [duration],
   );
 
   const setPlaybackRate = useCallback((rate: number) => {
@@ -443,7 +457,7 @@ export const MediaElementPlaylistProvider: React.FC<
       currentTime,
       currentTimeRef,
     }),
-    [isPlaying, currentTime]
+    [isPlaying, currentTime],
   );
 
   const stateValue: MediaElementStateContextValue = useMemo(
@@ -454,31 +468,34 @@ export const MediaElementPlaylistProvider: React.FC<
       playbackRate,
       isAutomaticScroll,
     }),
-    [continuousPlay, annotations, activeAnnotationId, playbackRate, isAutomaticScroll]
+    [
+      continuousPlay,
+      annotations,
+      activeAnnotationId,
+      playbackRate,
+      isAutomaticScroll,
+    ],
   );
 
   // Stable callback ref for onAnnotationsChange to avoid re-creating controls context
   const onAnnotationsChangeRef = useRef(onAnnotationsChange);
   onAnnotationsChangeRef.current = onAnnotationsChange;
 
-  const setAnnotations: React.Dispatch<React.SetStateAction<AnnotationData[]>> = useCallback(
-    (action) => {
-      const updated = typeof action === 'function'
-        ? action(annotationsRef.current)
-        : action;
+  const setAnnotations: React.Dispatch<React.SetStateAction<AnnotationData[]>> =
+    useCallback((action) => {
+      const updated =
+        typeof action === "function" ? action(annotationsRef.current) : action;
       if (!onAnnotationsChangeRef.current) {
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== "production") {
           console.warn(
-            'waveform-playlist: setAnnotations was called but no onAnnotationsChange callback is provided. ' +
-            'Annotation edits will not persist. Pass onAnnotationsChange to MediaElementPlaylistProvider to handle annotation updates.'
+            "waveform-playlist: setAnnotations was called but no onAnnotationsChange callback is provided. " +
+              "Annotation edits will not persist. Pass onAnnotationsChange to MediaElementPlaylistProvider to handle annotation updates.",
           );
         }
         return;
       }
       onAnnotationsChangeRef.current(updated);
-    },
-    []
-  );
+    }, []);
 
   const controlsValue: MediaElementControlsContextValue = useMemo(
     () => ({
@@ -496,7 +513,17 @@ export const MediaElementPlaylistProvider: React.FC<
       setScrollContainer,
       scrollContainerRef,
     }),
-    [play, pause, stop, seekTo, setPlaybackRate, setContinuousPlay, setAnnotations, setActiveAnnotationId, setScrollContainer]
+    [
+      play,
+      pause,
+      stop,
+      seekTo,
+      setPlaybackRate,
+      setContinuousPlay,
+      setAnnotations,
+      setActiveAnnotationId,
+      setScrollContainer,
+    ],
   );
 
   const dataValue: MediaElementDataContextValue = useMemo(
@@ -524,7 +551,7 @@ export const MediaElementPlaylistProvider: React.FC<
       barWidth,
       barGap,
       progressBarWidth,
-    ]
+    ],
   );
 
   const mergedTheme = { ...defaultTheme, ...userTheme };
@@ -549,7 +576,7 @@ export const useMediaElementAnimation = () => {
   const context = useContext(MediaElementAnimationContext);
   if (!context) {
     throw new Error(
-      'useMediaElementAnimation must be used within MediaElementPlaylistProvider'
+      "useMediaElementAnimation must be used within MediaElementPlaylistProvider",
     );
   }
   return context;
@@ -559,7 +586,7 @@ export const useMediaElementState = () => {
   const context = useContext(MediaElementStateContext);
   if (!context) {
     throw new Error(
-      'useMediaElementState must be used within MediaElementPlaylistProvider'
+      "useMediaElementState must be used within MediaElementPlaylistProvider",
     );
   }
   return context;
@@ -569,7 +596,7 @@ export const useMediaElementControls = () => {
   const context = useContext(MediaElementControlsContext);
   if (!context) {
     throw new Error(
-      'useMediaElementControls must be used within MediaElementPlaylistProvider'
+      "useMediaElementControls must be used within MediaElementPlaylistProvider",
     );
   }
   return context;
@@ -579,7 +606,7 @@ export const useMediaElementData = () => {
   const context = useContext(MediaElementDataContext);
   if (!context) {
     throw new Error(
-      'useMediaElementData must be used within MediaElementPlaylistProvider'
+      "useMediaElementData must be used within MediaElementPlaylistProvider",
     );
   }
   return context;

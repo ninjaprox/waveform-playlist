@@ -1,4 +1,7 @@
-import { MediaElementTrack, type MediaElementTrackOptions } from './MediaElementTrack';
+import {
+  MediaElementTrack,
+  type MediaElementTrackOptions,
+} from "./MediaElementTrack";
 
 export interface MediaElementPlayoutOptions {
   /** Initial master volume (0.0 to 1.0) */
@@ -53,8 +56,8 @@ export class MediaElementPlayout {
   addTrack(options: MediaElementTrackOptions): MediaElementTrack {
     if (this.track) {
       console.warn(
-        'MediaElementPlayout: Only one track is supported. ' +
-        'Disposing previous track. For multi-track, use TonePlayout.'
+        "MediaElementPlayout: Only one track is supported. " +
+          "Disposing previous track. For multi-track, use TonePlayout.",
       );
       this.track.dispose();
     }
@@ -104,7 +107,7 @@ export class MediaElementPlayout {
    */
   play(_when?: number, offset?: number, duration?: number): void {
     if (!this.track) {
-      console.warn('MediaElementPlayout: No track to play');
+      console.warn("MediaElementPlayout: No track to play");
       return;
     }
 
@@ -202,7 +205,9 @@ export class MediaElementPlayout {
    */
   setSolo(_trackId: string, _soloed: boolean): void {
     // No-op for single track - solo doesn't make sense
-    console.warn('MediaElementPlayout: Solo is not applicable for single-track playback');
+    console.warn(
+      "MediaElementPlayout: Solo is not applicable for single-track playback",
+    );
   }
 
   /**

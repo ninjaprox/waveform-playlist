@@ -5,7 +5,7 @@ import React, {
   ReactNode,
   Dispatch,
   SetStateAction,
-} from 'react';
+} from "react";
 
 const defaultProgress = 0;
 const defaultIsPlaying = false;
@@ -47,8 +47,12 @@ export const PlayoutProvider = ({ children }: Props) => {
   };
 
   return (
-    <PlayoutStatusUpdateContext.Provider value={{ setIsPlaying, setProgress, setSelection }}>
-      <PlayoutStatusContext.Provider value={{ isPlaying, progress, selectionStart, selectionEnd }}>
+    <PlayoutStatusUpdateContext.Provider
+      value={{ setIsPlaying, setProgress, setSelection }}
+    >
+      <PlayoutStatusContext.Provider
+        value={{ isPlaying, progress, selectionStart, selectionEnd }}
+      >
         {children}
       </PlayoutStatusContext.Provider>
     </PlayoutStatusUpdateContext.Provider>

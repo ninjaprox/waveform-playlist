@@ -1,6 +1,6 @@
-import React from 'react';
-import type { DragEndEvent } from '@dnd-kit/core';
-import type { ClipTrack } from '@waveform-playlist/core';
+import React from "react";
+import type { DragEndEvent } from "@dnd-kit/core";
+import type { ClipTrack } from "@waveform-playlist/core";
 
 interface UseClipDragHandlersOptions {
   tracks: ClipTrack[];
@@ -60,7 +60,7 @@ export function useClipDragHandlers({
         clipId: string;
         trackIndex: number;
         clipIndex: number;
-        boundary?: 'left' | 'right';
+        boundary?: "left" | "right";
       };
 
       // For boundary trimming, skip modifier - onDragMove handles constraints
@@ -85,21 +85,29 @@ export function useClipDragHandlers({
       let newStartTime = clipStartTime + timeDelta;
 
       // Get sorted clips for collision detection
-      const sortedClips = [...track.clips].sort((a, b) => (a.startSample - b.startSample));
+      const sortedClips = [...track.clips].sort(
+        (a, b) => a.startSample - b.startSample,
+      );
       const sortedIndex = sortedClips.findIndex((c) => c === clip);
 
       // Constraint 1: Cannot go before time 0
       newStartTime = Math.max(0, newStartTime);
 
       // Constraint 2: Cannot overlap with previous clip
-      const previousClip = sortedIndex > 0 ? sortedClips[sortedIndex - 1] : null;
+      const previousClip =
+        sortedIndex > 0 ? sortedClips[sortedIndex - 1] : null;
       if (previousClip) {
-        const previousEndTime = (previousClip.startSample + previousClip.durationSamples) / sampleRate;
+        const previousEndTime =
+          (previousClip.startSample + previousClip.durationSamples) /
+          sampleRate;
         newStartTime = Math.max(newStartTime, previousEndTime);
       }
 
       // Constraint 3: Cannot overlap with next clip
-      const nextClip = sortedIndex < sortedClips.length - 1 ? sortedClips[sortedIndex + 1] : null;
+      const nextClip =
+        sortedIndex < sortedClips.length - 1
+          ? sortedClips[sortedIndex + 1]
+          : null;
       if (nextClip) {
         const newEndTime = newStartTime + clipDuration;
         const nextClipStartTime = nextClip.startSample / sampleRate;
@@ -110,7 +118,8 @@ export function useClipDragHandlers({
 
       // Convert constrained time back to pixel delta
       const constrainedTimeDelta = newStartTime - clipStartTime;
-      const constrainedX = (constrainedTimeDelta * sampleRate) / samplesPerPixel;
+      const constrainedX =
+        (constrainedTimeDelta * sampleRate) / samplesPerPixel;
 
       return {
         ...transform,
@@ -119,13 +128,15 @@ export function useClipDragHandlers({
         scaleY: 1,
       };
     },
-    [tracks, samplesPerPixel, sampleRate]
+    [tracks, samplesPerPixel, sampleRate],
   );
 
   const onDragStart = React.useCallback(
     (event: { active: any }) => {
       const { active } = event;
-      const { boundary } = active.data.current as { boundary?: 'left' | 'right' };
+      const { boundary } = active.data.current as {
+        boundary?: "left" | "right";
+      };
 
       // Only store state for boundary trimming operations
       if (!boundary) {
@@ -137,7 +148,7 @@ export function useClipDragHandlers({
         clipId: string;
         trackIndex: number;
         clipIndex: number;
-        boundary: 'left' | 'right';
+        boundary: "left" | "right";
       };
 
       const track = tracks[trackIndex];
@@ -152,7 +163,7 @@ export function useClipDragHandlers({
         };
       }
     },
-    [tracks]
+    [tracks],
   );
 
   const onDragMove = React.useCallback(
@@ -160,7 +171,9 @@ export function useClipDragHandlers({
       const { active, delta } = event;
 
       // Only update for boundary trimming operations (not clip movement)
-      const { boundary } = active.data.current as { boundary?: 'left' | 'right' };
+      const { boundary } = active.data.current as {
+        boundary?: "left" | "right";
+      };
       if (!boundary) return;
 
       // Need original clip state to apply cumulative delta
@@ -171,7 +184,7 @@ export function useClipDragHandlers({
         clipId: string;
         trackIndex: number;
         clipIndex: number;
-        boundary: 'left' | 'right';
+        boundary: "left" | "right";
       };
 
       const sampleDelta = delta.x * samplesPerPixel;
@@ -184,8 +197,12 @@ export function useClipDragHandlers({
       const newTracks = tracks.map((track, tIdx) => {
         if (tIdx !== trackIndex) return track;
 
-        const sortedClips = [...track.clips].sort((a, b) => a.startSample - b.startSample);
-        const sortedIndex = sortedClips.findIndex((clip) => clip === track.clips[clipIndex]);
+        const sortedClips = [...track.clips].sort(
+          (a, b) => a.startSample - b.startSample,
+        );
+        const sortedIndex = sortedClips.findIndex(
+          (clip) => clip === track.clips[clipIndex],
+        );
 
         const newClips = track.clips.map((clip, cIdx) => {
           if (cIdx !== clipIndex) return clip;
@@ -193,7 +210,7 @@ export function useClipDragHandlers({
           // Use sourceDurationSamples (works for both audio and peaks-only clips)
           const audioBufferDurationSamples = clip.sourceDurationSamples;
 
-          if (boundary === 'left') {
+          if (boundary === "left") {
             // Left boundary drag: moving left (negative delta) expands clip, moving right shrinks it
             // The RIGHT edge stays fixed. We're moving the LEFT edge.
             //
@@ -227,12 +244,15 @@ export function useClipDragHandlers({
             }
 
             // Constraint 3: Cannot overlap with previous clip (dragging left limit)
-            const previousClip = sortedIndex > 0 ? sortedClips[sortedIndex - 1] : null;
+            const previousClip =
+              sortedIndex > 0 ? sortedClips[sortedIndex - 1] : null;
             if (previousClip) {
-              const previousEndSample = previousClip.startSample + previousClip.durationSamples;
+              const previousEndSample =
+                previousClip.startSample + previousClip.durationSamples;
               // newStartSample = originalClip.startSample + delta >= previousEndSample
               // delta >= previousEndSample - originalClip.startSample
-              const minDeltaForPrevious = previousEndSample - originalClip.startSample;
+              const minDeltaForPrevious =
+                previousEndSample - originalClip.startSample;
               if (constrainedDelta < minDeltaForPrevious) {
                 constrainedDelta = minDeltaForPrevious;
               }
@@ -242,7 +262,8 @@ export function useClipDragHandlers({
             // newDurationSamples = originalClip.durationSamples - delta >= MIN_DURATION_SAMPLES
             // -delta >= MIN_DURATION_SAMPLES - originalClip.durationSamples
             // delta <= originalClip.durationSamples - MIN_DURATION_SAMPLES
-            const maxDeltaForMinDuration = originalClip.durationSamples - MIN_DURATION_SAMPLES;
+            const maxDeltaForMinDuration =
+              originalClip.durationSamples - MIN_DURATION_SAMPLES;
             if (constrainedDelta > maxDeltaForMinDuration) {
               constrainedDelta = maxDeltaForMinDuration;
             }
@@ -254,32 +275,51 @@ export function useClipDragHandlers({
             // This is always true if the clip was valid to begin with, so no constraint needed here
 
             // Now apply the constrained delta
-            const newOffsetSamples = originalClip.offsetSamples + constrainedDelta;
-            const newDurationSamples = originalClip.durationSamples - constrainedDelta;
+            const newOffsetSamples =
+              originalClip.offsetSamples + constrainedDelta;
+            const newDurationSamples =
+              originalClip.durationSamples - constrainedDelta;
             const newStartSample = originalClip.startSample + constrainedDelta;
 
             return {
               ...clip,
               offsetSamples: newOffsetSamples,
               durationSamples: newDurationSamples,
-              startSample: newStartSample
+              startSample: newStartSample,
             };
           } else {
             // Right boundary - only update duration
             // Apply cumulative delta to ORIGINAL state (not current state)
-            let newDurationSamples = Math.floor(originalClip.durationSamples + sampleDelta);
-            newDurationSamples = Math.max(MIN_DURATION_SAMPLES, newDurationSamples);
+            let newDurationSamples = Math.floor(
+              originalClip.durationSamples + sampleDelta,
+            );
+            newDurationSamples = Math.max(
+              MIN_DURATION_SAMPLES,
+              newDurationSamples,
+            );
 
-            if (originalClip.offsetSamples + newDurationSamples > audioBufferDurationSamples) {
-              newDurationSamples = audioBufferDurationSamples - originalClip.offsetSamples;
+            if (
+              originalClip.offsetSamples + newDurationSamples >
+              audioBufferDurationSamples
+            ) {
+              newDurationSamples =
+                audioBufferDurationSamples - originalClip.offsetSamples;
             }
 
-            const nextClip = sortedIndex < sortedClips.length - 1 ? sortedClips[sortedIndex + 1] : null;
+            const nextClip =
+              sortedIndex < sortedClips.length - 1
+                ? sortedClips[sortedIndex + 1]
+                : null;
             if (nextClip) {
-              const newEndSample = originalClip.startSample + newDurationSamples;
+              const newEndSample =
+                originalClip.startSample + newDurationSamples;
               if (newEndSample > nextClip.startSample) {
-                newDurationSamples = nextClip.startSample - originalClip.startSample;
-                newDurationSamples = Math.max(MIN_DURATION_SAMPLES, newDurationSamples);
+                newDurationSamples =
+                  nextClip.startSample - originalClip.startSample;
+                newDurationSamples = Math.max(
+                  MIN_DURATION_SAMPLES,
+                  newDurationSamples,
+                );
               }
             }
 
@@ -292,7 +332,7 @@ export function useClipDragHandlers({
 
       onTracksChange(newTracks);
     },
-    [tracks, onTracksChange, samplesPerPixel, sampleRate]
+    [tracks, onTracksChange, samplesPerPixel, sampleRate],
   );
 
   const onDragEnd = React.useCallback(
@@ -304,7 +344,7 @@ export function useClipDragHandlers({
         clipId: string;
         trackIndex: number;
         clipIndex: number;
-        boundary?: 'left' | 'right';
+        boundary?: "left" | "right";
       };
 
       // Convert pixel delta to samples
@@ -324,8 +364,12 @@ export function useClipDragHandlers({
         if (tIdx !== trackIndex) return track;
 
         // Get sorted clips for collision detection
-        const sortedClips = [...track.clips].sort((a, b) => a.startSample - b.startSample);
-        const sortedIndex = sortedClips.findIndex((clip) => clip === track.clips[clipIndex]);
+        const sortedClips = [...track.clips].sort(
+          (a, b) => a.startSample - b.startSample,
+        );
+        const sortedIndex = sortedClips.findIndex(
+          (clip) => clip === track.clips[clipIndex],
+        );
 
         // Update the specific clip in this track
         const newClips = track.clips.map((clip, cIdx) => {
@@ -339,14 +383,19 @@ export function useClipDragHandlers({
           newStartSample = Math.max(0, newStartSample);
 
           // 2. Cannot overlap with previous clip
-          const previousClip = sortedIndex > 0 ? sortedClips[sortedIndex - 1] : null;
+          const previousClip =
+            sortedIndex > 0 ? sortedClips[sortedIndex - 1] : null;
           if (previousClip) {
-            const previousEndSample = previousClip.startSample + previousClip.durationSamples;
+            const previousEndSample =
+              previousClip.startSample + previousClip.durationSamples;
             newStartSample = Math.max(newStartSample, previousEndSample);
           }
 
           // 3. Cannot overlap with next clip
-          const nextClip = sortedIndex < sortedClips.length - 1 ? sortedClips[sortedIndex + 1] : null;
+          const nextClip =
+            sortedIndex < sortedClips.length - 1
+              ? sortedClips[sortedIndex + 1]
+              : null;
           if (nextClip) {
             const newEndSample = newStartSample + clip.durationSamples;
             if (newEndSample > nextClip.startSample) {
@@ -369,7 +418,7 @@ export function useClipDragHandlers({
 
       onTracksChange(newTracks);
     },
-    [tracks, onTracksChange, samplesPerPixel, sampleRate]
+    [tracks, onTracksChange, samplesPerPixel, sampleRate],
   );
 
   return {

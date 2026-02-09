@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * TrackControls Button - Small button for track controls (Mute, Solo, etc.)
@@ -7,8 +7,8 @@ import styled from 'styled-components';
  * Uses theme values for consistent styling.
  */
 export const Button = styled.button.attrs({
-  type: 'button',
-})<{ $variant?: 'outline' | 'danger' | 'info' }>`
+  type: "button",
+})<{ $variant?: "outline" | "danger" | "info" }>`
   display: inline-block;
   font-family: ${(props) => props.theme.fontFamily};
   font-weight: 500;
@@ -19,12 +19,15 @@ export const Button = styled.button.attrs({
   font-size: ${(props) => props.theme.fontSizeSmall};
   line-height: 1;
   border-radius: ${(props) => props.theme.borderRadius};
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    color 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
   cursor: pointer;
 
   ${(props) => {
-    if (props.$variant === 'danger') {
+    if (props.$variant === "danger") {
       return `
         color: #fff;
         background-color: #dc3545;
@@ -40,7 +43,7 @@ export const Button = styled.button.attrs({
           box-shadow: 0 0 0 0.2rem rgba(225, 83, 97, 0.5);
         }
       `;
-    } else if (props.$variant === 'info') {
+    } else if (props.$variant === "info") {
       return `
         color: #fff;
         background-color: #17a2b8;

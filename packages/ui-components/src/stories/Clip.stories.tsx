@@ -1,13 +1,17 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useTheme } from 'styled-components';
-import { DndContext } from '@dnd-kit/core';
-import { Clip } from '../components/Clip';
-import { Channel } from '../components/Channel';
-import type { WaveformPlaylistTheme } from '../wfpl-theme';
+import type { Meta, StoryObj } from "@storybook/react";
+import { useTheme } from "styled-components";
+import { DndContext } from "@dnd-kit/core";
+import { Clip } from "../components/Clip";
+import { Channel } from "../components/Channel";
+import type { WaveformPlaylistTheme } from "../wfpl-theme";
 
 // Generate sample waveform data for stories
-function generateSamplePeaks(length: number, bits: 8 | 16 = 8): Int8Array | Int16Array {
-  const data = bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
+function generateSamplePeaks(
+  length: number,
+  bits: 8 | 16 = 8,
+): Int8Array | Int16Array {
+  const data =
+    bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
   const maxValue = 2 ** (bits - 1) - 1;
 
   for (let i = 0; i < length; i++) {
@@ -24,7 +28,11 @@ function generateSamplePeaks(length: number, bits: 8 | 16 = 8): Int8Array | Int1
 const sampleData = generateSamplePeaks(200, 8);
 
 // Wrapper component that uses theme from context for Channel colors
-const ThemedChannel = ({ outlineColor, fillColor, ...props }: {
+const ThemedChannel = ({
+  outlineColor,
+  fillColor,
+  ...props
+}: {
   index: number;
   data: Int8Array | Int16Array;
   bits: 8 | 16;
@@ -44,16 +52,16 @@ const ThemedChannel = ({ outlineColor, fillColor, ...props }: {
 };
 
 const meta: Meta<typeof Clip> = {
-  title: 'Components/Clip',
+  title: "Components/Clip",
   component: Clip,
   parameters: {
-    layout: 'padded',
+    layout: "padded",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <DndContext>
-        <div style={{ position: 'relative', height: '120px', width: '600px' }}>
+        <div style={{ position: "relative", height: "120px", width: "600px" }}>
           <Story />
         </div>
       </DndContext>
@@ -66,10 +74,10 @@ type Story = StoryObj<typeof Clip>;
 
 export const Default: Story = {
   args: {
-    clipId: 'clip-1',
+    clipId: "clip-1",
     trackIndex: 0,
     clipIndex: 0,
-    trackName: 'Vocals',
+    trackName: "Vocals",
     startSample: 0,
     durationSamples: 96000,
     samplesPerPixel: 500,
@@ -90,10 +98,10 @@ export const Default: Story = {
 
 export const WithHeader: Story = {
   args: {
-    clipId: 'clip-1',
+    clipId: "clip-1",
     trackIndex: 0,
     clipIndex: 0,
-    trackName: 'Vocals',
+    trackName: "Vocals",
     startSample: 0,
     durationSamples: 96000,
     samplesPerPixel: 500,
@@ -115,10 +123,10 @@ export const WithHeader: Story = {
 
 export const Selected: Story = {
   args: {
-    clipId: 'clip-1',
+    clipId: "clip-1",
     trackIndex: 0,
     clipIndex: 0,
-    trackName: 'Vocals',
+    trackName: "Vocals",
     startSample: 0,
     durationSamples: 96000,
     samplesPerPixel: 500,
@@ -141,10 +149,10 @@ export const Selected: Story = {
 
 export const Offset: Story = {
   args: {
-    clipId: 'clip-2',
+    clipId: "clip-2",
     trackIndex: 0,
     clipIndex: 1,
-    trackName: 'Guitar',
+    trackName: "Guitar",
     startSample: 48000,
     durationSamples: 96000,
     samplesPerPixel: 500,
@@ -168,10 +176,10 @@ export const Offset: Story = {
 
 export const Overlay: Story = {
   args: {
-    clipId: 'clip-1',
+    clipId: "clip-1",
     trackIndex: 0,
     clipIndex: 0,
-    trackName: 'Vocals',
+    trackName: "Vocals",
     startSample: 0,
     durationSamples: 96000,
     samplesPerPixel: 500,
@@ -181,7 +189,14 @@ export const Overlay: Story = {
   decorators: [
     (Story) => (
       <DndContext>
-        <div style={{ position: 'relative', height: '120px', width: '300px', background: 'rgba(0,0,0,0.1)' }}>
+        <div
+          style={{
+            position: "relative",
+            height: "120px",
+            width: "300px",
+            background: "rgba(0,0,0,0.1)",
+          }}
+        >
           <Story />
         </div>
       </DndContext>

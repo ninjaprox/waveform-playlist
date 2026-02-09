@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from "react";
 
 export interface KeyboardShortcut {
   key: string;
@@ -44,7 +44,9 @@ export interface UseKeyboardShortcutsOptions {
  * });
  * ```
  */
-export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions): void => {
+export const useKeyboardShortcuts = (
+  options: UseKeyboardShortcutsOptions,
+): void => {
   const { shortcuts, enabled = true } = options;
 
   const handleKeyDown = useCallback(
@@ -54,8 +56,8 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions): void
       // Check if we're in an input/textarea element
       const target = event.target as HTMLElement;
       if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
         target.isContentEditable
       ) {
         // Don't trigger shortcuts when typing in input fields
@@ -68,11 +70,15 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions): void
           event.key.toLowerCase() === shortcut.key.toLowerCase() ||
           event.key === shortcut.key;
 
-        const ctrlMatch = shortcut.ctrlKey === undefined || event.ctrlKey === shortcut.ctrlKey;
+        const ctrlMatch =
+          shortcut.ctrlKey === undefined || event.ctrlKey === shortcut.ctrlKey;
         const shiftMatch =
-          shortcut.shiftKey === undefined || event.shiftKey === shortcut.shiftKey;
-        const metaMatch = shortcut.metaKey === undefined || event.metaKey === shortcut.metaKey;
-        const altMatch = shortcut.altKey === undefined || event.altKey === shortcut.altKey;
+          shortcut.shiftKey === undefined ||
+          event.shiftKey === shortcut.shiftKey;
+        const metaMatch =
+          shortcut.metaKey === undefined || event.metaKey === shortcut.metaKey;
+        const altMatch =
+          shortcut.altKey === undefined || event.altKey === shortcut.altKey;
 
         return keyMatch && ctrlMatch && shiftMatch && metaMatch && altMatch;
       });
@@ -84,16 +90,16 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions): void
         matchingShortcut.action();
       }
     },
-    [shortcuts, enabled]
+    [shortcuts, enabled],
   );
 
   useEffect(() => {
     if (!enabled) return;
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleKeyDown, enabled]);
 };
@@ -108,25 +114,26 @@ export const getShortcutLabel = (shortcut: KeyboardShortcut): string => {
   const parts: string[] = [];
 
   // Use Cmd on Mac, Ctrl on other platforms
-  const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.includes("Mac");
 
   if (shortcut.metaKey) {
-    parts.push(isMac ? 'Cmd' : 'Ctrl');
+    parts.push(isMac ? "Cmd" : "Ctrl");
   }
 
   if (shortcut.ctrlKey && !shortcut.metaKey) {
-    parts.push('Ctrl');
+    parts.push("Ctrl");
   }
 
   if (shortcut.altKey) {
-    parts.push(isMac ? 'Option' : 'Alt');
+    parts.push(isMac ? "Option" : "Alt");
   }
 
   if (shortcut.shiftKey) {
-    parts.push('Shift');
+    parts.push("Shift");
   }
 
   parts.push(shortcut.key.toUpperCase());
 
-  return parts.join('+');
+  return parts.join("+");
 };

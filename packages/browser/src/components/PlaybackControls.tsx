@@ -1,6 +1,11 @@
-import React from 'react';
-import { BaseControlButton } from '@waveform-playlist/ui-components';
-import { usePlaybackAnimation, usePlaylistState, usePlaylistControls, usePlaylistData } from '../WaveformPlaylistContext';
+import React from "react";
+import { BaseControlButton } from "@waveform-playlist/ui-components";
+import {
+  usePlaybackAnimation,
+  usePlaylistState,
+  usePlaylistControls,
+  usePlaylistData,
+} from "../WaveformPlaylistContext";
 
 export const PlayButton: React.FC<{ className?: string }> = ({ className }) => {
   const { isPlaying, currentTimeRef } = usePlaybackAnimation();
@@ -8,7 +13,8 @@ export const PlayButton: React.FC<{ className?: string }> = ({ className }) => {
   const { play } = usePlaylistControls();
 
   const handleClick = async () => {
-    const hasSelection = selectionStart !== selectionEnd && selectionEnd > selectionStart;
+    const hasSelection =
+      selectionStart !== selectionEnd && selectionEnd > selectionStart;
 
     if (hasSelection) {
       if (isLoopEnabled) {
@@ -27,18 +33,28 @@ export const PlayButton: React.FC<{ className?: string }> = ({ className }) => {
   };
 
   return (
-    <BaseControlButton onClick={handleClick} disabled={isPlaying} className={className}>
+    <BaseControlButton
+      onClick={handleClick}
+      disabled={isPlaying}
+      className={className}
+    >
       Play
     </BaseControlButton>
   );
 };
 
-export const PauseButton: React.FC<{ className?: string }> = ({ className }) => {
+export const PauseButton: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const { isPlaying } = usePlaybackAnimation();
   const { pause } = usePlaylistControls();
 
   return (
-    <BaseControlButton onClick={pause} disabled={!isPlaying} className={className}>
+    <BaseControlButton
+      onClick={pause}
+      disabled={!isPlaying}
+      className={className}
+    >
       Pause
     </BaseControlButton>
   );
@@ -49,13 +65,19 @@ export const StopButton: React.FC<{ className?: string }> = ({ className }) => {
   const { stop } = usePlaylistControls();
 
   return (
-    <BaseControlButton onClick={stop} disabled={!isPlaying} className={className}>
+    <BaseControlButton
+      onClick={stop}
+      disabled={!isPlaying}
+      className={className}
+    >
       Stop
     </BaseControlButton>
   );
 };
 
-export const RewindButton: React.FC<{ className?: string }> = ({ className }) => {
+export const RewindButton: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const { isPlaying } = usePlaybackAnimation();
   const { play, setCurrentTime } = usePlaylistControls();
   const { playoutRef } = usePlaylistData();
@@ -76,7 +98,9 @@ export const RewindButton: React.FC<{ className?: string }> = ({ className }) =>
   );
 };
 
-export const FastForwardButton: React.FC<{ className?: string }> = ({ className }) => {
+export const FastForwardButton: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const { isPlaying } = usePlaybackAnimation();
   const { play, setCurrentTime } = usePlaylistControls();
   const { duration, playoutRef } = usePlaylistData();
@@ -97,10 +121,10 @@ export const FastForwardButton: React.FC<{ className?: string }> = ({ className 
   );
 };
 
-export const SkipBackwardButton: React.FC<{ skipAmount?: number; className?: string }> = ({
-  skipAmount = 5,
-  className
-}) => {
+export const SkipBackwardButton: React.FC<{
+  skipAmount?: number;
+  className?: string;
+}> = ({ skipAmount = 5, className }) => {
   const { currentTimeRef, isPlaying } = usePlaybackAnimation();
   const { play, setCurrentTime } = usePlaylistControls();
   const { playoutRef } = usePlaylistData();
@@ -122,16 +146,19 @@ export const SkipBackwardButton: React.FC<{ skipAmount?: number; className?: str
   );
 };
 
-export const SkipForwardButton: React.FC<{ skipAmount?: number; className?: string }> = ({
-  skipAmount = 5,
-  className
-}) => {
+export const SkipForwardButton: React.FC<{
+  skipAmount?: number;
+  className?: string;
+}> = ({ skipAmount = 5, className }) => {
   const { currentTimeRef, isPlaying } = usePlaybackAnimation();
   const { play, setCurrentTime } = usePlaylistControls();
   const { duration, playoutRef } = usePlaylistData();
 
   const handleClick = () => {
-    const newTime = Math.min(duration, (currentTimeRef.current ?? 0) + skipAmount);
+    const newTime = Math.min(
+      duration,
+      (currentTimeRef.current ?? 0) + skipAmount,
+    );
     setCurrentTime(newTime);
 
     if (isPlaying && playoutRef.current) {
@@ -168,18 +195,22 @@ export const LoopButton: React.FC<{ className?: string }> = ({ className }) => {
     <BaseControlButton
       onClick={handleClick}
       className={className}
-      title={isLoopEnabled ? 'Disable loop' : 'Enable loop'}
+      title={isLoopEnabled ? "Disable loop" : "Enable loop"}
     >
-      {isLoopEnabled ? 'Loop On' : 'Loop Off'}
+      {isLoopEnabled ? "Loop On" : "Loop Off"}
     </BaseControlButton>
   );
 };
 
-export const SetLoopRegionButton: React.FC<{ className?: string }> = ({ className }) => {
-  const { selectionStart, selectionEnd, loopStart, loopEnd } = usePlaylistState();
+export const SetLoopRegionButton: React.FC<{ className?: string }> = ({
+  className,
+}) => {
+  const { selectionStart, selectionEnd, loopStart, loopEnd } =
+    usePlaylistState();
   const { setLoopRegionFromSelection, clearLoopRegion } = usePlaylistControls();
 
-  const hasValidSelection = selectionStart !== selectionEnd && selectionEnd > selectionStart;
+  const hasValidSelection =
+    selectionStart !== selectionEnd && selectionEnd > selectionStart;
   const hasLoopRegion = loopStart !== loopEnd && loopEnd > loopStart;
 
   const handleClick = () => {
@@ -195,9 +226,15 @@ export const SetLoopRegionButton: React.FC<{ className?: string }> = ({ classNam
       onClick={handleClick}
       disabled={!hasValidSelection && !hasLoopRegion}
       className={className}
-      title={hasLoopRegion ? 'Clear loop region' : (hasValidSelection ? 'Set loop region from selection' : 'Create a selection first')}
+      title={
+        hasLoopRegion
+          ? "Clear loop region"
+          : hasValidSelection
+            ? "Set loop region from selection"
+            : "Create a selection first"
+      }
     >
-      {hasLoopRegion ? 'Clear Loop' : 'Set Loop'}
+      {hasLoopRegion ? "Clear Loop" : "Set Loop"}
     </BaseControlButton>
   );
 };

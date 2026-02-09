@@ -35,10 +35,10 @@ export interface AnnotationListOptions {
  * Event handlers for annotation operations
  */
 export interface AnnotationEventMap {
-  'annotation-select': (annotation: AnnotationData) => void;
-  'annotation-update': (annotation: AnnotationData) => void;
-  'annotation-delete': (id: string) => void;
-  'annotation-create': (annotation: AnnotationData) => void;
+  "annotation-select": (annotation: AnnotationData) => void;
+  "annotation-update": (annotation: AnnotationData) => void;
+  "annotation-delete": (id: string) => void;
+  "annotation-create": (annotation: AnnotationData) => void;
 }
 
 /**
@@ -61,7 +61,12 @@ export interface AnnotationAction {
   class?: string;
   text?: string;
   title: string;
-  action: (annotation: AnnotationData, index: number, annotations: AnnotationData[], opts: AnnotationActionOptions) => void;
+  action: (
+    annotation: AnnotationData,
+    index: number,
+    annotations: AnnotationData[],
+    opts: AnnotationActionOptions,
+  ) => void;
 }
 
 /**

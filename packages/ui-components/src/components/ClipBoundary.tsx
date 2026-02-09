@@ -1,13 +1,13 @@
-import React, { FunctionComponent } from 'react';
-import styled from 'styled-components';
-import type { DraggableAttributes } from '@dnd-kit/core';
-import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
-import type { DragHandleProps as BaseDragHandleProps } from './ClipHeader';
+import React, { FunctionComponent } from "react";
+import styled from "styled-components";
+import type { DraggableAttributes } from "@dnd-kit/core";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
+import type { DragHandleProps as BaseDragHandleProps } from "./ClipHeader";
 
 export const CLIP_BOUNDARY_WIDTH = 8; // Width of the draggable boundary in pixels
 export const CLIP_BOUNDARY_WIDTH_TOUCH = 24; // Larger touch target for mobile (minimum 44px recommended, but 24px works well for trim handles)
 
-type BoundaryEdge = 'left' | 'right';
+type BoundaryEdge = "left" | "right";
 
 interface BoundaryContainerProps {
   readonly $edge: BoundaryEdge;
@@ -18,10 +18,11 @@ interface BoundaryContainerProps {
 
 const BoundaryContainer = styled.div<BoundaryContainerProps>`
   position: absolute;
-  ${props => props.$edge === 'left' ? 'left: 0;' : 'right: 0;'}
+  ${(props) => (props.$edge === "left" ? "left: 0;" : "right: 0;")}
   top: 0;
   bottom: 0;
-  width: ${props => props.$touchOptimized ? CLIP_BOUNDARY_WIDTH_TOUCH : CLIP_BOUNDARY_WIDTH}px;
+  width: ${(props) =>
+    props.$touchOptimized ? CLIP_BOUNDARY_WIDTH_TOUCH : CLIP_BOUNDARY_WIDTH}px;
   cursor: col-resize;
   user-select: none;
   z-index: 105; /* Above waveform, below header */
@@ -29,47 +30,46 @@ const BoundaryContainer = styled.div<BoundaryContainerProps>`
   touch-action: none; /* Prevent browser scroll during drag on touch devices */
 
   /* Invisible by default, visible on hover */
-  background: ${props =>
+  background: ${(props) =>
     props.$isDragging
-      ? 'rgba(255, 255, 255, 0.4)'
+      ? "rgba(255, 255, 255, 0.4)"
       : props.$isHovered
-        ? 'rgba(255, 255, 255, 0.2)'
-        : 'transparent'
-  };
+        ? "rgba(255, 255, 255, 0.2)"
+        : "transparent"};
 
-  ${props => props.$edge === 'left'
-    ? `border-left: 2px solid ${
-        props.$isDragging
-          ? 'rgba(255, 255, 255, 0.8)'
-          : props.$isHovered
-            ? 'rgba(255, 255, 255, 0.5)'
-            : 'transparent'
-      };`
-    : `border-right: 2px solid ${
-        props.$isDragging
-          ? 'rgba(255, 255, 255, 0.8)'
-          : props.$isHovered
-            ? 'rgba(255, 255, 255, 0.5)'
-            : 'transparent'
-      };`
-  }
+  ${(props) =>
+    props.$edge === "left"
+      ? `border-left: 2px solid ${
+          props.$isDragging
+            ? "rgba(255, 255, 255, 0.8)"
+            : props.$isHovered
+              ? "rgba(255, 255, 255, 0.5)"
+              : "transparent"
+        };`
+      : `border-right: 2px solid ${
+          props.$isDragging
+            ? "rgba(255, 255, 255, 0.8)"
+            : props.$isHovered
+              ? "rgba(255, 255, 255, 0.5)"
+              : "transparent"
+        };`}
 
   transition: background 0.15s ease, border-color 0.15s ease;
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
-    ${props => props.$edge === 'left'
-      ? 'border-left: 2px solid rgba(255, 255, 255, 0.5);'
-      : 'border-right: 2px solid rgba(255, 255, 255, 0.5);'
-    }
+    ${(props) =>
+      props.$edge === "left"
+        ? "border-left: 2px solid rgba(255, 255, 255, 0.5);"
+        : "border-right: 2px solid rgba(255, 255, 255, 0.5);"}
   }
 
   &:active {
     background: rgba(255, 255, 255, 0.4);
-    ${props => props.$edge === 'left'
-      ? 'border-left: 2px solid rgba(255, 255, 255, 0.8);'
-      : 'border-right: 2px solid rgba(255, 255, 255, 0.8);'
-    }
+    ${(props) =>
+      props.$edge === "left"
+        ? "border-left: 2px solid rgba(255, 255, 255, 0.8);"
+        : "border-right: 2px solid rgba(255, 255, 255, 0.8);"}
   }
 `;
 
@@ -115,7 +115,8 @@ export const ClipBoundary: FunctionComponent<ClipBoundaryProps> = ({
     return null;
   }
 
-  const { attributes, listeners, setActivatorNodeRef, isDragging } = dragHandleProps;
+  const { attributes, listeners, setActivatorNodeRef, isDragging } =
+    dragHandleProps;
 
   return (
     <BoundaryContainer

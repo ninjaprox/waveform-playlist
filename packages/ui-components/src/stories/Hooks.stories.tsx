@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState, useEffect } from 'react';
+import type { Meta, StoryObj } from "@storybook/react";
+import React, { useState, useEffect } from "react";
 import {
   WaveformPlaylistProvider,
   useWaveformPlaylist,
@@ -7,9 +7,9 @@ import {
   useTimeFormat,
   useKeyboardShortcuts,
   getShortcutLabel,
-} from '@waveform-playlist/browser';
-import type { KeyboardShortcut } from '@waveform-playlist/browser';
-import { BaseButton, BaseSlider, BaseSelect } from '../styled';
+} from "@waveform-playlist/browser";
+import type { KeyboardShortcut } from "@waveform-playlist/browser";
+import { BaseButton, BaseSlider, BaseSelect } from "../styled";
 
 /**
  * Hook Testing Harness
@@ -22,25 +22,34 @@ import { BaseButton, BaseSlider, BaseSelect } from '../styled';
 const ZOOM_LEVELS = [256, 512, 1024, 2048, 4096];
 
 const ZoomControlsDemo: React.FC = () => {
-  const { samplesPerPixel, zoomIn, zoomOut, canZoomIn, canZoomOut } = useZoomControls({
-    initialSamplesPerPixel: 1024,
-    zoomLevels: ZOOM_LEVELS,
-  });
+  const { samplesPerPixel, zoomIn, zoomOut, canZoomIn, canZoomOut } =
+    useZoomControls({
+      initialSamplesPerPixel: 1024,
+      zoomLevels: ZOOM_LEVELS,
+    });
 
   return (
-    <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>useZoomControls</h3>
-      <div style={{ marginBottom: '1rem' }}>
+    <div
+      style={{ padding: "1rem", border: "1px solid #ddd", borderRadius: "8px" }}
+    >
+      <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>
+        useZoomControls
+      </h3>
+      <div style={{ marginBottom: "1rem" }}>
         <strong>Current:</strong> {samplesPerPixel} samples/pixel
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-        <BaseButton onClick={zoomIn} disabled={!canZoomIn}>Zoom In</BaseButton>
-        <BaseButton onClick={zoomOut} disabled={!canZoomOut}>Zoom Out</BaseButton>
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+        <BaseButton onClick={zoomIn} disabled={!canZoomIn}>
+          Zoom In
+        </BaseButton>
+        <BaseButton onClick={zoomOut} disabled={!canZoomOut}>
+          Zoom Out
+        </BaseButton>
       </div>
-      <div style={{ fontSize: '0.875rem', color: '#666' }}>
-        <div>Can zoom in: {canZoomIn ? 'Yes' : 'No'}</div>
-        <div>Can zoom out: {canZoomOut ? 'Yes' : 'No'}</div>
-        <div>Available levels: {ZOOM_LEVELS.join(', ')}</div>
+      <div style={{ fontSize: "0.875rem", color: "#666" }}>
+        <div>Can zoom in: {canZoomIn ? "Yes" : "No"}</div>
+        <div>Can zoom out: {canZoomOut ? "Yes" : "No"}</div>
+        <div>Available levels: {ZOOM_LEVELS.join(", ")}</div>
       </div>
     </div>
   );
@@ -52,14 +61,18 @@ const TimeFormatDemo: React.FC = () => {
   const [testSeconds, setTestSeconds] = useState(125.5);
 
   return (
-    <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>useTimeFormat</h3>
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem' }}>Format:</label>
+    <div
+      style={{ padding: "1rem", border: "1px solid #ddd", borderRadius: "8px" }}
+    >
+      <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>useTimeFormat</h3>
+      <div style={{ marginBottom: "1rem" }}>
+        <label style={{ display: "block", marginBottom: "0.5rem" }}>
+          Format:
+        </label>
         <BaseSelect
           value={timeFormat}
           onChange={(e) => setTimeFormat(e.target.value as any)}
-          style={{ width: '200px' }}
+          style={{ width: "200px" }}
         >
           <option value="seconds">Seconds</option>
           <option value="thousandths">Thousandths</option>
@@ -69,17 +82,19 @@ const TimeFormatDemo: React.FC = () => {
           <option value="hh:mm:ss.uuu">HH:MM:SS.UUU</option>
         </BaseSelect>
       </div>
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem' }}>Test Value (seconds):</label>
+      <div style={{ marginBottom: "1rem" }}>
+        <label style={{ display: "block", marginBottom: "0.5rem" }}>
+          Test Value (seconds):
+        </label>
         <BaseSlider
           min={0}
           max={3600}
           step={0.1}
           value={testSeconds}
           onChange={(e) => setTestSeconds(Number(e.target.value))}
-          style={{ width: '200px' }}
+          style={{ width: "200px" }}
         />
-        <span style={{ marginLeft: '0.5rem' }}>{testSeconds}s</span>
+        <span style={{ marginLeft: "0.5rem" }}>{testSeconds}s</span>
       </div>
       <div>
         <strong>Formatted:</strong> {formatTime(testSeconds)}
@@ -108,10 +123,14 @@ const MasterVolumeDemo: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>useWaveformPlaylist (masterVolume)</h3>
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+    <div
+      style={{ padding: "1rem", border: "1px solid #ddd", borderRadius: "8px" }}
+    >
+      <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>
+        useWaveformPlaylist (masterVolume)
+      </h3>
+      <div style={{ marginBottom: "1rem" }}>
+        <label style={{ display: "block", marginBottom: "0.5rem" }}>
           Volume: {Math.round(masterVolume * 100)}%
         </label>
         <BaseSlider
@@ -120,13 +139,15 @@ const MasterVolumeDemo: React.FC = () => {
           step={0.01}
           value={masterVolume}
           onChange={(e) => setMasterVolume(Number(e.target.value))}
-          style={{ width: '200px' }}
+          style={{ width: "200px" }}
         />
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-        <BaseButton onClick={toggleMute}>{muted ? 'Unmute' : 'Mute'}</BaseButton>
-        <span style={{ color: muted ? 'red' : 'green' }}>
-          {muted ? '🔇 Muted' : '🔊 Active'}
+      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        <BaseButton onClick={toggleMute}>
+          {muted ? "Unmute" : "Mute"}
+        </BaseButton>
+        <span style={{ color: muted ? "red" : "green" }}>
+          {muted ? "🔇 Muted" : "🔊 Active"}
         </span>
       </div>
     </div>
@@ -135,56 +156,56 @@ const MasterVolumeDemo: React.FC = () => {
 
 // useKeyboardShortcuts hook demo
 const KeyboardShortcutsDemo: React.FC = () => {
-  const [lastAction, setLastAction] = useState<string>('None');
+  const [lastAction, setLastAction] = useState<string>("None");
   const [actionCount, setActionCount] = useState(0);
 
   const shortcuts: KeyboardShortcut[] = [
     {
-      key: ' ',
+      key: " ",
       action: () => {
-        setLastAction('Play/Pause (Space)');
-        setActionCount(c => c + 1);
+        setLastAction("Play/Pause (Space)");
+        setActionCount((c) => c + 1);
       },
-      description: 'Play/Pause',
+      description: "Play/Pause",
       preventDefault: true,
     },
     {
-      key: 's',
+      key: "s",
       action: () => {
-        setLastAction('Split (S)');
-        setActionCount(c => c + 1);
+        setLastAction("Split (S)");
+        setActionCount((c) => c + 1);
       },
-      description: 'Split clip at cursor',
+      description: "Split clip at cursor",
       preventDefault: true,
     },
     {
-      key: 'Delete',
+      key: "Delete",
       action: () => {
-        setLastAction('Delete (Delete)');
-        setActionCount(c => c + 1);
+        setLastAction("Delete (Delete)");
+        setActionCount((c) => c + 1);
       },
-      description: 'Delete selected',
+      description: "Delete selected",
       preventDefault: true,
     },
     {
-      key: 'z',
+      key: "z",
       metaKey: true,
       action: () => {
-        setLastAction('Undo (Cmd+Z)');
-        setActionCount(c => c + 1);
+        setLastAction("Undo (Cmd+Z)");
+        setActionCount((c) => c + 1);
       },
-      description: 'Undo',
+      description: "Undo",
       preventDefault: true,
     },
     {
-      key: 'z',
+      key: "z",
       metaKey: true,
       shiftKey: true,
       action: () => {
-        setLastAction('Redo (Cmd+Shift+Z)');
-        setActionCount(c => c + 1);
+        setLastAction("Redo (Cmd+Shift+Z)");
+        setActionCount((c) => c + 1);
       },
-      description: 'Redo',
+      description: "Redo",
       preventDefault: true,
     },
   ];
@@ -192,24 +213,28 @@ const KeyboardShortcutsDemo: React.FC = () => {
   useKeyboardShortcuts({ shortcuts, enabled: true });
 
   return (
-    <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>useKeyboardShortcuts</h3>
-      <div style={{ marginBottom: '1rem' }}>
+    <div
+      style={{ padding: "1rem", border: "1px solid #ddd", borderRadius: "8px" }}
+    >
+      <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>
+        useKeyboardShortcuts
+      </h3>
+      <div style={{ marginBottom: "1rem" }}>
         <strong>Last Action:</strong> {lastAction}
       </div>
-      <div style={{ marginBottom: '1rem' }}>
+      <div style={{ marginBottom: "1rem" }}>
         <strong>Total Actions:</strong> {actionCount}
       </div>
-      <div style={{ fontSize: '0.875rem', color: '#666' }}>
+      <div style={{ fontSize: "0.875rem", color: "#666" }}>
         <strong>Available Shortcuts:</strong>
-        <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+        <ul style={{ margin: "0.5rem 0", paddingLeft: "1.5rem" }}>
           {shortcuts.map((s, i) => (
             <li key={i}>
               <code>{getShortcutLabel(s)}</code> - {s.description}
             </li>
           ))}
         </ul>
-        <p style={{ fontStyle: 'italic' }}>
+        <p style={{ fontStyle: "italic" }}>
           Click in this panel and press keyboard shortcuts to test.
         </p>
       </div>
@@ -218,16 +243,18 @@ const KeyboardShortcutsDemo: React.FC = () => {
 };
 
 // Provider wrapper for hooks that need context
-const HookDemoWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const HookDemoWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <WaveformPlaylistProvider tracks={[]} samplesPerPixel={1024}>
     {children}
   </WaveformPlaylistProvider>
 );
 
 const meta: Meta = {
-  title: 'Browser/Hooks',
+  title: "Browser/Hooks",
   parameters: {
-    layout: 'padded',
+    layout: "padded",
     docs: {
       description: {
         component: `
@@ -264,7 +291,7 @@ These stories demonstrate how to test and visualize custom React hooks.
       },
     },
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -278,7 +305,8 @@ export const ZoomControls: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'The `useZoomControls` hook manages zoom levels for waveform display.',
+        story:
+          "The `useZoomControls` hook manages zoom levels for waveform display.",
       },
     },
   },
@@ -293,7 +321,8 @@ export const TimeFormat: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'The `useTimeFormat` hook formats time values for display and parses user input.',
+        story:
+          "The `useTimeFormat` hook formats time values for display and parses user input.",
       },
     },
   },
@@ -308,7 +337,8 @@ export const MasterVolume: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'The `useMasterVolume` hook controls the master audio output volume.',
+        story:
+          "The `useMasterVolume` hook controls the master audio output volume.",
       },
     },
   },
@@ -319,7 +349,8 @@ export const KeyboardShortcuts: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'The `useKeyboardShortcuts` hook provides a flexible system for handling keyboard shortcuts with modifier key support.',
+        story:
+          "The `useKeyboardShortcuts` hook provides a flexible system for handling keyboard shortcuts with modifier key support.",
       },
     },
   },
@@ -328,7 +359,7 @@ export const KeyboardShortcuts: StoryObj = {
 export const AllHooks: StoryObj = {
   render: () => (
     <HookDemoWrapper>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         <ZoomControlsDemo />
         <TimeFormatDemo />
         <MasterVolumeDemo />
@@ -339,7 +370,7 @@ export const AllHooks: StoryObj = {
   parameters: {
     docs: {
       description: {
-        story: 'All hook demos displayed together for comparison.',
+        story: "All hook demos displayed together for comparison.",
       },
     },
   },

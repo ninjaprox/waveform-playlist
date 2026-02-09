@@ -1,6 +1,13 @@
-import { useCallback } from 'react';
-import { usePlaybackAnimation, usePlaylistControls, usePlaylistData } from '../WaveformPlaylistContext';
-import { useKeyboardShortcuts, type KeyboardShortcut } from './useKeyboardShortcuts';
+import { useCallback } from "react";
+import {
+  usePlaybackAnimation,
+  usePlaylistControls,
+  usePlaylistData,
+} from "../WaveformPlaylistContext";
+import {
+  useKeyboardShortcuts,
+  type KeyboardShortcut,
+} from "./useKeyboardShortcuts";
 
 export interface UsePlaybackShortcutsOptions {
   /**
@@ -57,9 +64,13 @@ export interface UsePlaybackShortcutsReturn {
  * ```
  */
 export const usePlaybackShortcuts = (
-  options: UsePlaybackShortcutsOptions = {}
+  options: UsePlaybackShortcutsOptions = {},
 ): UsePlaybackShortcutsReturn => {
-  const { enabled = true, additionalShortcuts = [], shortcuts: overrideShortcuts } = options;
+  const {
+    enabled = true,
+    additionalShortcuts = [],
+    shortcuts: overrideShortcuts,
+  } = options;
 
   const { isPlaying } = usePlaybackAnimation();
   const { setCurrentTime, play, pause, stop } = usePlaylistControls();
@@ -100,27 +111,30 @@ export const usePlaybackShortcuts = (
   // Default playback shortcuts
   const defaultShortcuts: KeyboardShortcut[] = [
     {
-      key: ' ',
+      key: " ",
       action: togglePlayPause,
-      description: 'Play/Pause',
+      description: "Play/Pause",
       preventDefault: true,
     },
     {
-      key: 'Escape',
+      key: "Escape",
       action: stopPlayback,
-      description: 'Stop',
+      description: "Stop",
       preventDefault: true,
     },
     {
-      key: '0',
+      key: "0",
       action: rewindToStart,
-      description: 'Rewind to start',
+      description: "Rewind to start",
       preventDefault: true,
     },
   ];
 
   // Use override shortcuts if provided, otherwise combine defaults with additional
-  const activeShortcuts = overrideShortcuts ?? [...defaultShortcuts, ...additionalShortcuts];
+  const activeShortcuts = overrideShortcuts ?? [
+    ...defaultShortcuts,
+    ...additionalShortcuts,
+  ];
 
   // Register the keyboard shortcuts
   useKeyboardShortcuts({

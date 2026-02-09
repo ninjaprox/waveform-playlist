@@ -3,13 +3,13 @@
  * Combines recording functionality with track management
  */
 
-import { useState, useCallback, useEffect } from 'react';
-import { useRecording } from './useRecording';
-import { useMicrophoneAccess } from './useMicrophoneAccess';
-import { useMicrophoneLevel } from './useMicrophoneLevel';
-import type { MicrophoneDevice } from '../types';
-import { type ClipTrack, type AudioClip } from '@waveform-playlist/core';
-import { resumeGlobalAudioContext } from '@waveform-playlist/playout';
+import { useState, useCallback, useEffect } from "react";
+import { useRecording } from "./useRecording";
+import { useMicrophoneAccess } from "./useMicrophoneAccess";
+import { useMicrophoneLevel } from "./useMicrophoneLevel";
+import type { MicrophoneDevice } from "../types";
+import { type ClipTrack, type AudioClip } from "@waveform-playlist/core";
+import { resumeGlobalAudioContext } from "@waveform-playlist/playout";
 
 export interface IntegratedRecordingOptions {
   /**
@@ -68,7 +68,7 @@ export function useIntegratedRecording(
   tracks: ClipTrack[],
   setTracks: (tracks: ClipTrack[]) => void,
   selectedTrackId: string | null,
-  options: IntegratedRecordingOptions = {}
+  options: IntegratedRecordingOptions = {},
 ): UseIntegratedRecordingReturn {
   const { currentTime = 0, audioConstraints, ...recordingOptions } = options;
 
@@ -106,7 +106,11 @@ export function useIntegratedRecording(
   // Start recording handler
   const startRecording = useCallback(async () => {
     if (!selectedTrackId) {
-      setHookError(new Error('Cannot start recording: no track selected. Select or create a track first.'));
+      setHookError(
+        new Error(
+          "Cannot start recording: no track selected. Select or create a track first.",
+        ),
+      );
       return;
     }
 
@@ -136,10 +140,12 @@ export function useIntegratedRecording(
 
     // Add clip to track after recording completes
     if (buffer && selectedTrackId) {
-      const selectedTrackIndex = tracks.findIndex(t => t.id === selectedTrackId);
+      const selectedTrackIndex = tracks.findIndex(
+        (t) => t.id === selectedTrackId,
+      );
       if (selectedTrackIndex === -1) {
         const err = new Error(
-          `Recording completed but track "${selectedTrackId}" no longer exists. The recorded audio could not be saved.`
+          `Recording completed but track "${selectedTrackId}" no longer exists. The recorded audio could not be saved.`,
         );
         console.error(`[waveform-playlist] ${err.message}`);
         setHookError(err);
@@ -154,8 +160,8 @@ export function useIntegratedRecording(
       let lastClipEndSample = 0;
       if (selectedTrack.clips.length > 0) {
         // Find the end time of the last clip (in samples)
-        const endSamples = selectedTrack.clips.map(clip =>
-          clip.startSample + clip.durationSamples
+        const endSamples = selectedTrack.clips.map(
+          (clip) => clip.startSample + clip.durationSamples,
         );
         lastClipEndSample = Math.max(...endSamples);
       }
@@ -212,17 +218,20 @@ export function useIntegratedRecording(
   }, [requestAccess, audioConstraints]);
 
   // Change device
-  const changeDevice = useCallback(async (deviceId: string) => {
-    try {
-      setHookError(null);
-      setSelectedDevice(deviceId);
-      await requestAccess(deviceId, audioConstraints);
-      await resumeGlobalAudioContext();
-      setIsMonitoring(true);
-    } catch (err) {
-      setHookError(err instanceof Error ? err : new Error(String(err)));
-    }
-  }, [requestAccess, audioConstraints]);
+  const changeDevice = useCallback(
+    async (deviceId: string) => {
+      try {
+        setHookError(null);
+        setSelectedDevice(deviceId);
+        await requestAccess(deviceId, audioConstraints);
+        await resumeGlobalAudioContext();
+        setIsMonitoring(true);
+      } catch (err) {
+        setHookError(err instanceof Error ? err : new Error(String(err)));
+      }
+    },
+    [requestAccess, audioConstraints],
+  );
 
   return {
     // Recording state

@@ -1,4 +1,4 @@
-import type { AnnotationData } from '@waveform-playlist/core';
+import type { AnnotationData } from "@waveform-playlist/core";
 
 export interface AeneasFragment {
   begin: string;
@@ -24,6 +24,6 @@ export function serializeAeneas(annotation: AnnotationData): AeneasFragment {
     begin: annotation.start.toFixed(3),
     end: annotation.end.toFixed(3),
     lines: annotation.lines,
-    language: annotation.language || 'en',
+    language: annotation.language || "en",
   };
 }

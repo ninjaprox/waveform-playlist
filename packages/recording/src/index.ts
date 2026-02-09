@@ -5,22 +5,32 @@
  */
 
 // Hooks
-export { useRecording, useMicrophoneAccess, useMicrophoneLevel, useIntegratedRecording } from './hooks';
+export {
+  useRecording,
+  useMicrophoneAccess,
+  useMicrophoneLevel,
+  useIntegratedRecording,
+} from "./hooks";
 export type {
   UseMicrophoneLevelOptions,
   UseMicrophoneLevelReturn,
   UseIntegratedRecordingReturn,
   IntegratedRecordingOptions,
-} from './hooks';
+} from "./hooks";
 
 // Components
-export { RecordButton, MicrophoneSelector, RecordingIndicator, VUMeter } from './components';
+export {
+  RecordButton,
+  MicrophoneSelector,
+  RecordingIndicator,
+  VUMeter,
+} from "./components";
 export type {
   RecordButtonProps,
   MicrophoneSelectorProps,
   RecordingIndicatorProps,
   VUMeterProps,
-} from './components';
+} from "./components";
 
 // Types
 export type {
@@ -30,8 +40,11 @@ export type {
   RecordingOptions,
   UseRecordingReturn,
   UseMicrophoneAccessReturn,
-} from './types';
+} from "./types";
 
 // Utilities
-export { generatePeaks } from './utils/peaksGenerator';
-export { createAudioBuffer, concatenateAudioData } from './utils/audioBufferUtils';
+export { generatePeaks } from "./utils/peaksGenerator";
+export {
+  createAudioBuffer,
+  concatenateAudioData,
+} from "./utils/audioBufferUtils";

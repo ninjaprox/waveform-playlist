@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * BaseButton - A styled button component that uses theme values
@@ -19,7 +19,9 @@ export const BaseButton = styled.button`
   border-radius: ${(props) => props.theme.borderRadius};
   cursor: pointer;
   outline: none;
-  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out,
+  transition:
+    background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
     box-shadow 0.15s ease-in-out;
 
   &:hover:not(:disabled) {

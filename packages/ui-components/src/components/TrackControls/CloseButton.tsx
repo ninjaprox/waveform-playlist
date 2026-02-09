@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components';
-import { X as XIcon } from '@phosphor-icons/react';
+import React from "react";
+import styled from "styled-components";
+import { X as XIcon } from "@phosphor-icons/react";
 
 const StyledCloseButton = styled.button`
   position: absolute;
@@ -16,7 +16,9 @@ const StyledCloseButton = styled.button`
   align-items: center;
   justify-content: center;
   opacity: 0.7;
-  transition: opacity 0.15s, color 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s;
 
   &:hover {
     opacity: 1;
@@ -31,7 +33,7 @@ export interface CloseButtonProps {
 
 export const CloseButton: React.FC<CloseButtonProps> = ({
   onClick,
-  title = 'Remove track',
+  title = "Remove track",
 }) => (
   <StyledCloseButton onClick={onClick} title={title}>
     <XIcon size={12} weight="bold" />

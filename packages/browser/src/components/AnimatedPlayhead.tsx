@@ -1,14 +1,19 @@
-import React, { useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import { getContext } from 'tone';
-import { usePlaybackAnimation, usePlaylistData } from '../WaveformPlaylistContext';
+import React, { useRef, useEffect } from "react";
+import styled from "styled-components";
+import { getContext } from "tone";
+import {
+  usePlaybackAnimation,
+  usePlaylistData,
+} from "../WaveformPlaylistContext";
 
-const PlayheadLine = styled.div.attrs<{ $color: string; $width: number }>((props) => ({
-  style: {
-    width: `${props.$width}px`,
-    background: props.$color,
-  },
-}))<{ $color: string; $width: number }>`
+const PlayheadLine = styled.div.attrs<{ $color: string; $width: number }>(
+  (props) => ({
+    style: {
+      width: `${props.$width}px`,
+      background: props.$color,
+    },
+  }),
+)<{ $color: string; $width: number }>`
   position: absolute;
   top: 0;
   left: 0;
@@ -29,13 +34,18 @@ interface AnimatedPlayheadProps {
  * Uses requestAnimationFrame for smooth 60fps animation without React re-renders.
  */
 export const AnimatedPlayhead: React.FC<AnimatedPlayheadProps> = ({
-  color = '#ff0000',
+  color = "#ff0000",
   controlsOffset = 0,
 }) => {
   const playheadRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  const { isPlaying, currentTimeRef, playbackStartTimeRef, audioStartPositionRef } = usePlaybackAnimation();
+  const {
+    isPlaying,
+    currentTimeRef,
+    playbackStartTimeRef,
+    audioStartPositionRef,
+  } = usePlaybackAnimation();
   const { samplesPerPixel, sampleRate, progressBarWidth } = usePlaylistData();
 
   useEffect(() => {
@@ -44,7 +54,8 @@ export const AnimatedPlayhead: React.FC<AnimatedPlayheadProps> = ({
         // Calculate time directly from audio context for perfect sync
         let time: number;
         if (isPlaying) {
-          const elapsed = getContext().currentTime - (playbackStartTimeRef.current ?? 0);
+          const elapsed =
+            getContext().currentTime - (playbackStartTimeRef.current ?? 0);
           time = (audioStartPositionRef.current ?? 0) + elapsed;
         } else {
           time = currentTimeRef.current ?? 0;
@@ -72,7 +83,15 @@ export const AnimatedPlayhead: React.FC<AnimatedPlayheadProps> = ({
         animationFrameRef.current = null;
       }
     };
-  }, [isPlaying, sampleRate, samplesPerPixel, controlsOffset, currentTimeRef, playbackStartTimeRef, audioStartPositionRef]);
+  }, [
+    isPlaying,
+    sampleRate,
+    samplesPerPixel,
+    controlsOffset,
+    currentTimeRef,
+    playbackStartTimeRef,
+    audioStartPositionRef,
+  ]);
 
   // Also update position when not playing (for seeks, stops, etc.)
   useEffect(() => {
@@ -83,5 +102,12 @@ export const AnimatedPlayhead: React.FC<AnimatedPlayheadProps> = ({
     }
   });
 
-  return <PlayheadLine ref={playheadRef} $color={color} $width={progressBarWidth} data-playhead />;
+  return (
+    <PlayheadLine
+      ref={playheadRef}
+      $color={color}
+      $width={progressBarWidth}
+      data-playhead
+    />
+  );
 };

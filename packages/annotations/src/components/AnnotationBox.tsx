@@ -1,8 +1,8 @@
-import React, { FunctionComponent } from 'react';
-import styled from 'styled-components';
-import { useDraggable } from '@dnd-kit/core';
-import type { DraggableAttributes } from '@dnd-kit/core';
-import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
+import React, { FunctionComponent } from "react";
+import styled from "styled-components";
+import { useDraggable } from "@dnd-kit/core";
+import type { DraggableAttributes } from "@dnd-kit/core";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 interface WrapperProps {
   readonly $left: number;
@@ -33,12 +33,16 @@ const Box = styled.div<BoxProps>`
   left: 0;
   right: 0;
   height: 100%;
-  background: ${(props) => props.$isActive
-    ? (props.theme?.annotationBoxActiveBackground || 'rgba(255, 200, 100, 0.95)')
-    : (props.theme?.annotationBoxBackground || 'rgba(255, 255, 255, 0.85)')};
-  border: ${(props) => props.$isActive ? '3px' : '2px'} solid ${(props) => props.$isActive
-    ? (props.theme?.annotationBoxActiveBorder || '#ff9800')
-    : props.$color};
+  background: ${(props) =>
+    props.$isActive
+      ? props.theme?.annotationBoxActiveBackground ||
+        "rgba(255, 200, 100, 0.95)"
+      : props.theme?.annotationBoxBackground || "rgba(255, 255, 255, 0.85)"};
+  border: ${(props) => (props.$isActive ? "3px" : "2px")} solid
+    ${(props) =>
+      props.$isActive
+        ? props.theme?.annotationBoxActiveBorder || "#ff9800"
+        : props.$color};
   border-radius: 4px;
   cursor: pointer;
   pointer-events: auto;
@@ -47,13 +51,16 @@ const Box = styled.div<BoxProps>`
   justify-content: center;
   overflow: hidden;
   transition: all 0.2s ease;
-  box-shadow: ${(props) => props.$isActive
-    ? '0 2px 8px rgba(255, 152, 0, 0.4), inset 0 0 0 1px rgba(255, 152, 0, 0.2)'
-    : '0 1px 3px rgba(0, 0, 0, 0.1)'};
+  box-shadow: ${(props) =>
+    props.$isActive
+      ? "0 2px 8px rgba(255, 152, 0, 0.4), inset 0 0 0 1px rgba(255, 152, 0, 0.2)"
+      : "0 1px 3px rgba(0, 0, 0, 0.1)"};
 
   &:hover {
-    background: ${(props) => props.theme?.annotationBoxHoverBackground || 'rgba(255, 255, 255, 0.98)'};
-    border-color: ${(props) => props.theme?.annotationBoxActiveBorder || '#ff9800'};
+    background: ${(props) =>
+      props.theme?.annotationBoxHoverBackground || "rgba(255, 255, 255, 0.98)"};
+    border-color: ${(props) =>
+      props.theme?.annotationBoxActiveBorder || "#ff9800"};
     border-width: 3px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   }
@@ -62,7 +69,7 @@ const Box = styled.div<BoxProps>`
 const Label = styled.span`
   font-size: 12px;
   font-weight: 600;
-  color: ${(props) => props.theme?.annotationLabelColor || '#2a2a2a'};
+  color: ${(props) => props.theme?.annotationLabelColor || "#2a2a2a"};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -72,7 +79,7 @@ const Label = styled.span`
 `;
 
 interface ResizeHandleStyledProps {
-  $position: 'left' | 'right';
+  $position: "left" | "right";
   $isDragging?: boolean;
 }
 
@@ -81,41 +88,47 @@ interface ResizeHandleStyledProps {
 const ResizeHandle = styled.div<ResizeHandleStyledProps>`
   position: absolute;
   top: 0;
-  ${(props) => props.$position === 'left' ? 'left: 0' : 'right: 0'};
+  ${(props) => (props.$position === "left" ? "left: 0" : "right: 0")};
   width: 8px;
   height: 100%;
   cursor: ew-resize;
   z-index: 120;
-  background: ${(props) => props.$isDragging
-    ? (props.theme?.annotationResizeHandleColor || 'rgba(0, 0, 0, 0.2)')
-    : 'transparent'};
+  background: ${(props) =>
+    props.$isDragging
+      ? props.theme?.annotationResizeHandleColor || "rgba(0, 0, 0, 0.2)"
+      : "transparent"};
   border-radius: 4px;
   touch-action: none; /* Important for @dnd-kit on touch devices */
   pointer-events: auto;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 4px;
     height: 60%;
-    background: ${(props) => props.$isDragging
-      ? (props.theme?.annotationResizeHandleActiveColor || 'rgba(0, 0, 0, 0.8)')
-      : (props.theme?.annotationResizeHandleColor || 'rgba(0, 0, 0, 0.4)')};
+    background: ${(props) =>
+      props.$isDragging
+        ? props.theme?.annotationResizeHandleActiveColor || "rgba(0, 0, 0, 0.8)"
+        : props.theme?.annotationResizeHandleColor || "rgba(0, 0, 0, 0.4)"};
     border-radius: 2px;
-    opacity: ${(props) => props.$isDragging ? 1 : 0.6};
-    transition: opacity 0.2s, background 0.2s;
+    opacity: ${(props) => (props.$isDragging ? 1 : 0.6)};
+    transition:
+      opacity 0.2s,
+      background 0.2s;
   }
 
   &:hover {
-    background: ${(props) => props.theme?.annotationResizeHandleColor || 'rgba(0, 0, 0, 0.1)'};
+    background: ${(props) =>
+      props.theme?.annotationResizeHandleColor || "rgba(0, 0, 0, 0.1)"};
   }
 
   &:hover::before {
     opacity: 1;
-    background: ${(props) => props.theme?.annotationResizeHandleActiveColor || 'rgba(0, 0, 0, 0.7)'};
+    background: ${(props) =>
+      props.theme?.annotationResizeHandleActiveColor || "rgba(0, 0, 0, 0.7)"};
   }
 `;
 
@@ -144,7 +157,7 @@ export const AnnotationBox: FunctionComponent<AnnotationBoxComponentProps> = ({
   startPosition,
   endPosition,
   label,
-  color = '#ff9800',
+  color = "#ff9800",
   isActive = false,
   onClick,
   editable = true,
@@ -160,7 +173,7 @@ export const AnnotationBox: FunctionComponent<AnnotationBoxComponentProps> = ({
     isDragging: isLeftDragging,
   } = useDraggable({
     id: leftBoundaryId,
-    data: { annotationId, annotationIndex, edge: 'start' as const },
+    data: { annotationId, annotationIndex, edge: "start" as const },
     disabled: !editable,
   });
 
@@ -173,7 +186,7 @@ export const AnnotationBox: FunctionComponent<AnnotationBoxComponentProps> = ({
     isDragging: isRightDragging,
   } = useDraggable({
     id: rightBoundaryId,
-    data: { annotationId, annotationIndex, edge: 'end' as const },
+    data: { annotationId, annotationIndex, edge: "end" as const },
     disabled: !editable,
   });
 
@@ -183,7 +196,9 @@ export const AnnotationBox: FunctionComponent<AnnotationBoxComponentProps> = ({
 
   // Wrap @dnd-kit pointer handlers to also stop propagation
   // This prevents the ClickOverlay from capturing the event
-  const createPointerDownHandler = (dndKitHandler?: (e: React.PointerEvent) => void) => {
+  const createPointerDownHandler = (
+    dndKitHandler?: (e: React.PointerEvent) => void,
+  ) => {
     return (e: React.PointerEvent) => {
       e.stopPropagation();
       dndKitHandler?.(e);
@@ -197,11 +212,7 @@ export const AnnotationBox: FunctionComponent<AnnotationBoxComponentProps> = ({
 
   return (
     <Wrapper $left={startPosition} $width={width}>
-      <Box
-        $color={color}
-        $isActive={isActive}
-        onClick={onClick}
-      >
+      <Box $color={color} $isActive={isActive} onClick={onClick}>
         {label && <Label>{label}</Label>}
       </Box>
       {editable && (
@@ -211,7 +222,11 @@ export const AnnotationBox: FunctionComponent<AnnotationBoxComponentProps> = ({
           $isDragging={isLeftDragging}
           onClick={handleHandleClick}
           {...leftListeners}
-          onPointerDown={createPointerDownHandler(leftListeners?.onPointerDown as ((e: React.PointerEvent) => void) | undefined)}
+          onPointerDown={createPointerDownHandler(
+            leftListeners?.onPointerDown as
+              | ((e: React.PointerEvent) => void)
+              | undefined,
+          )}
           {...leftAttributes}
         />
       )}
@@ -222,7 +237,11 @@ export const AnnotationBox: FunctionComponent<AnnotationBoxComponentProps> = ({
           $isDragging={isRightDragging}
           onClick={handleHandleClick}
           {...rightListeners}
-          onPointerDown={createPointerDownHandler(rightListeners?.onPointerDown as ((e: React.PointerEvent) => void) | undefined)}
+          onPointerDown={createPointerDownHandler(
+            rightListeners?.onPointerDown as
+              | ((e: React.PointerEvent) => void)
+              | undefined,
+          )}
           {...rightAttributes}
         />
       )}

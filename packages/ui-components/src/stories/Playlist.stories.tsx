@@ -1,16 +1,20 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useTheme } from 'styled-components';
-import { Playlist } from '../components/Playlist';
-import { Track } from '../components/Track';
-import { Channel } from '../components/Channel';
-import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
-import { TrackControlsContext } from '../contexts/TrackControls';
-import type { WaveformPlaylistTheme } from '../wfpl-theme';
-import { fn } from 'storybook/test';
+import type { Meta, StoryObj } from "@storybook/react";
+import { useTheme } from "styled-components";
+import { Playlist } from "../components/Playlist";
+import { Track } from "../components/Track";
+import { Channel } from "../components/Channel";
+import { PlaylistInfoContext } from "../contexts/PlaylistInfo";
+import { TrackControlsContext } from "../contexts/TrackControls";
+import type { WaveformPlaylistTheme } from "../wfpl-theme";
+import { fn } from "storybook/test";
 
 // Generate sample waveform data for stories
-function generateSamplePeaks(length: number, bits: 8 | 16 = 8): Int8Array | Int16Array {
-  const data = bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
+function generateSamplePeaks(
+  length: number,
+  bits: 8 | 16 = 8,
+): Int8Array | Int16Array {
+  const data =
+    bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
   const maxValue = 2 ** (bits - 1) - 1;
 
   for (let i = 0; i < length; i++) {
@@ -42,25 +46,31 @@ const playlistInfo = {
 
 // Simple timescale component for demos
 const SimpleTimescale = () => (
-  <div style={{
-    height: '20px',
-    background: '#f0f0f0',
-    borderBottom: '1px solid #ddd',
-    display: 'flex',
-    alignItems: 'flex-end',
-    paddingLeft: '10px',
-    fontSize: '0.75rem',
-    color: '#666',
-  }}>
-    <span style={{ marginRight: '100px' }}>0:00</span>
-    <span style={{ marginRight: '100px' }}>0:10</span>
-    <span style={{ marginRight: '100px' }}>0:20</span>
+  <div
+    style={{
+      height: "20px",
+      background: "#f0f0f0",
+      borderBottom: "1px solid #ddd",
+      display: "flex",
+      alignItems: "flex-end",
+      paddingLeft: "10px",
+      fontSize: "0.75rem",
+      color: "#666",
+    }}
+  >
+    <span style={{ marginRight: "100px" }}>0:00</span>
+    <span style={{ marginRight: "100px" }}>0:10</span>
+    <span style={{ marginRight: "100px" }}>0:20</span>
     <span>0:30</span>
   </div>
 );
 
 // Wrapper component that uses theme from context for Channel colors
-const ThemedChannel = ({ outlineColor, fillColor, ...props }: {
+const ThemedChannel = ({
+  outlineColor,
+  fillColor,
+  ...props
+}: {
   index: number;
   data: Int8Array | Int16Array;
   bits: 8 | 16;
@@ -80,12 +90,12 @@ const ThemedChannel = ({ outlineColor, fillColor, ...props }: {
 };
 
 const meta: Meta<typeof Playlist> = {
-  title: 'Components/Playlist',
+  title: "Components/Playlist",
   component: Playlist,
   parameters: {
-    layout: 'padded',
+    layout: "padded",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <PlaylistInfoContext.Provider value={playlistInfo}>
@@ -215,7 +225,7 @@ export const Scrollable: Story = {
     (Story) => (
       <PlaylistInfoContext.Provider value={playlistInfo}>
         <TrackControlsContext.Provider value={null}>
-          <div style={{ width: '600px', overflow: 'hidden' }}>
+          <div style={{ width: "600px", overflow: "hidden" }}>
             <Story />
           </div>
         </TrackControlsContext.Provider>

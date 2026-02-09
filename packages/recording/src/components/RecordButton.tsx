@@ -2,8 +2,8 @@
  * RecordButton - Control button for starting/stopping recording
  */
 
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 export interface RecordButtonProps {
   isRecording: boolean;
@@ -20,11 +20,11 @@ const Button = styled.button<{ $isRecording: boolean }>`
   border-radius: 0.25rem;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  background: ${(props) => (props.$isRecording ? '#dc3545' : '#e74c3c')};
+  background: ${(props) => (props.$isRecording ? "#dc3545" : "#e74c3c")};
   color: white;
 
   &:hover:not(:disabled) {
-    background: ${(props) => (props.$isRecording ? '#c82333' : '#c0392b')};
+    background: ${(props) => (props.$isRecording ? "#c82333" : "#c0392b")};
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
@@ -76,10 +76,10 @@ export const RecordButton: React.FC<RecordButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       className={className}
-      aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+      aria-label={isRecording ? "Stop recording" : "Start recording"}
     >
       {isRecording && <RecordingIndicator />}
-      {isRecording ? 'Stop Recording' : 'Record'}
+      {isRecording ? "Stop Recording" : "Record"}
     </Button>
   );
 };

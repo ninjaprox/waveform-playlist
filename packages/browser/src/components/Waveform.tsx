@@ -1,10 +1,14 @@
-import React, { ReactNode } from 'react';
-import type { RenderPlayheadFunction } from '@waveform-playlist/ui-components';
-import type { AnnotationAction, AnnotationActionOptions, RenderAnnotationItemProps } from '@waveform-playlist/core';
-import { usePlaylistState } from '../WaveformPlaylistContext';
-import type { GetAnnotationBoxLabelFn } from '../types/annotations';
-import { PlaylistVisualization } from './PlaylistVisualization';
-import { PlaylistAnnotationList } from './PlaylistAnnotationList';
+import React, { ReactNode } from "react";
+import type { RenderPlayheadFunction } from "@waveform-playlist/ui-components";
+import type {
+  AnnotationAction,
+  AnnotationActionOptions,
+  RenderAnnotationItemProps,
+} from "@waveform-playlist/core";
+import { usePlaylistState } from "../WaveformPlaylistContext";
+import type { GetAnnotationBoxLabelFn } from "../types/annotations";
+import { PlaylistVisualization } from "./PlaylistVisualization";
+import { PlaylistAnnotationList } from "./PlaylistAnnotationList";
 
 export interface WaveformProps {
   renderTrackControls?: (trackIndex: number) => ReactNode;
@@ -28,7 +32,7 @@ export interface WaveformProps {
   /** Where to position the active annotation when auto-scrolling: 'center', 'start', 'end', or 'nearest'. Defaults to 'center'. */
   scrollActivePosition?: ScrollLogicalPosition;
   /** Which scrollable containers to scroll: 'nearest' (only the annotation list) or 'all' (including viewport). Defaults to 'nearest'. */
-  scrollActiveContainer?: 'nearest' | 'all';
+  scrollActiveContainer?: "nearest" | "all";
   className?: string;
   showClipHeaders?: boolean; // Show headers on clips for visual organization
   interactiveClips?: boolean; // Enable dragging/trimming interactions on clips (requires @dnd-kit setup)
@@ -66,8 +70,8 @@ export const Waveform: React.FC<WaveformProps> = ({
   annotationTextHeight,
   renderAnnotationItem,
   getAnnotationBoxLabel,
-  scrollActivePosition = 'center',
-  scrollActiveContainer = 'nearest',
+  scrollActivePosition = "center",
+  scrollActiveContainer = "nearest",
   className,
   showClipHeaders = false,
   interactiveClips = false,

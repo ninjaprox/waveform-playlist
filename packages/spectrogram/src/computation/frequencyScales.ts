@@ -48,23 +48,34 @@ function erbScale(f: number, minF: number, maxF: number): number {
   return (hzToErb(f) - erbMin) / (erbMax - erbMin);
 }
 
-export type FrequencyScaleName = 'linear' | 'logarithmic' | 'mel' | 'bark' | 'erb';
+export type FrequencyScaleName =
+  | "linear"
+  | "logarithmic"
+  | "mel"
+  | "bark"
+  | "erb";
 
 /**
  * Returns a mapping function: (frequencyHz, minFrequency, maxFrequency) → [0, 1]
  */
 export function getFrequencyScale(
-  name: FrequencyScaleName
+  name: FrequencyScaleName,
 ): (f: number, minF: number, maxF: number) => number {
   switch (name) {
-    case 'logarithmic': return logarithmicScale;
-    case 'mel': return melScale;
-    case 'bark': return barkScale;
-    case 'erb': return erbScale;
-    case 'linear':
+    case "logarithmic":
+      return logarithmicScale;
+    case "mel":
+      return melScale;
+    case "bark":
+      return barkScale;
+    case "erb":
+      return erbScale;
+    case "linear":
       return linearScale;
     default:
-      console.warn(`[spectrogram] Unknown frequency scale "${name}", falling back to linear`);
+      console.warn(
+        `[spectrogram] Unknown frequency scale "${name}", falling back to linear`,
+      );
       return linearScale;
   }
 }

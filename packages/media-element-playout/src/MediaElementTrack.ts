@@ -1,4 +1,4 @@
-import type { WaveformDataObject } from '@waveform-playlist/core';
+import type { WaveformDataObject } from "@waveform-playlist/core";
 
 export interface MediaElementTrackOptions {
   /** The audio source - can be a URL, Blob URL, or HTMLAudioElement */
@@ -41,11 +41,11 @@ export class MediaElementTrack {
   constructor(options: MediaElementTrackOptions) {
     this._peaks = options.peaks;
     this._id = options.id ?? `track-${Date.now()}`;
-    this._name = options.name ?? 'Track';
+    this._name = options.name ?? "Track";
     this._playbackRate = options.playbackRate ?? 1;
 
     // Create or use provided audio element
-    if (typeof options.source === 'string') {
+    if (typeof options.source === "string") {
       this.audioElement = new Audio(options.source);
       this.ownsElement = true;
     } else {
@@ -54,25 +54,25 @@ export class MediaElementTrack {
     }
 
     // Configure audio element
-    this.audioElement.preload = 'auto';
+    this.audioElement.preload = "auto";
     this.audioElement.volume = options.volume ?? 1;
     this.audioElement.playbackRate = this._playbackRate;
 
     // Preserve pitch when changing playback rate (default in modern browsers)
     // Some older browsers may not support this, but it's the default behavior
-    if ('preservesPitch' in this.audioElement) {
+    if ("preservesPitch" in this.audioElement) {
       (this.audioElement as any).preservesPitch = true;
-    } else if ('mozPreservesPitch' in this.audioElement) {
+    } else if ("mozPreservesPitch" in this.audioElement) {
       // Firefox prefix
       (this.audioElement as any).mozPreservesPitch = true;
-    } else if ('webkitPreservesPitch' in this.audioElement) {
+    } else if ("webkitPreservesPitch" in this.audioElement) {
       // Safari prefix
       (this.audioElement as any).webkitPreservesPitch = true;
     }
 
     // Set up event listeners
-    this.audioElement.addEventListener('ended', this.handleEnded);
-    this.audioElement.addEventListener('timeupdate', this.handleTimeUpdate);
+    this.audioElement.addEventListener("ended", this.handleEnded);
+    this.audioElement.addEventListener("timeupdate", this.handleTimeUpdate);
   }
 
   private handleEnded = () => {
@@ -92,8 +92,8 @@ export class MediaElementTrack {
    */
   play(offset: number = 0): void {
     this.audioElement.currentTime = offset;
-    this.audioElement.play().catch(err => {
-      console.warn('MediaElementTrack: play() failed:', err);
+    this.audioElement.play().catch((err) => {
+      console.warn("MediaElementTrack: play() failed:", err);
     });
   }
 
@@ -161,12 +161,12 @@ export class MediaElementTrack {
    * Clean up resources
    */
   dispose(): void {
-    this.audioElement.removeEventListener('ended', this.handleEnded);
-    this.audioElement.removeEventListener('timeupdate', this.handleTimeUpdate);
+    this.audioElement.removeEventListener("ended", this.handleEnded);
+    this.audioElement.removeEventListener("timeupdate", this.handleTimeUpdate);
     this.audioElement.pause();
 
     if (this.ownsElement) {
-      this.audioElement.src = '';
+      this.audioElement.src = "";
       this.audioElement.load(); // Release resources
     }
   }

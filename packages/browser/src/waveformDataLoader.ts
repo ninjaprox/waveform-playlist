@@ -5,7 +5,7 @@
  * Supports both binary (.dat) and JSON formats from BBC's audiowaveform tool.
  */
 
-import WaveformData from 'waveform-data';
+import WaveformData from "waveform-data";
 
 /**
  * Load waveform data from a .dat or .json file
@@ -21,7 +21,7 @@ export async function loadWaveformData(src: string): Promise<WaveformData> {
   }
 
   // Check file extension to determine format
-  const isBinary = src.endsWith('.dat');
+  const isBinary = src.endsWith(".dat");
 
   if (isBinary) {
     const arrayBuffer = await response.arrayBuffer();
@@ -41,8 +41,13 @@ export async function loadWaveformData(src: string): Promise<WaveformData> {
  */
 export function waveformDataToPeaks(
   waveformData: WaveformData,
-  channelIndex: number = 0
-): { data: Int8Array | Int16Array; bits: 8 | 16; length: number; sampleRate: number } {
+  channelIndex: number = 0,
+): {
+  data: Int8Array | Int16Array;
+  bits: 8 | 16;
+  length: number;
+  sampleRate: number;
+} {
   const channel = waveformData.channel(channelIndex);
   const bits = waveformData.bits as 8 | 16;
 
@@ -54,9 +59,8 @@ export function waveformDataToPeaks(
   // Use appropriate typed array based on source file bit depth
   // 8-bit: values range from -128 to 127
   // 16-bit: values range from -32768 to 32767
-  const peaks = bits === 8
-    ? new Int8Array(length * 2)
-    : new Int16Array(length * 2);
+  const peaks =
+    bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
 
   // Interleave min/max pairs
   for (let i = 0; i < length; i++) {
@@ -81,8 +85,13 @@ export function waveformDataToPeaks(
  */
 export async function loadPeaksFromWaveformData(
   src: string,
-  channelIndex: number = 0
-): Promise<{ data: Int8Array | Int16Array; bits: 8 | 16; length: number; sampleRate: number }> {
+  channelIndex: number = 0,
+): Promise<{
+  data: Int8Array | Int16Array;
+  bits: 8 | 16;
+  length: number;
+  sampleRate: number;
+}> {
   const waveformData = await loadWaveformData(src);
   return waveformDataToPeaks(waveformData, channelIndex);
 }
@@ -129,7 +138,7 @@ export function extractPeaksFromWaveformData(
   samplesPerPixel: number,
   channelIndex: number = 0,
   offsetSamples?: number,
-  durationSamples?: number
+  durationSamples?: number,
 ): { data: Int8Array | Int16Array; bits: 8 | 16; length: number } {
   let processedData = waveformData;
 
@@ -155,9 +164,8 @@ export function extractPeaksFromWaveformData(
   const maxArray = channel.max_array();
   const length = minArray.length;
 
-  const peaks = bits === 8
-    ? new Int8Array(length * 2)
-    : new Int16Array(length * 2);
+  const peaks =
+    bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
 
   for (let i = 0; i < length; i++) {
     peaks[i * 2] = minArray[i];

@@ -1,8 +1,12 @@
-import React, { FunctionComponent } from 'react';
-import { useDevicePixelRatio, usePlaylistInfo, useTheme } from '../contexts';
-import { Channel } from './Channel';
-import { SpectrogramChannel, type SpectrogramChannelProps, type SpectrogramWorkerCanvasApi } from './SpectrogramChannel';
-import type { SpectrogramData, RenderMode } from '@waveform-playlist/core';
+import React, { FunctionComponent } from "react";
+import { useDevicePixelRatio, usePlaylistInfo, useTheme } from "../contexts";
+import { Channel } from "./Channel";
+import {
+  SpectrogramChannel,
+  type SpectrogramChannelProps,
+  type SpectrogramWorkerCanvasApi,
+} from "./SpectrogramChannel";
+import type { SpectrogramData, RenderMode } from "@waveform-playlist/core";
 
 export interface SmartChannelProps {
   className?: string;
@@ -22,7 +26,11 @@ export interface SmartChannelProps {
   /** Samples per pixel at current zoom level */
   samplesPerPixel?: number;
   /** Frequency scale function */
-  spectrogramFrequencyScaleFn?: (f: number, minF: number, maxF: number) => number;
+  spectrogramFrequencyScaleFn?: (
+    f: number,
+    minF: number,
+    maxF: number,
+  ) => number;
   /** Min frequency in Hz */
   spectrogramMinFrequency?: number;
   /** Max frequency in Hz */
@@ -32,13 +40,16 @@ export interface SmartChannelProps {
   /** Clip ID for worker canvas registration */
   spectrogramClipId?: string;
   /** Callback when canvases are registered with the worker */
-  spectrogramOnCanvasesReady?: (canvasIds: string[], canvasWidths: number[]) => void;
+  spectrogramOnCanvasesReady?: (
+    canvasIds: string[],
+    canvasWidths: number[],
+  ) => void;
 }
 
 export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
   isSelected,
   transparentBackground,
-  renderMode = 'waveform',
+  renderMode = "waveform",
   spectrogramData,
   spectrogramColorLUT,
   samplesPerPixel: sppProp,
@@ -51,26 +62,31 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
   ...props
 }) => {
   const theme = useTheme();
-  const { waveHeight, barWidth, barGap, samplesPerPixel: contextSpp } = usePlaylistInfo();
+  const {
+    waveHeight,
+    barWidth,
+    barGap,
+    samplesPerPixel: contextSpp,
+  } = usePlaylistInfo();
   const devicePixelRatio = useDevicePixelRatio();
   const samplesPerPixel = sppProp ?? contextSpp;
 
   // Use selected colors if track is selected
-  const waveOutlineColor = isSelected && theme
-    ? theme.selectedWaveOutlineColor
-    : theme?.waveOutlineColor;
+  const waveOutlineColor =
+    isSelected && theme
+      ? theme.selectedWaveOutlineColor
+      : theme?.waveOutlineColor;
 
-  const waveFillColor = isSelected && theme
-    ? theme.selectedWaveFillColor
-    : theme?.waveFillColor;
+  const waveFillColor =
+    isSelected && theme ? theme.selectedWaveFillColor : theme?.waveFillColor;
 
   // Get draw mode from theme (defaults to 'inverted' for backwards compatibility)
-  const drawMode = theme?.waveformDrawMode || 'inverted';
+  const drawMode = theme?.waveformDrawMode || "inverted";
 
   // Worker mode: spectrogram data is optional (worker renders directly)
   const hasSpectrogram = spectrogramData || spectrogramWorkerApi;
 
-  if (renderMode === 'spectrogram' && hasSpectrogram) {
+  if (renderMode === "spectrogram" && hasSpectrogram) {
     return (
       <SpectrogramChannel
         index={props.index}
@@ -90,7 +106,7 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
     );
   }
 
-  if (renderMode === 'both' && hasSpectrogram) {
+  if (renderMode === "both" && hasSpectrogram) {
     // Spectrogram above, waveform below — each at half waveHeight so the
     // overall track container stays the same height as a single-mode track.
     const halfHeight = Math.floor(waveHeight / 2);
@@ -112,7 +128,14 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
           clipId={spectrogramClipId}
           onCanvasesReady={spectrogramOnCanvasesReady}
         />
-        <div style={{ position: 'absolute', top: (props.index * 2 + 1) * halfHeight, width: props.length, height: halfHeight }}>
+        <div
+          style={{
+            position: "absolute",
+            top: (props.index * 2 + 1) * halfHeight,
+            width: props.length,
+            height: halfHeight,
+          }}
+        >
           <Channel
             {...props}
             {...theme}

@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * ControlButton - A colored action button for prominent actions like Play, Pause, Record.
@@ -8,8 +8,8 @@ import styled from 'styled-components';
  */
 export const BaseControlButton = styled.button`
   padding: 0.5rem 1rem;
-  background: ${(props) => props.theme.buttonBackground || '#007bff'};
-  color: ${(props) => props.theme.buttonText || 'white'};
+  background: ${(props) => props.theme.buttonBackground || "#007bff"};
+  color: ${(props) => props.theme.buttonText || "white"};
   border: none;
   border-radius: ${(props) => props.theme.borderRadius};
   cursor: pointer;
@@ -19,12 +19,13 @@ export const BaseControlButton = styled.button`
   transition: background-color 0.15s ease-in-out;
 
   &:hover:not(:disabled) {
-    background: ${(props) => props.theme.buttonHoverBackground || '#0056b3'};
+    background: ${(props) => props.theme.buttonHoverBackground || "#0056b3"};
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px ${(props) => props.theme.buttonBackground || '#007bff'}66;
+    box-shadow: 0 0 0 2px
+      ${(props) => props.theme.buttonBackground || "#007bff"}66;
   }
 
   &:disabled {

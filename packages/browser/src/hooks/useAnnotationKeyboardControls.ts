@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useEffect } from 'react';
-import type { AnnotationData } from '@waveform-playlist/core';
-import { useKeyboardShortcuts } from './useKeyboardShortcuts';
+import { useCallback, useMemo, useEffect } from "react";
+import type { AnnotationData } from "@waveform-playlist/core";
+import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 
 const LINK_THRESHOLD = 0.01; // Consider edges "linked" if within 10ms
 const TIME_DELTA = 0.01; // 10ms adjustment per keypress
@@ -82,7 +82,8 @@ export function useAnnotationKeyboardControls({
   // Scroll waveform to show a specific annotation
   const scrollToAnnotation = useCallback(
     (annotationId: string) => {
-      if (!scrollContainerRef?.current || !samplesPerPixel || !sampleRate) return;
+      if (!scrollContainerRef?.current || !samplesPerPixel || !sampleRate)
+        return;
 
       const annotation = annotations.find((a) => a.id === annotationId);
       if (!annotation) return;
@@ -91,8 +92,10 @@ export function useAnnotationKeyboardControls({
       const containerWidth = container.clientWidth;
 
       // Calculate pixel positions for annotation start and center
-      const startPixel = (annotation.start * sampleRate) / samplesPerPixel + controlsWidth;
-      const endPixel = (annotation.end * sampleRate) / samplesPerPixel + controlsWidth;
+      const startPixel =
+        (annotation.start * sampleRate) / samplesPerPixel + controlsWidth;
+      const endPixel =
+        (annotation.end * sampleRate) / samplesPerPixel + controlsWidth;
       const annotationCenter = (startPixel + endPixel) / 2;
 
       // Check if annotation is currently visible
@@ -102,29 +105,52 @@ export function useAnnotationKeyboardControls({
 
       // If annotation is not fully visible, scroll to center it
       if (startPixel < visibleStart || endPixel > visibleEnd) {
-        const targetScrollLeft = Math.max(0, annotationCenter - containerWidth / 2);
+        const targetScrollLeft = Math.max(
+          0,
+          annotationCenter - containerWidth / 2,
+        );
         container.scrollTo({
           left: targetScrollLeft,
-          behavior: 'smooth',
+          behavior: "smooth",
         });
       }
     },
-    [annotations, scrollContainerRef, samplesPerPixel, sampleRate, controlsWidth]
+    [
+      annotations,
+      scrollContainerRef,
+      samplesPerPixel,
+      sampleRate,
+      controlsWidth,
+    ],
   );
 
   // Auto-scroll when active annotation changes via keyboard navigation
   useEffect(() => {
-    if (activeAnnotationId && scrollContainerRef?.current && samplesPerPixel && sampleRate) {
+    if (
+      activeAnnotationId &&
+      scrollContainerRef?.current &&
+      samplesPerPixel &&
+      sampleRate
+    ) {
       scrollToAnnotation(activeAnnotationId);
     }
-  }, [activeAnnotationId, scrollToAnnotation, scrollContainerRef, samplesPerPixel, sampleRate]);
+  }, [
+    activeAnnotationId,
+    scrollToAnnotation,
+    scrollContainerRef,
+    samplesPerPixel,
+    sampleRate,
+  ]);
 
   const moveStartBoundary = useCallback(
     (delta: number) => {
       if (activeIndex < 0) return;
 
       const annotation = annotations[activeIndex];
-      const newStart = Math.max(0, Math.min(annotation.end - 0.1, annotation.start + delta));
+      const newStart = Math.max(
+        0,
+        Math.min(annotation.end - 0.1, annotation.start + delta),
+      );
       const actualDelta = newStart - annotation.start;
 
       const updatedAnnotations = [...annotations];
@@ -140,7 +166,10 @@ export function useAnnotationKeyboardControls({
           // Already linked: move previous annotation's end together
           updatedAnnotations[activeIndex - 1] = {
             ...prevAnnotation,
-            end: Math.max(prevAnnotation.start + 0.1, prevAnnotation.end + actualDelta),
+            end: Math.max(
+              prevAnnotation.start + 0.1,
+              prevAnnotation.end + actualDelta,
+            ),
           };
         }
       } else if (!linkEndpoints && activeIndex > 0) {
@@ -157,7 +186,7 @@ export function useAnnotationKeyboardControls({
 
       onAnnotationsChange(updatedAnnotations);
     },
-    [annotations, activeIndex, linkEndpoints, onAnnotationsChange]
+    [annotations, activeIndex, linkEndpoints, onAnnotationsChange],
   );
 
   const moveEndBoundary = useCallback(
@@ -165,7 +194,10 @@ export function useAnnotationKeyboardControls({
       if (activeIndex < 0) return;
 
       const annotation = annotations[activeIndex];
-      const newEnd = Math.max(annotation.start + 0.1, Math.min(duration, annotation.end + delta));
+      const newEnd = Math.max(
+        annotation.start + 0.1,
+        Math.min(duration, annotation.end + delta),
+      );
       const actualDelta = newEnd - annotation.end;
 
       const updatedAnnotations = [...annotations];
@@ -179,7 +211,10 @@ export function useAnnotationKeyboardControls({
         const nextAnnotation = updatedAnnotations[activeIndex + 1];
         if (Math.abs(nextAnnotation.start - annotation.end) < LINK_THRESHOLD) {
           // Already linked: move next annotation's start together
-          const newNextStart = Math.min(nextAnnotation.end - 0.1, nextAnnotation.start + actualDelta);
+          const newNextStart = Math.min(
+            nextAnnotation.end - 0.1,
+            nextAnnotation.start + actualDelta,
+          );
           updatedAnnotations[activeIndex + 1] = {
             ...nextAnnotation,
             start: newNextStart,
@@ -191,7 +226,10 @@ export function useAnnotationKeyboardControls({
             const current = updatedAnnotations[currentIndex];
             const next = updatedAnnotations[currentIndex + 1];
 
-            if (Math.abs(next.start - annotations[currentIndex].end) < LINK_THRESHOLD) {
+            if (
+              Math.abs(next.start - annotations[currentIndex].end) <
+              LINK_THRESHOLD
+            ) {
               const nextDelta = current.end - annotations[currentIndex].end;
               updatedAnnotations[currentIndex + 1] = {
                 ...next,
@@ -234,7 +272,7 @@ export function useAnnotationKeyboardControls({
 
       onAnnotationsChange(updatedAnnotations);
     },
-    [annotations, activeIndex, duration, linkEndpoints, onAnnotationsChange]
+    [annotations, activeIndex, duration, linkEndpoints, onAnnotationsChange],
   );
 
   // Navigation functions
@@ -281,7 +319,9 @@ export function useAnnotationKeyboardControls({
 
     const annotation = annotations[activeIndex];
     // If continuous play is off, play just this annotation's duration
-    const playDuration = !continuousPlay ? annotation.end - annotation.start : undefined;
+    const playDuration = !continuousPlay
+      ? annotation.end - annotation.start
+      : undefined;
     onPlay(annotation.start, playDuration);
   }, [annotations, activeIndex, continuousPlay, onPlay]);
 
@@ -289,88 +329,88 @@ export function useAnnotationKeyboardControls({
   const activeAnnotationShortcuts = useMemo(
     () => [
       {
-        key: '[',
+        key: "[",
         action: () => moveStartBoundary(-TIME_DELTA),
-        description: 'Move annotation start earlier',
+        description: "Move annotation start earlier",
         preventDefault: true,
       },
       {
-        key: ']',
+        key: "]",
         action: () => moveStartBoundary(TIME_DELTA),
-        description: 'Move annotation start later',
+        description: "Move annotation start later",
         preventDefault: true,
       },
       {
-        key: '{',
+        key: "{",
         shiftKey: true,
         action: () => moveEndBoundary(-TIME_DELTA),
-        description: 'Move annotation end earlier',
+        description: "Move annotation end earlier",
         preventDefault: true,
       },
       {
-        key: '}',
+        key: "}",
         shiftKey: true,
         action: () => moveEndBoundary(TIME_DELTA),
-        description: 'Move annotation end later',
+        description: "Move annotation end later",
         preventDefault: true,
       },
       {
-        key: 'Enter',
+        key: "Enter",
         action: playActiveAnnotation,
-        description: 'Play selected annotation',
+        description: "Play selected annotation",
         preventDefault: true,
       },
     ],
-    [moveStartBoundary, moveEndBoundary, playActiveAnnotation]
+    [moveStartBoundary, moveEndBoundary, playActiveAnnotation],
   );
 
   // Navigation shortcuts (always active when enabled and there are annotations)
   const navigationShortcuts = useMemo(
     () => [
       {
-        key: 'ArrowUp',
+        key: "ArrowUp",
         action: selectPrevious,
-        description: 'Select previous annotation',
+        description: "Select previous annotation",
         preventDefault: true,
       },
       {
-        key: 'ArrowLeft',
+        key: "ArrowLeft",
         action: selectPrevious,
-        description: 'Select previous annotation',
+        description: "Select previous annotation",
         preventDefault: true,
       },
       {
-        key: 'ArrowDown',
+        key: "ArrowDown",
         action: selectNext,
-        description: 'Select next annotation',
+        description: "Select next annotation",
         preventDefault: true,
       },
       {
-        key: 'ArrowRight',
+        key: "ArrowRight",
         action: selectNext,
-        description: 'Select next annotation',
+        description: "Select next annotation",
         preventDefault: true,
       },
       {
-        key: 'Home',
+        key: "Home",
         action: selectFirst,
-        description: 'Select first annotation',
+        description: "Select first annotation",
         preventDefault: true,
       },
       {
-        key: 'End',
+        key: "End",
         action: selectLast,
-        description: 'Select last annotation',
+        description: "Select last annotation",
         preventDefault: true,
       },
       {
-        key: 'Escape',
+        key: "Escape",
         action: clearSelection,
-        description: 'Deselect annotation',
+        description: "Deselect annotation",
         preventDefault: true,
       },
     ],
-    [selectPrevious, selectNext, selectFirst, selectLast, clearSelection]
+    [selectPrevious, selectNext, selectFirst, selectLast, clearSelection],
   );
 
   // Active annotation shortcuts only work when an annotation is selected

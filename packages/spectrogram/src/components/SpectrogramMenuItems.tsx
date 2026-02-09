@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import type { RenderMode } from '@waveform-playlist/core';
-import type { TrackMenuItem } from './types';
+import React from "react";
+import styled from "styled-components";
+import type { RenderMode } from "@waveform-playlist/core";
+import type { TrackMenuItem } from "./types";
 
 const SectionLabel = styled.div`
   font-size: 0.65rem;
@@ -45,9 +45,9 @@ const DropdownSection = styled.div`
 `;
 
 const RENDER_MODES: { value: RenderMode; label: string }[] = [
-  { value: 'waveform', label: 'Waveform' },
-  { value: 'spectrogram', label: 'Spectrogram' },
-  { value: 'both', label: 'Both' },
+  { value: "waveform", label: "Waveform" },
+  { value: "spectrogram", label: "Spectrogram" },
+  { value: "both", label: "Both" },
 ];
 
 export interface SpectrogramMenuItemsProps {
@@ -68,8 +68,8 @@ export function SpectrogramMenuItems({
 }: SpectrogramMenuItemsProps): TrackMenuItem[] {
   return [
     {
-      id: 'spectrogram-display',
-      label: 'Display',
+      id: "spectrogram-display",
+      label: "Display",
       content: (
         <DropdownSection>
           <SectionLabel>Display</SectionLabel>
@@ -79,7 +79,10 @@ export function SpectrogramMenuItems({
                 type="radio"
                 name="render-mode"
                 checked={renderMode === value}
-                onChange={() => { onRenderModeChange(value); onClose?.(); }}
+                onChange={() => {
+                  onRenderModeChange(value);
+                  onClose?.();
+                }}
               />
               {label}
             </RadioLabel>
@@ -88,7 +91,7 @@ export function SpectrogramMenuItems({
       ),
     },
     {
-      id: 'spectrogram-settings',
+      id: "spectrogram-settings",
       content: (
         <SettingsButton
           onClick={(e) => {

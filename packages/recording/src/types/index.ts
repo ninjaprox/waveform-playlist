@@ -76,7 +76,10 @@ export interface UseMicrophoneAccessReturn {
   isLoading: boolean;
 
   // Controls
-  requestAccess: (deviceId?: string, audioConstraints?: MediaTrackConstraints) => Promise<void>;
+  requestAccess: (
+    deviceId?: string,
+    audioConstraints?: MediaTrackConstraints,
+  ) => Promise<void>;
   stopStream: () => void;
 
   // Error handling

@@ -25,12 +25,12 @@ export function createAudioBuffer(
   audioContext: AudioContext,
   samples: Float32Array,
   sampleRate: number,
-  channelCount: number = 1
+  channelCount: number = 1,
 ): AudioBuffer {
   const buffer = audioContext.createBuffer(
     channelCount,
     samples.length,
-    sampleRate
+    sampleRate,
   );
 
   // Copy samples to buffer (for now, just mono)
@@ -48,7 +48,7 @@ export function appendToAudioBuffer(
   audioContext: AudioContext,
   existingBuffer: AudioBuffer | null,
   newSamples: Float32Array,
-  sampleRate: number
+  sampleRate: number,
 ): AudioBuffer {
   if (!existingBuffer) {
     return createAudioBuffer(audioContext, newSamples, sampleRate);
@@ -67,6 +67,9 @@ export function appendToAudioBuffer(
 /**
  * Calculate duration in seconds from sample count and sample rate
  */
-export function calculateDuration(sampleCount: number, sampleRate: number): number {
+export function calculateDuration(
+  sampleCount: number,
+  sampleRate: number,
+): number {
   return sampleCount / sampleRate;
 }

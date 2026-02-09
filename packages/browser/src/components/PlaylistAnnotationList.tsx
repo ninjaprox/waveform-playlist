@@ -1,15 +1,18 @@
-import React, { useCallback } from 'react';
+import React, { useCallback } from "react";
 import type {
   AnnotationData,
   AnnotationAction,
   AnnotationActionOptions,
   RenderAnnotationItemProps,
-} from '@waveform-playlist/core';
-import { useAnnotationIntegration } from '../AnnotationIntegrationContext';
-import { usePlaylistState, usePlaylistControls } from '../WaveformPlaylistContext';
-import type { OnAnnotationUpdateFn } from '../types/annotations';
+} from "@waveform-playlist/core";
+import { useAnnotationIntegration } from "../AnnotationIntegrationContext";
+import {
+  usePlaylistState,
+  usePlaylistControls,
+} from "../WaveformPlaylistContext";
+import type { OnAnnotationUpdateFn } from "../types/annotations";
 
-export type { OnAnnotationUpdateFn } from '../types/annotations';
+export type { OnAnnotationUpdateFn } from "../types/annotations";
 
 export interface PlaylistAnnotationListProps {
   /** Height in pixels for the annotation text list */
@@ -37,7 +40,7 @@ export interface PlaylistAnnotationListProps {
   /** Where to position the active annotation when auto-scrolling. Defaults to 'center'. */
   scrollActivePosition?: ScrollLogicalPosition;
   /** Which scrollable containers to scroll: 'nearest' or 'all'. Defaults to 'nearest'. */
-  scrollActiveContainer?: 'nearest' | 'all';
+  scrollActiveContainer?: "nearest" | "all";
 }
 
 /**
@@ -52,8 +55,8 @@ export const PlaylistAnnotationList: React.FC<PlaylistAnnotationListProps> = ({
   onAnnotationUpdate,
   controls,
   annotationListConfig,
-  scrollActivePosition = 'center',
-  scrollActiveContainer = 'nearest',
+  scrollActivePosition = "center",
+  scrollActiveContainer = "nearest",
 }) => {
   const {
     annotations,
@@ -65,12 +68,18 @@ export const PlaylistAnnotationList: React.FC<PlaylistAnnotationListProps> = ({
   const integration = useAnnotationIntegration();
   const { setAnnotations } = usePlaylistControls();
 
-  const resolvedConfig = annotationListConfig ?? { linkEndpoints, continuousPlay };
+  const resolvedConfig = annotationListConfig ?? {
+    linkEndpoints,
+    continuousPlay,
+  };
 
-  const handleAnnotationUpdate = useCallback((updatedAnnotations: AnnotationData[]) => {
-    setAnnotations(updatedAnnotations);
-    onAnnotationUpdate?.(updatedAnnotations);
-  }, [setAnnotations, onAnnotationUpdate]);
+  const handleAnnotationUpdate = useCallback(
+    (updatedAnnotations: AnnotationData[]) => {
+      setAnnotations(updatedAnnotations);
+      onAnnotationUpdate?.(updatedAnnotations);
+    },
+    [setAnnotations, onAnnotationUpdate],
+  );
 
   const { AnnotationText } = integration;
 

@@ -1,8 +1,8 @@
-import React, { FunctionComponent, ReactNode } from 'react';
-import styled from 'styled-components';
-import { usePlaylistInfo } from '../contexts/PlaylistInfo';
-import { useTrackControls } from '../contexts/TrackControls';
-import { CLIP_HEADER_HEIGHT } from './ClipHeader';
+import React, { FunctionComponent, ReactNode } from "react";
+import styled from "styled-components";
+import { usePlaylistInfo } from "../contexts/PlaylistInfo";
+import { useTrackControls } from "../contexts/TrackControls";
+import { CLIP_HEADER_HEIGHT } from "./ClipHeader";
 
 interface ContainerProps {
   readonly $numChannels: number;
@@ -37,7 +37,7 @@ const ChannelContainer = styled.div.attrs<ChannelContainerProps>((props) => ({
   },
 }))<ChannelContainerProps>`
   position: relative;
-  background: ${(props) => props.$backgroundColor || 'transparent'};
+  background: ${(props) => props.$backgroundColor || "transparent"};
   flex: 1;
 `;
 
@@ -60,7 +60,9 @@ const ControlsWrapper = styled.div.attrs<ControlsWrapperProps>((props) => ({
   transition: background 0.15s ease-in-out;
 
   /* Selected track: highlighted background */
-  ${(props) => props.$isSelected && `
+  ${(props) =>
+    props.$isSelected &&
+    `
     background: ${props.theme.selectedTrackControlsBackground};
   `}
 `;

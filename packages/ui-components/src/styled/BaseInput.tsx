@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * BaseInput - A styled input component that uses theme values
@@ -15,7 +15,9 @@ export const BaseInput = styled.input`
   border: 1px solid ${(props) => props.theme.inputBorder};
   border-radius: ${(props) => props.theme.borderRadius};
   outline: none;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
 
   &::placeholder {
     color: ${(props) => props.theme.inputPlaceholder};

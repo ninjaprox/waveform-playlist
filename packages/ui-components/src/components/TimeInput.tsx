@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { formatTime, parseTime, type TimeFormat } from '../utils/timeFormat';
-import { BaseInput, ScreenReaderOnly } from '../styled/index';
+import React, { useEffect, useState } from "react";
+import { formatTime, parseTime, type TimeFormat } from "../utils/timeFormat";
+import { BaseInput, ScreenReaderOnly } from "../styled/index";
 
 export interface TimeInputProps {
   id: string;
@@ -27,7 +27,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
   onChange,
   readOnly = false,
 }) => {
-  const [displayValue, setDisplayValue] = useState('');
+  const [displayValue, setDisplayValue] = useState("");
 
   // Update display value when value or format changes
   useEffect(() => {
@@ -51,7 +51,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.currentTarget.blur();
     }
   };

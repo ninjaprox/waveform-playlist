@@ -2,10 +2,10 @@
  * MicrophoneSelector - Dropdown for selecting microphone input device
  */
 
-import React from 'react';
-import styled from 'styled-components';
-import { BaseSelect, BaseLabel } from '@waveform-playlist/ui-components';
-import { MicrophoneDevice } from '../types';
+import React from "react";
+import styled from "styled-components";
+import { BaseSelect, BaseLabel } from "@waveform-playlist/ui-components";
+import { MicrophoneDevice } from "../types";
 
 export interface MicrophoneSelectorProps {
   devices: MicrophoneDevice[];
@@ -37,7 +37,8 @@ export const MicrophoneSelector: React.FC<MicrophoneSelectorProps> = ({
   };
 
   // Use first device if no selection provided
-  const currentValue = selectedDeviceId || (devices.length > 0 ? devices[0].deviceId : '');
+  const currentValue =
+    selectedDeviceId || (devices.length > 0 ? devices[0].deviceId : "");
 
   return (
     <Label className={className}>

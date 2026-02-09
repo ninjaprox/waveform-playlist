@@ -1,15 +1,28 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useTheme } from 'styled-components';
-import { Track } from '../components/Track';
-import { Channel } from '../components/Channel';
-import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
-import { TrackControlsContext } from '../contexts/TrackControls';
-import type { WaveformPlaylistTheme } from '../wfpl-theme';
-import { Controls, Header, ButtonGroup, Button, SliderWrapper, Slider, VolumeDownIcon, VolumeUpIcon } from '../components/TrackControls/index';
+import type { Meta, StoryObj } from "@storybook/react";
+import { useTheme } from "styled-components";
+import { Track } from "../components/Track";
+import { Channel } from "../components/Channel";
+import { PlaylistInfoContext } from "../contexts/PlaylistInfo";
+import { TrackControlsContext } from "../contexts/TrackControls";
+import type { WaveformPlaylistTheme } from "../wfpl-theme";
+import {
+  Controls,
+  Header,
+  ButtonGroup,
+  Button,
+  SliderWrapper,
+  Slider,
+  VolumeDownIcon,
+  VolumeUpIcon,
+} from "../components/TrackControls/index";
 
 // Generate sample waveform data for stories
-function generateSamplePeaks(length: number, bits: 8 | 16 = 8): Int8Array | Int16Array {
-  const data = bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
+function generateSamplePeaks(
+  length: number,
+  bits: 8 | 16 = 8,
+): Int8Array | Int16Array {
+  const data =
+    bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
   const maxValue = 2 ** (bits - 1) - 1;
 
   for (let i = 0; i < length; i++) {
@@ -65,7 +78,11 @@ const SampleTrackControls = () => (
 );
 
 // Wrapper component that uses theme from context for Channel colors
-const ThemedChannel = ({ outlineColor, fillColor, ...props }: {
+const ThemedChannel = ({
+  outlineColor,
+  fillColor,
+  ...props
+}: {
   index: number;
   data: Int8Array | Int16Array;
   bits: 8 | 16;
@@ -85,12 +102,12 @@ const ThemedChannel = ({ outlineColor, fillColor, ...props }: {
 };
 
 const meta: Meta<typeof Track> = {
-  title: 'Components/Track',
+  title: "Components/Track",
   component: Track,
   parameters: {
-    layout: 'padded',
+    layout: "padded",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <PlaylistInfoContext.Provider value={playlistInfo}>
@@ -125,7 +142,7 @@ export const Default: Story = {
 export const WithBackground: Story = {
   args: {
     numChannels: 1,
-    backgroundColor: '#e8f4ff',
+    backgroundColor: "#e8f4ff",
   },
   render: (args) => (
     <Track {...args}>
@@ -200,7 +217,7 @@ export const StereoTrack: Story = {
   },
   render: (args) => (
     <Track {...args}>
-      <div style={{ position: 'relative', height: '160px' }}>
+      <div style={{ position: "relative", height: "160px" }}>
         <ThemedChannel
           index={0}
           data={sampleData}
@@ -208,7 +225,7 @@ export const StereoTrack: Story = {
           length={500}
           waveHeight={80}
         />
-        <div style={{ position: 'absolute', top: '80px', width: '100%' }}>
+        <div style={{ position: "absolute", top: "80px", width: "100%" }}>
           <ThemedChannel
             index={1}
             data={sampleData}

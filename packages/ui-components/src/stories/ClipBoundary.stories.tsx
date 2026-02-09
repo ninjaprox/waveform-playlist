@@ -1,23 +1,25 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
-import { ClipBoundary } from '../components/ClipBoundary';
+import type { Meta, StoryObj } from "@storybook/react";
+import { useState } from "react";
+import { ClipBoundary } from "../components/ClipBoundary";
 
 const meta: Meta<typeof ClipBoundary> = {
-  title: 'Components/ClipBoundary',
+  title: "Components/ClipBoundary",
   component: ClipBoundary,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   decorators: [
     (Story) => (
-      <div style={{
-        position: 'relative',
-        width: '200px',
-        height: '100px',
-        background: 'rgba(0,0,0,0.1)',
-        border: '1px solid #ccc',
-      }}>
+      <div
+        style={{
+          position: "relative",
+          width: "200px",
+          height: "100px",
+          background: "rgba(0,0,0,0.1)",
+          border: "1px solid #ccc",
+        }}
+      >
         <Story />
       </div>
     ),
@@ -37,40 +39,40 @@ const mockDragHandleProps = {
 
 export const LeftEdge: Story = {
   args: {
-    clipId: 'clip-1',
+    clipId: "clip-1",
     trackIndex: 0,
     clipIndex: 0,
-    edge: 'left',
+    edge: "left",
     dragHandleProps: mockDragHandleProps,
   },
 };
 
 export const RightEdge: Story = {
   args: {
-    clipId: 'clip-1',
+    clipId: "clip-1",
     trackIndex: 0,
     clipIndex: 0,
-    edge: 'right',
+    edge: "right",
     dragHandleProps: mockDragHandleProps,
   },
 };
 
 export const LeftEdgeDragging: Story = {
   args: {
-    clipId: 'clip-1',
+    clipId: "clip-1",
     trackIndex: 0,
     clipIndex: 0,
-    edge: 'left',
+    edge: "left",
     dragHandleProps: { ...mockDragHandleProps, isDragging: true },
   },
 };
 
 export const RightEdgeDragging: Story = {
   args: {
-    clipId: 'clip-1',
+    clipId: "clip-1",
     trackIndex: 0,
     clipIndex: 0,
-    edge: 'right',
+    edge: "right",
     dragHandleProps: { ...mockDragHandleProps, isDragging: true },
   },
 };
@@ -103,16 +105,18 @@ export const InteractiveHover: Story = {
 
     return (
       <div>
-        <p style={{ marginBottom: '1rem', fontSize: '0.875rem' }}>
+        <p style={{ marginBottom: "1rem", fontSize: "0.875rem" }}>
           Hover over the edges to see the hover effect
         </p>
-        <div style={{
-          position: 'relative',
-          width: '200px',
-          height: '100px',
-          background: 'rgba(0,0,0,0.1)',
-          border: '1px solid #ccc',
-        }}>
+        <div
+          style={{
+            position: "relative",
+            width: "200px",
+            height: "100px",
+            background: "rgba(0,0,0,0.1)",
+            border: "1px solid #ccc",
+          }}
+        >
           <ClipBoundary
             clipId="clip-1"
             trackIndex={0}

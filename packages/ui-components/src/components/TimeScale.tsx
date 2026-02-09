@@ -1,15 +1,15 @@
-import React, { FunctionComponent, useRef, useEffect, useContext } from 'react';
-import styled, { withTheme, DefaultTheme } from 'styled-components';
-import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
-import { useDevicePixelRatio } from '../contexts/DevicePixelRatio';
-import { secondsToPixels } from '../utils/conversions';
+import React, { FunctionComponent, useRef, useEffect, useContext } from "react";
+import styled, { withTheme, DefaultTheme } from "styled-components";
+import { PlaylistInfoContext } from "../contexts/PlaylistInfo";
+import { useDevicePixelRatio } from "../contexts/DevicePixelRatio";
+import { secondsToPixels } from "../utils/conversions";
 
 function formatTime(milliseconds: number) {
   const seconds = Math.floor(milliseconds / 1000);
   const s = seconds % 60;
   const m = (seconds - s) / 60;
 
-  return `${m}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, "0")}`;
 }
 
 interface PlaylistTimeScaleScroll {
@@ -17,16 +17,18 @@ interface PlaylistTimeScaleScroll {
   readonly $controlWidth: number;
   readonly $timeScaleHeight: number;
 }
-const PlaylistTimeScaleScroll = styled.div.attrs<PlaylistTimeScaleScroll>((props) => ({
-  style: {
-    width: `${props.$cssWidth}px`,
-    marginLeft: `${props.$controlWidth}px`,
-    height: `${props.$timeScaleHeight}px`,
-  },
-}))<PlaylistTimeScaleScroll>`
+const PlaylistTimeScaleScroll = styled.div.attrs<PlaylistTimeScaleScroll>(
+  (props) => ({
+    style: {
+      width: `${props.$cssWidth}px`,
+      marginLeft: `${props.$controlWidth}px`,
+      height: `${props.$timeScaleHeight}px`,
+    },
+  }),
+)<PlaylistTimeScaleScroll>`
   position: relative;
   overflow: visible; /* Allow time labels to render above the container */
-  border-bottom: 1px solid ${props => props.theme.timeColor};
+  border-bottom: 1px solid ${(props) => props.theme.timeColor};
   box-sizing: border-box;
 `;
 
@@ -57,7 +59,8 @@ const TimeStamp = styled.div.attrs<TimeStamp>((props) => ({
   position: absolute;
   font-size: 0.75rem; /* Smaller font to prevent overflow */
   white-space: nowrap; /* Prevent text wrapping */
-  color: ${props => props.theme.timeColor}; /* Use theme color instead of inheriting */
+  color: ${(props) =>
+    props.theme.timeColor}; /* Use theme color instead of inheriting */
 `;
 
 export interface TimeScaleProps {
@@ -66,14 +69,19 @@ export interface TimeScaleProps {
   readonly marker: number;
   readonly bigStep: number;
   readonly secondStep: number;
-  readonly renderTimestamp?: (timeMs: number, pixelPosition: number) => React.ReactNode;
+  readonly renderTimestamp?: (
+    timeMs: number,
+    pixelPosition: number,
+  ) => React.ReactNode;
 }
 
 interface TimeScalePropsWithTheme extends TimeScaleProps {
   readonly theme: DefaultTheme;
 }
 
-export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => {
+export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (
+  props,
+) => {
   const {
     theme: { timeColor },
     duration,
@@ -96,7 +104,7 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
   useEffect(() => {
     if (canvasRef.current !== null) {
       const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
 
       if (ctx) {
         ctx.resetTransform();
@@ -174,4 +182,6 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
   );
 };
 
-export const StyledTimeScale = withTheme(TimeScale) as FunctionComponent<TimeScaleProps>;
+export const StyledTimeScale = withTheme(
+  TimeScale,
+) as FunctionComponent<TimeScaleProps>;

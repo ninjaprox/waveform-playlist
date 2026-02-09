@@ -1,6 +1,10 @@
-import React, { FunctionComponent, useState } from 'react';
-import styled from 'styled-components';
-import type { AnnotationData, AnnotationAction, AnnotationActionOptions } from '@waveform-playlist/core';
+import React, { FunctionComponent, useState } from "react";
+import styled from "styled-components";
+import type {
+  AnnotationData,
+  AnnotationAction,
+  AnnotationActionOptions,
+} from "@waveform-playlist/core";
 
 interface AnnotationOverlayProps {
   readonly $left: number;
@@ -67,7 +71,7 @@ const EditableText = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #4CAF50;
+    border-color: #4caf50;
   }
 `;
 
@@ -109,14 +113,18 @@ const ControlButton = styled.button`
 `;
 
 // Re-export shared annotation types from core
-export type { AnnotationData, AnnotationAction, AnnotationActionOptions } from '@waveform-playlist/core';
+export type {
+  AnnotationData,
+  AnnotationAction,
+  AnnotationActionOptions,
+} from "@waveform-playlist/core";
 
 export interface AnnotationProps {
   annotation: AnnotationData;
   index: number;
   allAnnotations: AnnotationData[];
   startPosition: number; // Start position in pixels
-  endPosition: number;   // End position in pixels
+  endPosition: number; // End position in pixels
   color?: string;
   editable?: boolean;
   controls?: AnnotationAction[];
@@ -131,7 +139,7 @@ export const Annotation: FunctionComponent<AnnotationProps> = ({
   allAnnotations,
   startPosition,
   endPosition,
-  color = '#ff9800',
+  color = "#ff9800",
   editable = false,
   controls = [],
   onAnnotationUpdate,
@@ -139,7 +147,7 @@ export const Annotation: FunctionComponent<AnnotationProps> = ({
   onClick,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedText, setEditedText] = useState(annotation.lines.join('\n'));
+  const [editedText, setEditedText] = useState(annotation.lines.join("\n"));
   const width = Math.max(0, endPosition - startPosition);
 
   if (width <= 0) {
@@ -164,8 +172,8 @@ export const Annotation: FunctionComponent<AnnotationProps> = ({
 
   const handleTextBlur = () => {
     setIsEditing(false);
-    const newLines = editedText.split('\n');
-    if (newLines.join('\n') !== annotation.lines.join('\n')) {
+    const newLines = editedText.split("\n");
+    if (newLines.join("\n") !== annotation.lines.join("\n")) {
       const updatedAnnotations = [...allAnnotations];
       updatedAnnotations[index] = { ...annotation, lines: newLines };
       if (onAnnotationUpdate) {
@@ -176,7 +184,12 @@ export const Annotation: FunctionComponent<AnnotationProps> = ({
 
   const handleControlClick = (control: AnnotationAction) => {
     const annotationsCopy = [...allAnnotations];
-    control.action(annotationsCopy[index], index, annotationsCopy, annotationListConfig || {});
+    control.action(
+      annotationsCopy[index],
+      index,
+      annotationsCopy,
+      annotationListConfig || {},
+    );
     if (onAnnotationUpdate) {
       onAnnotationUpdate(annotationsCopy);
     }
@@ -184,7 +197,7 @@ export const Annotation: FunctionComponent<AnnotationProps> = ({
 
   const getIconClass = (classString: string) => {
     // Convert "fas.fa-minus" to "fas fa-minus"
-    return classString.replace(/\./g, ' ');
+    return classString.replace(/\./g, " ");
   };
 
   return (
@@ -206,7 +219,11 @@ export const Annotation: FunctionComponent<AnnotationProps> = ({
                 handleControlClick(control);
               }}
             >
-              {control.text ? control.text : <i className={getIconClass(control.class || '')} />}
+              {control.text ? (
+                control.text
+              ) : (
+                <i className={getIconClass(control.class || "")} />
+              )}
             </ControlButton>
           ))}
         </ControlsBar>
@@ -221,9 +238,7 @@ export const Annotation: FunctionComponent<AnnotationProps> = ({
           onDoubleClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <AnnotationText>
-          {annotation.lines.join('\n')}
-        </AnnotationText>
+        <AnnotationText>{annotation.lines.join("\n")}</AnnotationText>
       )}
     </AnnotationOverlay>
   );

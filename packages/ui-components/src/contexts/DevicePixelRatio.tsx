@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, ReactNode } from 'react';
+import React, { useState, createContext, useContext, ReactNode } from "react";
 
 function getScale() {
   return window.devicePixelRatio;
@@ -13,11 +13,11 @@ export const DevicePixelRatioProvider = ({ children }: Props) => {
   const [scale, setScale] = useState(getScale());
 
   matchMedia(`(resolution: ${getScale()}dppx)`).addEventListener(
-    'change',
+    "change",
     () => {
       setScale(getScale());
     },
-    { once: true }
+    { once: true },
   );
 
   return (

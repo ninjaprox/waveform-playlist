@@ -1,11 +1,21 @@
-import React, { FunctionComponent, useLayoutEffect, useCallback, useRef } from 'react';
-import styled from 'styled-components';
-import { Peaks, Bits } from '@waveform-playlist/webaudio-peaks';
-import { WaveformColor, WaveformDrawMode, isWaveformGradient, waveformColorToCss } from '../wfpl-theme';
+import React, {
+  FunctionComponent,
+  useLayoutEffect,
+  useCallback,
+  useRef,
+} from "react";
+import styled from "styled-components";
+import { Peaks, Bits } from "@waveform-playlist/webaudio-peaks";
+import {
+  WaveformColor,
+  WaveformDrawMode,
+  isWaveformGradient,
+  waveformColorToCss,
+} from "../wfpl-theme";
 
 // Re-export WaveformColor for consumers
-export type { WaveformColor } from '../wfpl-theme';
-export type { WaveformDrawMode } from '../wfpl-theme';
+export type { WaveformColor } from "../wfpl-theme";
+export type { WaveformDrawMode } from "../wfpl-theme";
 
 const MAX_CANVAS_WIDTH = 1000;
 
@@ -16,14 +26,14 @@ function createCanvasFillStyle(
   ctx: CanvasRenderingContext2D,
   color: WaveformColor,
   width: number,
-  height: number
+  height: number,
 ): string | CanvasGradient {
   if (!isWaveformGradient(color)) {
     return color;
   }
 
   let gradient: CanvasGradient;
-  if (color.direction === 'vertical') {
+  if (color.direction === "vertical") {
     gradient = ctx.createLinearGradient(0, 0, 0, height);
   } else {
     gradient = ctx.createLinearGradient(0, 0, width, 0);
@@ -112,24 +122,21 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
     className,
     devicePixelRatio = 1,
     waveHeight = 80,
-    waveOutlineColor = '#E0EFF1',
-    waveFillColor = 'grey',
+    waveOutlineColor = "#E0EFF1",
+    waveFillColor = "grey",
     barWidth = 1,
     barGap = 0,
     transparentBackground = false,
-    drawMode = 'inverted',
+    drawMode = "inverted",
   } = props;
   const canvasesRef = useRef<HTMLCanvasElement[]>([]);
 
-  const canvasRef = useCallback(
-    (canvas: HTMLCanvasElement | null) => {
-      if (canvas !== null) {
-        const index: number = parseInt(canvas.dataset.index!, 10);
-        canvasesRef.current[index] = canvas;
-      }
-    },
-    []
-  );
+  const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
+    if (canvas !== null) {
+      const index: number = parseInt(canvas.dataset.index!, 10);
+      canvasesRef.current[index] = canvas;
+    }
+  }, []);
 
   useLayoutEffect(() => {
     const canvases = canvasesRef.current;
@@ -138,7 +145,7 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
 
     for (let i = 0; i < canvases.length; i++) {
       const canvas = canvases[i];
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       const h2 = Math.floor(waveHeight / 2);
       const maxValue = 2 ** (bits - 1);
 
@@ -154,7 +161,7 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
 
         // Choose canvas fill color based on draw mode:
         let fillColor: WaveformColor;
-        if (drawMode === 'normal') {
+        if (drawMode === "normal") {
           // Normal: canvas draws the bars directly
           fillColor = waveFillColor;
         } else {
@@ -165,7 +172,7 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
           ctx,
           fillColor,
           canvasWidth,
-          waveHeight
+          waveHeight,
         );
 
         // Calculate where bars should be drawn in this canvas
@@ -177,10 +184,15 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
         // A bar at position X extends from X to X+barWidth-1
         // So we need bars where barStart + barWidth > canvasStartGlobal
         // Which means barStart > canvasStartGlobal - barWidth
-        const firstBarGlobal = Math.floor((canvasStartGlobal - barWidth + step) / step) * step;
+        const firstBarGlobal =
+          Math.floor((canvasStartGlobal - barWidth + step) / step) * step;
 
         // Draw bars at the correct positions
-        for (let barGlobal = Math.max(0, firstBarGlobal); barGlobal < canvasEndGlobal; barGlobal += step) {
+        for (
+          let barGlobal = Math.max(0, firstBarGlobal);
+          barGlobal < canvasEndGlobal;
+          barGlobal += step
+        ) {
           const x = barGlobal - canvasStartGlobal; // Local x position in this canvas
 
           // Skip if the entire bar would be before this canvas
@@ -195,7 +207,7 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
             const min = Math.abs(minPeak * h2);
             const max = Math.abs(maxPeak * h2);
 
-            if (drawMode === 'normal') {
+            if (drawMode === "normal") {
               // Normal mode: draw the actual peak bars
               // Draw from h2-max to h2+min (the actual waveform shape)
               ctx.fillRect(x, h2 - max, barWidth, max + min);
@@ -253,7 +265,9 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
   // - normal: waveFillColor is background, canvas draws waveOutlineColor bars on top
   // - inverted: waveFillColor is background, canvas masks with it to reveal waveOutlineColor (bars)
   const bgColor = waveFillColor;
-  const backgroundCss = transparentBackground ? 'transparent' : waveformColorToCss(bgColor);
+  const backgroundCss = transparentBackground
+    ? "transparent"
+    : waveformColorToCss(bgColor);
 
   return (
     <Wrapper

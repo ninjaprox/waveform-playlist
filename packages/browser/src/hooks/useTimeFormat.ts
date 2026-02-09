@@ -1,5 +1,9 @@
-import { useState } from 'react';
-import { formatTime as formatTimeUtil, parseTime as parseTimeUtil, type TimeFormat } from '@waveform-playlist/ui-components';
+import { useState } from "react";
+import {
+  formatTime as formatTimeUtil,
+  parseTime as parseTimeUtil,
+  type TimeFormat,
+} from "@waveform-playlist/ui-components";
 
 export interface TimeFormatControls {
   timeFormat: TimeFormat;
@@ -24,7 +28,7 @@ export interface TimeFormatControls {
  * ```
  */
 export function useTimeFormat(): TimeFormatControls {
-  const [timeFormat, setTimeFormat] = useState<TimeFormat>('hh:mm:ss.uuu');
+  const [timeFormat, setTimeFormat] = useState<TimeFormat>("hh:mm:ss.uuu");
 
   const formatTime = (seconds: number) => {
     return formatTimeUtil(seconds, timeFormat);

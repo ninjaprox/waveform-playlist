@@ -2,9 +2,12 @@
  * Compute spectrogram data from an AudioBuffer.
  */
 
-import type { SpectrogramConfig, SpectrogramData } from '@waveform-playlist/core';
-import { fftMagnitudeDb } from './fft';
-import { getWindowFunction } from './windowFunctions';
+import type {
+  SpectrogramConfig,
+  SpectrogramData,
+} from "@waveform-playlist/core";
+import { fftMagnitudeDb } from "./fft";
+import { getWindowFunction } from "./windowFunctions";
 
 /**
  * Compute spectrogram for a single channel of audio.
@@ -20,20 +23,20 @@ export function computeSpectrogram(
   config: SpectrogramConfig = {},
   offsetSamples: number = 0,
   durationSamples?: number,
-  channel: number = 0
+  channel: number = 0,
 ): SpectrogramData {
   const windowSize = config.fftSize ?? 2048;
   const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
   const actualFftSize = windowSize * zeroPaddingFactor;
   const hopSize = config.hopSize ?? Math.floor(windowSize / 4);
-  const windowName = config.windowFunction ?? 'hann';
+  const windowName = config.windowFunction ?? "hann";
   const gainDb = config.gainDb ?? 20;
   const rangeDb = config.rangeDb ?? 80;
   const alpha = config.alpha;
 
   const sampleRate = audioBuffer.sampleRate;
   const frequencyBinCount = actualFftSize >> 1;
-  const totalSamples = durationSamples ?? (audioBuffer.length - offsetSamples);
+  const totalSamples = durationSamples ?? audioBuffer.length - offsetSamples;
 
   // Get channel data
   const channelIdx = Math.min(channel, audioBuffer.numberOfChannels - 1);
@@ -43,7 +46,10 @@ export function computeSpectrogram(
   const window = getWindowFunction(windowName, windowSize, alpha);
 
   // Calculate frame count (step by windowSize, not actualFftSize)
-  const frameCount = Math.max(1, Math.floor((totalSamples - windowSize) / hopSize) + 1);
+  const frameCount = Math.max(
+    1,
+    Math.floor((totalSamples - windowSize) / hopSize) + 1,
+  );
 
   // Output: frameCount × frequencyBinCount
   const data = new Float32Array(frameCount * frequencyBinCount);
@@ -58,7 +64,8 @@ export function computeSpectrogram(
     // Fill first windowSize samples with windowed audio, rest stays zero
     for (let i = 0; i < windowSize; i++) {
       const sampleIdx = start + i;
-      real[i] = sampleIdx < channelData.length ? channelData[sampleIdx] * window[i] : 0;
+      real[i] =
+        sampleIdx < channelData.length ? channelData[sampleIdx] * window[i] : 0;
     }
     // Zero-pad the rest
     for (let i = windowSize; i < actualFftSize; i++) {
@@ -89,10 +96,16 @@ export function computeSpectrogramMono(
   audioBuffer: AudioBuffer,
   config: SpectrogramConfig = {},
   offsetSamples: number = 0,
-  durationSamples?: number
+  durationSamples?: number,
 ): SpectrogramData {
   if (audioBuffer.numberOfChannels === 1) {
-    return computeSpectrogram(audioBuffer, config, offsetSamples, durationSamples, 0);
+    return computeSpectrogram(
+      audioBuffer,
+      config,
+      offsetSamples,
+      durationSamples,
+      0,
+    );
   }
 
   // Mix down channels
@@ -100,18 +113,21 @@ export function computeSpectrogramMono(
   const zeroPaddingFactor = config.zeroPaddingFactor ?? 2;
   const actualFftSize = windowSize * zeroPaddingFactor;
   const hopSize = config.hopSize ?? Math.floor(windowSize / 4);
-  const windowName = config.windowFunction ?? 'hann';
+  const windowName = config.windowFunction ?? "hann";
   const gainDb = config.gainDb ?? 20;
   const rangeDb = config.rangeDb ?? 80;
   const alpha = config.alpha;
 
   const sampleRate = audioBuffer.sampleRate;
   const frequencyBinCount = actualFftSize >> 1;
-  const totalSamples = durationSamples ?? (audioBuffer.length - offsetSamples);
+  const totalSamples = durationSamples ?? audioBuffer.length - offsetSamples;
   const numChannels = audioBuffer.numberOfChannels;
 
   const window = getWindowFunction(windowName, windowSize, alpha);
-  const frameCount = Math.max(1, Math.floor((totalSamples - windowSize) / hopSize) + 1);
+  const frameCount = Math.max(
+    1,
+    Math.floor((totalSamples - windowSize) / hopSize) + 1,
+  );
   const data = new Float32Array(frameCount * frequencyBinCount);
   const real = new Float32Array(actualFftSize);
   const dbBuf = new Float32Array(frequencyBinCount);

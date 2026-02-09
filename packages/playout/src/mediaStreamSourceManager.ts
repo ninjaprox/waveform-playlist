@@ -15,7 +15,7 @@
  * directly, which handles cross-browser compatibility internally.
  */
 
-import { getContext } from 'tone';
+import { getContext } from "tone";
 
 // Map of MediaStream -> MediaStreamAudioSourceNode
 const streamSources = new Map<MediaStream, MediaStreamAudioSourceNode>();
@@ -39,7 +39,7 @@ const streamCleanupHandlers = new Map<MediaStream, () => void>();
  * ```
  */
 export function getMediaStreamSource(
-  stream: MediaStream
+  stream: MediaStream,
 ): MediaStreamAudioSourceNode {
   // Return existing source if we have one for this stream
   if (streamSources.has(stream)) {
@@ -58,15 +58,15 @@ export function getMediaStreamSource(
     streamCleanupHandlers.delete(stream);
 
     // Remove event listener
-    stream.removeEventListener('ended', cleanup);
-    stream.removeEventListener('inactive', cleanup);
+    stream.removeEventListener("ended", cleanup);
+    stream.removeEventListener("inactive", cleanup);
   };
 
   streamCleanupHandlers.set(stream, cleanup);
 
   // Clean up when stream ends or becomes inactive
-  stream.addEventListener('ended', cleanup);
-  stream.addEventListener('inactive', cleanup);
+  stream.addEventListener("ended", cleanup);
+  stream.addEventListener("inactive", cleanup);
 
   return source;
 }

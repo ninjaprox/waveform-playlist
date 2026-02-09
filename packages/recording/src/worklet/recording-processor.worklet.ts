@@ -25,7 +25,7 @@ interface AudioParamDescriptor {
   defaultValue?: number;
   minValue?: number;
   maxValue?: number;
-  automationRate?: 'a-rate' | 'k-rate';
+  automationRate?: "a-rate" | "k-rate";
 }
 
 declare class AudioWorkletProcessor {
@@ -33,16 +33,16 @@ declare class AudioWorkletProcessor {
   process(
     inputs: Float32Array[][],
     outputs: Float32Array[][],
-    parameters: Record<string, Float32Array>
+    parameters: Record<string, Float32Array>,
   ): boolean;
 }
 declare function registerProcessor(
   name: string,
   processorCtor: (new (
-    options?: AudioWorkletNodeOptions
+    options?: AudioWorkletNodeOptions,
   ) => AudioWorkletProcessor) & {
     parameterDescriptors?: AudioParamDescriptor[];
-  }
+  },
 ): void;
 
 interface RecordingProcessorMessage {
@@ -73,7 +73,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
     this.port.onmessage = (event) => {
       const { command, sampleRate, channelCount } = event.data;
 
-      if (command === 'start') {
+      if (command === "start") {
         this.isRecording = true;
         this.channelCount = channelCount || 1;
 
@@ -87,7 +87,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
           this.buffers[i] = new Float32Array(this.bufferSize);
         }
         this.samplesCollected = 0;
-      } else if (command === 'stop') {
+      } else if (command === "stop") {
         this.isRecording = false;
 
         // Send any remaining buffered samples
@@ -101,7 +101,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
   process(
     inputs: Float32Array[][],
     outputs: Float32Array[][],
-    parameters: Record<string, Float32Array>
+    parameters: Record<string, Float32Array>,
   ): boolean {
     if (!this.isRecording) {
       return true; // Keep processor alive
@@ -115,7 +115,11 @@ class RecordingProcessor extends AudioWorkletProcessor {
     const frameCount = input[0].length;
 
     // Process each channel
-    for (let channel = 0; channel < Math.min(input.length, this.channelCount); channel++) {
+    for (
+      let channel = 0;
+      channel < Math.min(input.length, this.channelCount);
+      channel++
+    ) {
       const inputChannel = input[channel];
       const buffer = this.buffers[channel];
 
@@ -153,4 +157,4 @@ class RecordingProcessor extends AudioWorkletProcessor {
 }
 
 // Register the processor
-registerProcessor('recording-processor', RecordingProcessor);
+registerProcessor("recording-processor", RecordingProcessor);

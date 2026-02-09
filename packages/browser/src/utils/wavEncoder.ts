@@ -16,7 +16,7 @@ export interface WavEncoderOptions {
  */
 export function encodeWav(
   audioBuffer: AudioBuffer,
-  options: WavEncoderOptions = {}
+  options: WavEncoderOptions = {},
 ): Blob {
   const { bitDepth = 16 } = options;
 
@@ -37,12 +37,12 @@ export function encodeWav(
 
   // Write WAV header
   // RIFF chunk descriptor
-  writeString(view, 0, 'RIFF');
+  writeString(view, 0, "RIFF");
   view.setUint32(4, totalSize - 8, true); // File size minus RIFF header
-  writeString(view, 8, 'WAVE');
+  writeString(view, 8, "WAVE");
 
   // fmt sub-chunk
-  writeString(view, 12, 'fmt ');
+  writeString(view, 12, "fmt ");
   view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
   view.setUint16(20, bitDepth === 32 ? 3 : 1, true); // AudioFormat (1=PCM, 3=IEEE float)
   view.setUint16(22, numChannels, true);
@@ -52,7 +52,7 @@ export function encodeWav(
   view.setUint16(34, bitDepth, true);
 
   // data sub-chunk
-  writeString(view, 36, 'data');
+  writeString(view, 36, "data");
   view.setUint32(40, dataSize, true);
 
   // Write interleaved audio data
@@ -70,9 +70,8 @@ export function encodeWav(
         const sample = channelData[ch][i];
         // Clamp to [-1, 1] and convert to 16-bit signed integer
         const clampedSample = Math.max(-1, Math.min(1, sample));
-        const intSample = clampedSample < 0
-          ? clampedSample * 0x8000
-          : clampedSample * 0x7FFF;
+        const intSample =
+          clampedSample < 0 ? clampedSample * 0x8000 : clampedSample * 0x7fff;
         view.setInt16(offset, intSample, true);
         offset += 2;
       }
@@ -87,7 +86,7 @@ export function encodeWav(
     }
   }
 
-  return new Blob([buffer], { type: 'audio/wav' });
+  return new Blob([buffer], { type: "audio/wav" });
 }
 
 /**
@@ -104,10 +103,10 @@ function writeString(view: DataView, offset: number, str: string): void {
  */
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
-  a.style.display = 'none';
+  a.style.display = "none";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
-import { AutomaticScrollCheckbox } from '../components/AutomaticScrollCheckbox';
+import type { Meta, StoryObj } from "@storybook/react";
+import { useState } from "react";
+import { AutomaticScrollCheckbox } from "../components/AutomaticScrollCheckbox";
 
 const meta: Meta<typeof AutomaticScrollCheckbox> = {
-  title: 'Components/AutomaticScrollCheckbox',
+  title: "Components/AutomaticScrollCheckbox",
   component: AutomaticScrollCheckbox,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -39,11 +39,6 @@ export const Disabled: Story = {
 export const Interactive: Story = {
   render: () => {
     const [checked, setChecked] = useState(true);
-    return (
-      <AutomaticScrollCheckbox
-        checked={checked}
-        onChange={setChecked}
-      />
-    );
+    return <AutomaticScrollCheckbox checked={checked} onChange={setChecked} />;
   },
 };

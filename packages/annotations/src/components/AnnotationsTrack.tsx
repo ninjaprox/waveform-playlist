@@ -1,6 +1,6 @@
-import React, { FunctionComponent } from 'react';
-import styled from 'styled-components';
-import { usePlaylistInfo } from '@waveform-playlist/ui-components';
+import React, { FunctionComponent } from "react";
+import styled from "styled-components";
+import { usePlaylistInfo } from "@waveform-playlist/ui-components";
 
 interface ContainerProps {
   readonly $height: number;
@@ -31,7 +31,7 @@ const ControlsPlaceholder = styled.div<{ $controlWidth: number }>`
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: ${(props) => props.theme?.textColorMuted || '#666'};
+  color: ${(props) => props.theme?.textColorMuted || "#666"};
   font-weight: bold;
 `;
 
@@ -70,9 +70,7 @@ export const AnnotationsTrack: FunctionComponent<AnnotationsTrackProps> = ({
       <ControlsPlaceholder $controlWidth={show ? controlWidth : 0}>
         Annotations
       </ControlsPlaceholder>
-      <AnnotationsContainer $offset={offset}>
-        {children}
-      </AnnotationsContainer>
+      <AnnotationsContainer $offset={offset}>{children}</AnnotationsContainer>
     </Container>
   );
 };

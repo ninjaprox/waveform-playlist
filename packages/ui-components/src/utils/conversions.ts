@@ -17,7 +17,7 @@ export function pixelsToSamples(pixels: number, samplesPerPixel: number) {
 export function pixelsToSeconds(
   pixels: number,
   samplesPerPixel: number,
-  sampleRate: number
+  sampleRate: number,
 ) {
   return (pixels * samplesPerPixel) / sampleRate;
 }
@@ -25,7 +25,7 @@ export function pixelsToSeconds(
 export function secondsToPixels(
   seconds: number,
   samplesPerPixel: number,
-  sampleRate: number
+  sampleRate: number,
 ) {
   return Math.ceil((seconds * sampleRate) / samplesPerPixel);
 }

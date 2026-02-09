@@ -1,8 +1,8 @@
-import React from 'react';
-import { BaseControlButton } from '@waveform-playlist/ui-components';
-import type { EffectsFunction } from '@waveform-playlist/playout';
-import { usePlaylistData } from '../WaveformPlaylistContext';
-import { useExportWav, type TrackEffectsFunction } from '../hooks/useExportWav';
+import React from "react";
+import { BaseControlButton } from "@waveform-playlist/ui-components";
+import type { EffectsFunction } from "@waveform-playlist/playout";
+import { usePlaylistData } from "../WaveformPlaylistContext";
+import { useExportWav, type TrackEffectsFunction } from "../hooks/useExportWav";
 
 export interface ExportWavButtonProps {
   /** Button label */
@@ -10,7 +10,7 @@ export interface ExportWavButtonProps {
   /** Filename for the downloaded file (without extension) */
   filename?: string;
   /** Export mode: 'master' for stereo mix, 'individual' for single track */
-  mode?: 'master' | 'individual';
+  mode?: "master" | "individual";
   /** Track index for individual export */
   trackIndex?: number;
   /** Bit depth: 16 or 32 */
@@ -26,7 +26,9 @@ export interface ExportWavButtonProps {
    * Optional function to create offline track effects.
    * Takes a trackId and returns a TrackEffectsFunction for offline rendering.
    */
-  createOfflineTrackEffects?: (trackId: string) => TrackEffectsFunction | undefined;
+  createOfflineTrackEffects?: (
+    trackId: string,
+  ) => TrackEffectsFunction | undefined;
   /** CSS class name */
   className?: string;
   /** Callback when export completes */
@@ -36,9 +38,9 @@ export interface ExportWavButtonProps {
 }
 
 export const ExportWavButton: React.FC<ExportWavButtonProps> = ({
-  label = 'Export WAV',
-  filename = 'export',
-  mode = 'master',
+  label = "Export WAV",
+  filename = "export",
+  mode = "master",
   trackIndex,
   bitDepth = 16,
   applyEffects = true,
@@ -65,7 +67,9 @@ export const ExportWavButton: React.FC<ExportWavButtonProps> = ({
       });
       onExportComplete?.(result.blob);
     } catch (error) {
-      onExportError?.(error instanceof Error ? error : new Error('Export failed'));
+      onExportError?.(
+        error instanceof Error ? error : new Error("Export failed"),
+      );
     }
   };
 

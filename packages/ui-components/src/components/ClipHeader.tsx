@@ -1,7 +1,7 @@
-import React, { FunctionComponent } from 'react';
-import styled from 'styled-components';
-import type { DraggableAttributes } from '@dnd-kit/core';
-import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
+import React, { FunctionComponent } from "react";
+import styled from "styled-components";
+import type { DraggableAttributes } from "@dnd-kit/core";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 export const CLIP_HEADER_HEIGHT = 22; // Height of the clip header in pixels
 
@@ -14,21 +14,28 @@ interface HeaderContainerProps {
 const HeaderContainer = styled.div<HeaderContainerProps>`
   position: relative;
   height: ${CLIP_HEADER_HEIGHT}px;
-  background: ${props => props.$isSelected
-    ? props.theme.selectedClipHeaderBackgroundColor
-    : props.theme.clipHeaderBackgroundColor};
-  border-bottom: 1px solid ${props => props.theme.clipHeaderBorderColor};
+  background: ${(props) =>
+    props.$isSelected
+      ? props.theme.selectedClipHeaderBackgroundColor
+      : props.theme.clipHeaderBackgroundColor};
+  border-bottom: 1px solid ${(props) => props.theme.clipHeaderBorderColor};
   display: flex;
   align-items: center;
   padding: 0 8px;
-  cursor: ${props => props.$interactive ? (props.$isDragging ? 'grabbing' : 'grab') : 'default'};
+  cursor: ${(props) =>
+    props.$interactive ? (props.$isDragging ? "grabbing" : "grab") : "default"};
   user-select: none;
   z-index: 110;
   flex-shrink: 0;
   pointer-events: auto; /* Re-enable pointer events (parent ClipContainer has pointer-events: none) */
-  touch-action: ${props => props.$interactive ? 'none' : 'auto'}; /* Prevent browser scroll during drag on touch devices */
+  touch-action: ${(props) =>
+    props.$interactive
+      ? "none"
+      : "auto"}; /* Prevent browser scroll during drag on touch devices */
 
-  ${props => props.$interactive && `
+  ${(props) =>
+    props.$interactive &&
+    `
     &:hover {
       background: ${props.theme.clipHeaderBackgroundColor}dd;
     }
@@ -42,8 +49,8 @@ const HeaderContainer = styled.div<HeaderContainerProps>`
 const TrackName = styled.span`
   font-size: 11px;
   font-weight: 600;
-  font-family: ${props => props.theme.clipHeaderFontFamily};
-  color: ${props => props.theme.clipHeaderTextColor};
+  font-family: ${(props) => props.theme.clipHeaderFontFamily};
+  color: ${(props) => props.theme.clipHeaderTextColor};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -55,10 +62,9 @@ export interface ClipHeaderPresentationalProps {
   isSelected?: boolean; // Whether the track is selected
 }
 
-export const ClipHeaderPresentational: FunctionComponent<ClipHeaderPresentationalProps> = ({
-  trackName,
-  isSelected = false,
-}) => {
+export const ClipHeaderPresentational: FunctionComponent<
+  ClipHeaderPresentationalProps
+> = ({ trackName, isSelected = false }) => {
   return (
     <HeaderContainer
       $isDragging={false}
@@ -110,10 +116,7 @@ export const ClipHeader: FunctionComponent<ClipHeaderProps> = ({
   // Use purely presentational version when drag is disabled or no drag handle props
   if (disableDrag || !dragHandleProps) {
     return (
-      <ClipHeaderPresentational
-        trackName={trackName}
-        isSelected={isSelected}
-      />
+      <ClipHeaderPresentational trackName={trackName} isSelected={isSelected} />
     );
   }
 

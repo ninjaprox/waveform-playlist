@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import { type TimeFormat } from '../utils/timeFormat';
-import { BaseSelect } from '../styled/index';
+import React from "react";
+import styled from "styled-components";
+import { type TimeFormat } from "../utils/timeFormat";
+import { BaseSelect } from "../styled/index";
 
 const SelectWrapper = styled.div`
   display: inline-flex;
@@ -17,12 +17,12 @@ export interface TimeFormatSelectProps {
 }
 
 const TIME_FORMAT_OPTIONS: { value: TimeFormat; label: string }[] = [
-  { value: 'seconds', label: 'seconds' },
-  { value: 'thousandths', label: 'thousandths' },
-  { value: 'hh:mm:ss', label: 'hh:mm:ss' },
-  { value: 'hh:mm:ss.u', label: 'hh:mm:ss + tenths' },
-  { value: 'hh:mm:ss.uu', label: 'hh:mm:ss + hundredths' },
-  { value: 'hh:mm:ss.uuu', label: 'hh:mm:ss + milliseconds' },
+  { value: "seconds", label: "seconds" },
+  { value: "thousandths", label: "thousandths" },
+  { value: "hh:mm:ss", label: "hh:mm:ss" },
+  { value: "hh:mm:ss.u", label: "hh:mm:ss + tenths" },
+  { value: "hh:mm:ss.uu", label: "hh:mm:ss + hundredths" },
+  { value: "hh:mm:ss.uuu", label: "hh:mm:ss + milliseconds" },
 ];
 
 /**

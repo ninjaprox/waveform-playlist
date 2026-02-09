@@ -1,7 +1,17 @@
-import React, { useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import { SmartChannel, type SmartChannelProps, useTheme, usePlaylistInfo, type WaveformPlaylistTheme, waveformColorToCss } from '@waveform-playlist/ui-components';
-import { useMediaElementAnimation, useMediaElementData } from '../MediaElementPlaylistContext';
+import React, { useRef, useEffect } from "react";
+import styled from "styled-components";
+import {
+  SmartChannel,
+  type SmartChannelProps,
+  useTheme,
+  usePlaylistInfo,
+  type WaveformPlaylistTheme,
+  waveformColorToCss,
+} from "@waveform-playlist/ui-components";
+import {
+  useMediaElementAnimation,
+  useMediaElementData,
+} from "../MediaElementPlaylistContext";
 
 const ChannelWrapper = styled.div`
   position: relative;
@@ -49,7 +59,8 @@ const ChannelContainer = styled.div`
   z-index: 2;
 `;
 
-export interface ChannelWithMediaElementProgressProps extends Omit<SmartChannelProps, 'isSelected'> {
+export interface ChannelWithMediaElementProgressProps
+  extends Omit<SmartChannelProps, "isSelected"> {
   /** Start sample of the clip containing this channel (for progress calculation) */
   clipStartSample: number;
   /** Duration in samples of the clip */
@@ -60,11 +71,9 @@ export interface ChannelWithMediaElementProgressProps extends Omit<SmartChannelP
  * SmartChannel wrapper for MediaElementPlaylistProvider with animated progress overlay.
  * Uses MediaElement context for time tracking instead of Tone.js audio context.
  */
-export const ChannelWithMediaElementProgress: React.FC<ChannelWithMediaElementProgressProps> = ({
-  clipStartSample,
-  clipDurationSamples,
-  ...smartChannelProps
-}) => {
+export const ChannelWithMediaElementProgress: React.FC<
+  ChannelWithMediaElementProgressProps
+> = ({ clipStartSample, clipDurationSamples, ...smartChannelProps }) => {
   const progressRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const theme = useTheme() as WaveformPlaylistTheme;
@@ -73,7 +82,7 @@ export const ChannelWithMediaElementProgress: React.FC<ChannelWithMediaElementPr
   const { isPlaying, currentTimeRef } = useMediaElementAnimation();
   const { samplesPerPixel, sampleRate } = useMediaElementData();
 
-  const progressColor = theme?.waveProgressColor || 'rgba(0, 0, 0, 0.1)';
+  const progressColor = theme?.waveProgressColor || "rgba(0, 0, 0, 0.1)";
 
   useEffect(() => {
     const updateProgress = () => {
@@ -123,7 +132,15 @@ export const ChannelWithMediaElementProgress: React.FC<ChannelWithMediaElementPr
         animationFrameRef.current = null;
       }
     };
-  }, [isPlaying, sampleRate, samplesPerPixel, clipStartSample, clipDurationSamples, smartChannelProps.length, currentTimeRef]);
+  }, [
+    isPlaying,
+    sampleRate,
+    samplesPerPixel,
+    clipStartSample,
+    clipDurationSamples,
+    smartChannelProps.length,
+    currentTimeRef,
+  ]);
 
   // Also update when not playing (for seeks, stops, etc.)
   useEffect(() => {
@@ -147,14 +164,16 @@ export const ChannelWithMediaElementProgress: React.FC<ChannelWithMediaElementPr
   });
 
   // Get the draw mode from theme (defaults to 'inverted')
-  const drawMode = theme?.waveformDrawMode || 'inverted';
+  const drawMode = theme?.waveformDrawMode || "inverted";
 
   let backgroundColor;
-  if (drawMode === 'inverted') {
+  if (drawMode === "inverted") {
     // For MediaElement, always treat as selected (single track)
-    backgroundColor = theme?.selectedWaveFillColor || theme?.waveFillColor || 'white';
+    backgroundColor =
+      theme?.selectedWaveFillColor || theme?.waveFillColor || "white";
   } else {
-    backgroundColor = theme?.selectedWaveOutlineColor || theme?.waveOutlineColor || 'grey';
+    backgroundColor =
+      theme?.selectedWaveOutlineColor || theme?.waveOutlineColor || "grey";
   }
 
   const backgroundCss = waveformColorToCss(backgroundColor);
@@ -174,7 +193,11 @@ export const ChannelWithMediaElementProgress: React.FC<ChannelWithMediaElementPr
         $top={smartChannelProps.index * waveHeight}
       />
       <ChannelContainer>
-        <SmartChannel {...smartChannelProps} isSelected={true} transparentBackground />
+        <SmartChannel
+          {...smartChannelProps}
+          isSelected={true}
+          transparentBackground
+        />
       </ChannelContainer>
     </ChannelWrapper>
   );

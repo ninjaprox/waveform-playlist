@@ -1,12 +1,18 @@
-import React from 'react';
-import type { RenderAnnotationItemProps } from '@waveform-playlist/core';
-import { useMediaElementState } from '../MediaElementPlaylistContext';
-import type { GetAnnotationBoxLabelFn, OnAnnotationUpdateFn } from '../types/annotations';
-import { MediaElementPlaylist } from './MediaElementPlaylist';
-import { MediaElementAnnotationList } from './MediaElementAnnotationList';
+import React from "react";
+import type { RenderAnnotationItemProps } from "@waveform-playlist/core";
+import { useMediaElementState } from "../MediaElementPlaylistContext";
+import type {
+  GetAnnotationBoxLabelFn,
+  OnAnnotationUpdateFn,
+} from "../types/annotations";
+import { MediaElementPlaylist } from "./MediaElementPlaylist";
+import { MediaElementAnnotationList } from "./MediaElementAnnotationList";
 
 // Re-export annotation types for convenience
-export type { GetAnnotationBoxLabelFn, OnAnnotationUpdateFn } from '../types/annotations';
+export type {
+  GetAnnotationBoxLabelFn,
+  OnAnnotationUpdateFn,
+} from "../types/annotations";
 
 export interface MediaElementWaveformProps {
   /** Height in pixels for the annotation text list */
@@ -31,7 +37,7 @@ export interface MediaElementWaveformProps {
   /** Where to position the active annotation when auto-scrolling: 'center', 'start', 'end', or 'nearest'. Defaults to 'center'. */
   scrollActivePosition?: ScrollLogicalPosition;
   /** Which scrollable containers to scroll: 'nearest' (only the annotation list) or 'all' (including viewport). Defaults to 'nearest'. */
-  scrollActiveContainer?: 'nearest' | 'all';
+  scrollActiveContainer?: "nearest" | "all";
   className?: string;
 }
 
@@ -54,8 +60,8 @@ export const MediaElementWaveform: React.FC<MediaElementWaveformProps> = ({
   editable = false,
   linkEndpoints = false,
   onAnnotationUpdate,
-  scrollActivePosition = 'center',
-  scrollActiveContainer = 'nearest',
+  scrollActivePosition = "center",
+  scrollActiveContainer = "nearest",
   className,
 }) => {
   const { annotations } = useMediaElementState();

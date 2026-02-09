@@ -1,11 +1,11 @@
-import EventEmitter from 'eventemitter3';
+import EventEmitter from "eventemitter3";
 
 export enum LoaderState {
-  UNINITIALIZED = 'uninitialized',
-  LOADING = 'loading',
-  DECODING = 'decoding',
-  FINISHED = 'finished',
-  ERROR = 'error',
+  UNINITIALIZED = "uninitialized",
+  LOADING = "loading",
+  DECODING = "decoding",
+  FINISHED = "finished",
+  ERROR = "error",
 }
 
 export interface LoaderEvents {
@@ -29,7 +29,7 @@ export abstract class Loader extends EventEmitter<LoaderEvents> {
 
   protected setStateChange(state: LoaderState): void {
     this.audioRequestState = state;
-    this.emit('audiorequeststatechange', this.audioRequestState, this.src);
+    this.emit("audiorequeststatechange", this.audioRequestState, this.src);
   }
 
   protected fileProgress(e: ProgressEvent): void {
@@ -43,7 +43,7 @@ export abstract class Loader extends EventEmitter<LoaderEvents> {
       percentComplete = (e.loaded / e.total) * 100;
     }
 
-    this.emit('loadprogress', percentComplete, this.src);
+    this.emit("loadprogress", percentComplete, this.src);
   }
 
   protected async fileLoad(audioData: ArrayBuffer): Promise<AudioBuffer> {
@@ -56,8 +56,9 @@ export abstract class Loader extends EventEmitter<LoaderEvents> {
       return audioBuffer;
     } catch (err) {
       this.setStateChange(LoaderState.ERROR);
-      const error = err instanceof Error ? err : new Error('Failed to decode audio data');
-      this.emit('error', error);
+      const error =
+        err instanceof Error ? err : new Error("Failed to decode audio data");
+      this.emit("error", error);
       throw error;
     }
   }

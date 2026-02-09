@@ -7,12 +7,16 @@ import {
   ToneAudioNode,
   getDestination,
   now,
-} from 'tone';
-import { Track, type Fade } from '@waveform-playlist/core';
-import { applyFadeIn, applyFadeOut } from './fades';
+} from "tone";
+import { Track, type Fade } from "@waveform-playlist/core";
+import { applyFadeIn, applyFadeOut } from "./fades";
 
 // Effects function no longer receives ToneLib - effects should import Tone themselves
-export type TrackEffectsFunction = (graphEnd: Gain, masterGainNode: ToneAudioNode, isOffline: boolean) => void | (() => void);
+export type TrackEffectsFunction = (
+  graphEnd: Gain,
+  masterGainNode: ToneAudioNode,
+  isOffline: boolean,
+) => void | (() => void);
 
 export interface ClipInfo {
   buffer: AudioBuffer;
@@ -70,18 +74,24 @@ export class ToneTrack {
     }
 
     // Create clips array - support both legacy single buffer and modern clips array
-    const clipInfos: ClipInfo[] = options.clips || (options.buffer ? [{
-      buffer: options.buffer,
-      startTime: 0, // Legacy: single buffer starts at timeline position 0
-      duration: options.buffer.duration, // Legacy: play full buffer duration
-      offset: 0,
-      fadeIn: options.track.fadeIn,
-      fadeOut: options.track.fadeOut,
-      gain: 1,
-    }] : []);
+    const clipInfos: ClipInfo[] =
+      options.clips ||
+      (options.buffer
+        ? [
+            {
+              buffer: options.buffer,
+              startTime: 0, // Legacy: single buffer starts at timeline position 0
+              duration: options.buffer.duration, // Legacy: play full buffer duration
+              offset: 0,
+              fadeIn: options.track.fadeIn,
+              fadeOut: options.track.fadeOut,
+              gain: 1,
+            },
+          ]
+        : []);
 
     // Create ClipPlayer for each clip
-    this.clips = clipInfos.map(clipInfo => {
+    this.clips = clipInfos.map((clipInfo) => {
       const player = new Player({
         url: clipInfo.buffer,
         loop: false,
@@ -115,7 +125,11 @@ export class ToneTrack {
   /**
    * Schedule fade envelopes for a clip at the given start time
    */
-  private scheduleFades(clipPlayer: ClipPlayer, clipStartTime: number, clipOffset: number = 0): void {
+  private scheduleFades(
+    clipPlayer: ClipPlayer,
+    clipStartTime: number,
+    clipOffset: number = 0,
+  ): void {
     const { clipInfo, fadeGain } = clipPlayer;
     const audioParam = (fadeGain.gain as any)._param as AudioParam;
 
@@ -135,9 +149,9 @@ export class ToneTrack {
           audioParam,
           clipStartTime,
           fadeInDuration,
-          clipInfo.fadeIn.type || 'linear',
+          clipInfo.fadeIn.type || "linear",
           0,
-          clipInfo.gain
+          clipInfo.gain,
         );
       } else {
         // Starting partway through fade in - calculate partial fade
@@ -148,9 +162,9 @@ export class ToneTrack {
           audioParam,
           clipStartTime,
           remainingFadeDuration,
-          clipInfo.fadeIn.type || 'linear',
+          clipInfo.fadeIn.type || "linear",
           startValue,
-          clipInfo.gain
+          clipInfo.gain,
         );
       }
     } else {
@@ -170,23 +184,24 @@ export class ToneTrack {
           audioParam,
           absoluteFadeOutStart,
           clipInfo.fadeOut.duration,
-          clipInfo.fadeOut.type || 'linear',
+          clipInfo.fadeOut.type || "linear",
           clipInfo.gain,
-          0
+          0,
         );
       } else if (fadeOutStartInClip > -clipInfo.fadeOut.duration) {
         // We're starting partway through the fade out
         const elapsedFadeOut = -fadeOutStartInClip;
-        const remainingFadeDuration = clipInfo.fadeOut.duration - elapsedFadeOut;
+        const remainingFadeDuration =
+          clipInfo.fadeOut.duration - elapsedFadeOut;
         const fadeProgress = elapsedFadeOut / clipInfo.fadeOut.duration;
         const startValue = clipInfo.gain * (1 - fadeProgress); // Approximate current fade value
         applyFadeOut(
           audioParam,
           clipStartTime,
           remainingFadeDuration,
-          clipInfo.fadeOut.type || 'linear',
+          clipInfo.fadeOut.type || "linear",
           startValue,
-          0
+          0,
         );
       }
       // If fadeOutStartInClip <= -duration, we've skipped past the entire fade out
@@ -229,7 +244,7 @@ export class ToneTrack {
     // See: https://github.com/Tonejs/Tone.js/issues/1076
     // The Player's internal StateTimeline doesn't properly clear on stop(),
     // so we need fresh Player instances when rescheduling
-    this.clips.forEach(clipPlayer => {
+    this.clips.forEach((clipPlayer) => {
       // Dispose old player
       clipPlayer.player.stop();
       clipPlayer.player.disconnect();
@@ -257,7 +272,7 @@ export class ToneTrack {
 
     this.activePlayers = 0;
     // Play each clip that should be active at this offset
-    this.clips.forEach(clipPlayer => {
+    this.clips.forEach((clipPlayer) => {
       const { player, clipInfo } = clipPlayer;
 
       // Calculate absolute timeline position we're starting from
@@ -279,8 +294,11 @@ export class ToneTrack {
         if (playbackPosition >= clipStart) {
           // We're starting in the middle of this clip
           const clipOffset = playbackPosition - clipStart + clipInfo.offset;
-          const remainingDuration = clipInfo.duration - (playbackPosition - clipStart);
-          const clipDuration = duration ? Math.min(duration, remainingDuration) : remainingDuration;
+          const remainingDuration =
+            clipInfo.duration - (playbackPosition - clipStart);
+          const clipDuration = duration
+            ? Math.min(duration, remainingDuration)
+            : remainingDuration;
 
           clipPlayer.pausedPosition = clipOffset;
           // Schedule fades at the actual playback start time
@@ -289,12 +307,18 @@ export class ToneTrack {
         } else {
           // This clip starts later - schedule it
           const delay = clipStart - playbackPosition;
-          const clipDuration = duration ? Math.min(duration - delay, clipInfo.duration) : clipInfo.duration;
+          const clipDuration = duration
+            ? Math.min(duration - delay, clipInfo.duration)
+            : clipInfo.duration;
 
           if (delay < (duration ?? Infinity)) {
             clipPlayer.pausedPosition = clipInfo.offset;
             // Schedule fades at the delayed start time
-            this.scheduleFades(clipPlayer, currentTime + delay, clipInfo.offset);
+            this.scheduleFades(
+              clipPlayer,
+              currentTime + delay,
+              clipInfo.offset,
+            );
             player.start(currentTime + delay, clipInfo.offset, clipDuration);
           } else {
             this.activePlayers--;
@@ -307,9 +331,10 @@ export class ToneTrack {
   pause(): void {
     // Stop all clips - both started and scheduled
     // Scheduled clips have state 'stopped' but still need to be cancelled
-    this.clips.forEach(clipPlayer => {
-      if (clipPlayer.player.state === 'started') {
-        const elapsed = (now() - clipPlayer.playStartTime) * clipPlayer.player.playbackRate;
+    this.clips.forEach((clipPlayer) => {
+      if (clipPlayer.player.state === "started") {
+        const elapsed =
+          (now() - clipPlayer.playStartTime) * clipPlayer.player.playbackRate;
         clipPlayer.pausedPosition = clipPlayer.pausedPosition + elapsed;
       }
       // Always call stop() to cancel any scheduled playback
@@ -322,7 +347,7 @@ export class ToneTrack {
   stop(when?: number): void {
     // Evaluate now() inside function body, not in parameter default (which is evaluated at module load time)
     const stopWhen = when ?? now();
-    this.clips.forEach(clipPlayer => {
+    this.clips.forEach((clipPlayer) => {
       clipPlayer.player.stop(stopWhen);
       clipPlayer.pausedPosition = 0;
     });
@@ -336,7 +361,7 @@ export class ToneTrack {
     }
 
     // Dispose all clip players
-    this.clips.forEach(clipPlayer => {
+    this.clips.forEach((clipPlayer) => {
       clipPlayer.player.dispose();
       clipPlayer.fadeGain.dispose();
     });
@@ -365,7 +390,9 @@ export class ToneTrack {
 
   get isPlaying(): boolean {
     // Track is playing if any clip is playing
-    return this.clips.some(clipPlayer => clipPlayer.player.state === 'started');
+    return this.clips.some(
+      (clipPlayer) => clipPlayer.player.state === "started",
+    );
   }
 
   get muted(): boolean {

@@ -67,7 +67,7 @@ function makeTypedArray(bits: Bits, length: number): Peaks {
 function extractPeaks(
   channel: Float32Array,
   samplesPerPixel: number,
-  bits: Bits
+  bits: Bits,
 ): Peaks {
   const chanLength = channel.length;
   const numPeaks = Math.ceil(chanLength / samplesPerPixel);
@@ -134,16 +134,18 @@ export default function extractPeaksFromBuffer(
   isMono: boolean = true,
   cueIn: number = 0,
   cueOut?: number,
-  bits: Bits = 16
+  bits: Bits = 16,
 ): PeakData {
   if (bits !== 8 && bits !== 16) {
-    throw new Error('Invalid number of bits specified for peaks. Must be 8 or 16.');
+    throw new Error(
+      "Invalid number of bits specified for peaks. Must be 8 or 16.",
+    );
   }
 
   let peaks: Peaks[] = [];
 
   // Check if source is an AudioBuffer or Float32Array
-  if ('getChannelData' in source) {
+  if ("getChannelData" in source) {
     // AudioBuffer
     const numChan = source.numberOfChannels;
     const actualCueOut = cueOut ?? source.length;

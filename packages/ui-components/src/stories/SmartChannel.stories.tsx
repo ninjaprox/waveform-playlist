@@ -1,11 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { SmartChannel } from '../components/SmartChannel';
-import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
-import { DevicePixelRatioProvider } from '../contexts/DevicePixelRatio';
+import type { Meta, StoryObj } from "@storybook/react";
+import { SmartChannel } from "../components/SmartChannel";
+import { PlaylistInfoContext } from "../contexts/PlaylistInfo";
+import { DevicePixelRatioProvider } from "../contexts/DevicePixelRatio";
 
 // Generate sample waveform data for stories
-function generateSamplePeaks(length: number, bits: 8 | 16 = 8): Int8Array | Int16Array {
-  const data = bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
+function generateSamplePeaks(
+  length: number,
+  bits: 8 | 16 = 8,
+): Int8Array | Int16Array {
+  const data =
+    bits === 8 ? new Int8Array(length * 2) : new Int16Array(length * 2);
   const maxValue = 2 ** (bits - 1) - 1;
 
   for (let i = 0; i < length; i++) {
@@ -35,12 +39,12 @@ const playlistInfo = {
 };
 
 const meta: Meta<typeof SmartChannel> = {
-  title: 'Components/SmartChannel',
+  title: "Components/SmartChannel",
   component: SmartChannel,
   parameters: {
-    layout: 'padded',
+    layout: "padded",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <DevicePixelRatioProvider>

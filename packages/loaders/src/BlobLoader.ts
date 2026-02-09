@@ -1,4 +1,4 @@
-import { Loader } from './Loader';
+import { Loader } from "./Loader";
 
 export class BlobLoader extends Loader {
   private blob: Blob;
@@ -18,11 +18,11 @@ export class BlobLoader extends Loader {
       ) {
         const fr = new FileReader();
 
-        fr.addEventListener('progress', (ev) => {
+        fr.addEventListener("progress", (ev) => {
           this.fileProgress(ev);
         });
 
-        fr.addEventListener('load', async () => {
+        fr.addEventListener("load", async () => {
           try {
             const audioBuffer = await this.fileLoad(fr.result as ArrayBuffer);
             resolve(audioBuffer);
@@ -31,16 +31,16 @@ export class BlobLoader extends Loader {
           }
         });
 
-        fr.addEventListener('error', () => {
-          const error = new Error('Failed to read audio file');
-          this.emit('error', error);
+        fr.addEventListener("error", () => {
+          const error = new Error("Failed to read audio file");
+          this.emit("error", error);
           reject(error);
         });
 
         fr.readAsArrayBuffer(this.blob);
       } else {
         const error = new Error(`Unsupported file type: ${this.blob.type}`);
-        this.emit('error', error);
+        this.emit("error", error);
         reject(error);
       }
     });

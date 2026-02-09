@@ -1,5 +1,5 @@
-import { useState, useCallback, RefObject } from 'react';
-import { TonePlayout } from '@waveform-playlist/playout';
+import { useState, useCallback, RefObject } from "react";
+import { TonePlayout } from "@waveform-playlist/playout";
 
 export interface UseMasterVolumeProps {
   playoutRef: RefObject<TonePlayout | null>;
@@ -35,17 +35,20 @@ export function useMasterVolume({
 }: UseMasterVolumeProps): MasterVolumeControls {
   const [masterVolume, setMasterVolumeState] = useState(initialVolume);
 
-  const setMasterVolume = useCallback((volume: number) => {
-    setMasterVolumeState(volume);
+  const setMasterVolume = useCallback(
+    (volume: number) => {
+      setMasterVolumeState(volume);
 
-    // Update the playout with linear gain (0-1.0 range)
-    if (playoutRef.current) {
-      playoutRef.current.setMasterGain(volume);
-    }
+      // Update the playout with linear gain (0-1.0 range)
+      if (playoutRef.current) {
+        playoutRef.current.setMasterGain(volume);
+      }
 
-    // Call optional callback
-    onVolumeChange?.(volume);
-  }, [playoutRef, onVolumeChange]);
+      // Call optional callback
+      onVolumeChange?.(volume);
+    },
+    [playoutRef, onVolumeChange],
+  );
 
   return {
     masterVolume,

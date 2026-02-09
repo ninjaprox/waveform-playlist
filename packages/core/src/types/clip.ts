@@ -9,8 +9,12 @@
  * - Clips can overlap (for crossfades)
  */
 
-import { Fade } from './index';
-import type { RenderMode, SpectrogramConfig, ColorMapValue } from './spectrogram';
+import { Fade } from "./index";
+import type {
+  RenderMode,
+  SpectrogramConfig,
+  ColorMapValue,
+} from "./spectrogram";
 
 /**
  * WaveformData object from waveform-data.js library.
@@ -36,9 +40,15 @@ export interface WaveformDataObject {
     max_array: () => number[];
   };
   /** Resample to different scale */
-  resample: (options: { scale: number } | { width: number }) => WaveformDataObject;
+  resample: (
+    options: { scale: number } | { width: number },
+  ) => WaveformDataObject;
   /** Slice a portion of the waveform */
-  slice: (options: { startTime: number; endTime: number } | { startIndex: number; endIndex: number }) => WaveformDataObject;
+  slice: (
+    options:
+      | { startTime: number; endTime: number }
+      | { startIndex: number; endIndex: number },
+  ) => WaveformDataObject;
 }
 
 /**
@@ -68,7 +78,7 @@ export interface WaveformDataObject {
 export type TrackEffectsFunction = (
   graphEnd: unknown,
   destination: unknown,
-  isOffline: boolean
+  isOffline: boolean,
 ) => void | (() => void);
 
 /**
@@ -218,10 +228,10 @@ export interface Timeline {
 export interface CreateClipOptions {
   /** Audio buffer - optional for peaks-first rendering */
   audioBuffer?: AudioBuffer;
-  startSample: number;           // Position on timeline (in samples)
-  durationSamples?: number;      // Defaults to full buffer/source duration (in samples)
-  offsetSamples?: number;        // Defaults to 0
-  gain?: number;                 // Defaults to 1.0
+  startSample: number; // Position on timeline (in samples)
+  durationSamples?: number; // Defaults to full buffer/source duration (in samples)
+  offsetSamples?: number; // Defaults to 0
+  gain?: number; // Defaults to 1.0
   name?: string;
   color?: string;
   fadeIn?: Fade;
@@ -243,10 +253,10 @@ export interface CreateClipOptions {
 export interface CreateClipOptionsSeconds {
   /** Audio buffer - optional for peaks-first rendering */
   audioBuffer?: AudioBuffer;
-  startTime: number;        // Position on timeline (in seconds)
-  duration?: number;        // Defaults to full buffer/source duration (in seconds)
-  offset?: number;          // Defaults to 0 (in seconds)
-  gain?: number;            // Defaults to 1.0
+  startTime: number; // Position on timeline (in seconds)
+  duration?: number; // Defaults to full buffer/source duration (in seconds)
+  offset?: number; // Defaults to 0 (in seconds)
+  gain?: number; // Defaults to 1.0
   name?: string;
   color?: string;
   fadeIn?: Fade;
@@ -294,25 +304,37 @@ export function createClip(options: CreateClipOptions): AudioClip {
   } = options;
 
   // Determine sample rate: audioBuffer > explicit option > waveformData
-  const sampleRate = audioBuffer?.sampleRate ?? options.sampleRate ?? waveformData?.sample_rate;
+  const sampleRate =
+    audioBuffer?.sampleRate ?? options.sampleRate ?? waveformData?.sample_rate;
 
   // Determine source duration: audioBuffer > explicit option > waveformData (converted to samples)
-  const sourceDurationSamples = audioBuffer?.length
-    ?? options.sourceDurationSamples
-    ?? (waveformData && sampleRate ? Math.ceil(waveformData.duration * sampleRate) : undefined);
+  const sourceDurationSamples =
+    audioBuffer?.length ??
+    options.sourceDurationSamples ??
+    (waveformData && sampleRate
+      ? Math.ceil(waveformData.duration * sampleRate)
+      : undefined);
 
   if (sampleRate === undefined) {
-    throw new Error('createClip: sampleRate is required when audioBuffer is not provided (can use waveformData.sample_rate)');
+    throw new Error(
+      "createClip: sampleRate is required when audioBuffer is not provided (can use waveformData.sample_rate)",
+    );
   }
   if (sourceDurationSamples === undefined) {
-    throw new Error('createClip: sourceDurationSamples is required when audioBuffer is not provided (can use waveformData.duration)');
+    throw new Error(
+      "createClip: sourceDurationSamples is required when audioBuffer is not provided (can use waveformData.duration)",
+    );
   }
 
   // Warn if sample rates don't match
-  if (audioBuffer && waveformData && audioBuffer.sampleRate !== waveformData.sample_rate) {
+  if (
+    audioBuffer &&
+    waveformData &&
+    audioBuffer.sampleRate !== waveformData.sample_rate
+  ) {
     console.warn(
       `Sample rate mismatch: audioBuffer (${audioBuffer.sampleRate}) vs waveformData (${waveformData.sample_rate}). ` +
-      `Using audioBuffer sample rate. Waveform visualization may be slightly off.`
+        `Using audioBuffer sample rate. Waveform visualization may be slightly off.`,
     );
   }
 
@@ -344,7 +366,9 @@ export function createClip(options: CreateClipOptions): AudioClip {
  * - Provided explicitly via options
  * - Derived from waveformData (sample_rate and duration properties)
  */
-export function createClipFromSeconds(options: CreateClipOptionsSeconds): AudioClip {
+export function createClipFromSeconds(
+  options: CreateClipOptionsSeconds,
+): AudioClip {
   const {
     audioBuffer,
     startTime,
@@ -358,22 +382,32 @@ export function createClipFromSeconds(options: CreateClipOptionsSeconds): AudioC
   } = options;
 
   // Determine sample rate: audioBuffer > explicit option > waveformData
-  const sampleRate = audioBuffer?.sampleRate ?? options.sampleRate ?? waveformData?.sample_rate;
+  const sampleRate =
+    audioBuffer?.sampleRate ?? options.sampleRate ?? waveformData?.sample_rate;
   if (sampleRate === undefined) {
-    throw new Error('createClipFromSeconds: sampleRate is required when audioBuffer is not provided (can use waveformData.sample_rate)');
+    throw new Error(
+      "createClipFromSeconds: sampleRate is required when audioBuffer is not provided (can use waveformData.sample_rate)",
+    );
   }
 
   // Determine source duration: audioBuffer > explicit option > waveformData
-  const sourceDuration = audioBuffer?.duration ?? options.sourceDuration ?? waveformData?.duration;
+  const sourceDuration =
+    audioBuffer?.duration ?? options.sourceDuration ?? waveformData?.duration;
   if (sourceDuration === undefined) {
-    throw new Error('createClipFromSeconds: sourceDuration is required when audioBuffer is not provided (can use waveformData.duration)');
+    throw new Error(
+      "createClipFromSeconds: sourceDuration is required when audioBuffer is not provided (can use waveformData.duration)",
+    );
   }
 
   // Warn if sample rates don't match (could cause visual/audio sync issues)
-  if (audioBuffer && waveformData && audioBuffer.sampleRate !== waveformData.sample_rate) {
+  if (
+    audioBuffer &&
+    waveformData &&
+    audioBuffer.sampleRate !== waveformData.sample_rate
+  ) {
     console.warn(
       `Sample rate mismatch: audioBuffer (${audioBuffer.sampleRate}) vs waveformData (${waveformData.sample_rate}). ` +
-      `Using audioBuffer sample rate. Waveform visualization may be slightly off.`
+        `Using audioBuffer sample rate. Waveform visualization may be slightly off.`,
     );
   }
 
@@ -434,7 +468,7 @@ export function createTimeline(
     name?: string;
     tempo?: number;
     timeSignature?: { numerator: number; denominator: number };
-  }
+  },
 ): Timeline {
   // Calculate total duration from all clips across all tracks (in seconds)
   const durationSamples = tracks.reduce((maxSamples, track) => {
@@ -469,7 +503,7 @@ function generateId(): string {
 export function getClipsInRange(
   track: ClipTrack,
   startSample: number,
-  endSample: number
+  endSample: number,
 ): AudioClip[] {
   return track.clips.filter((clip) => {
     const clipEnd = clip.startSample + clip.durationSamples;
@@ -483,7 +517,10 @@ export function getClipsInRange(
 /**
  * Utility: Get all clips at a specific sample position
  */
-export function getClipsAtSample(track: ClipTrack, sample: number): AudioClip[] {
+export function getClipsAtSample(
+  track: ClipTrack,
+  sample: number,
+): AudioClip[] {
   return track.clips.filter((clip) => {
     const clipEnd = clip.startSample + clip.durationSamples;
     return sample >= clip.startSample && sample < clipEnd;

@@ -1,5 +1,5 @@
-import styled, { DefaultTheme, withTheme } from 'styled-components';
-import React, { FunctionComponent } from 'react';
+import styled, { DefaultTheme, withTheme } from "styled-components";
+import React, { FunctionComponent } from "react";
 
 const Wrapper = styled.div`
   overflow-y: hidden;
@@ -17,7 +17,7 @@ const ScrollContainer = styled.div.attrs<ScrollContainerProps>((props) => ({
   style: props.$width !== undefined ? { width: `${props.$width}px` } : {},
 }))<ScrollContainerProps>`
   position: relative;
-  background: ${(props) => props.$backgroundColor || 'transparent'};
+  background: ${(props) => props.$backgroundColor || "transparent"};
 `;
 
 interface TimescaleWrapperProps {
@@ -29,7 +29,7 @@ interface TimescaleWrapperProps {
 const TimescaleWrapper = styled.div.attrs<TimescaleWrapperProps>((props) => ({
   style: props.$width ? { minWidth: `${props.$width}px` } : {},
 }))<TimescaleWrapperProps>`
-  background: ${(props) => props.$backgroundColor || 'white'};
+  background: ${(props) => props.$backgroundColor || "white"};
   width: 100%;
   position: relative;
   overflow: hidden; /* Constrain loop region to timescale area */
@@ -45,13 +45,14 @@ const TracksContainer = styled.div.attrs<TracksContainerProps>((props) => ({
   style: props.$width !== undefined ? { minWidth: `${props.$width}px` } : {},
 }))<TracksContainerProps>`
   position: relative;
-  background: ${(props) => props.$backgroundColor || 'transparent'};
+  background: ${(props) => props.$backgroundColor || "transparent"};
   width: 100%;
 `;
 
 interface ClickOverlayProps {
   readonly $controlsWidth?: number;
   readonly $isSelecting?: boolean;
+  readonly $selectionEnabled?: boolean;
 }
 
 const ClickOverlay = styled.div<ClickOverlayProps>`
@@ -60,9 +61,9 @@ const ClickOverlay = styled.div<ClickOverlayProps>`
   left: 0;
   right: 0;
   bottom: 0;
-  cursor: crosshair;
+  cursor: ${(props) => (props.$selectionEnabled ? "crosshair" : "default")};
   /* When selecting, raise z-index above clip boundaries (z-index: 105) to prevent interference */
-  z-index: ${props => props.$isSelecting ? 110 : 1};
+  z-index: ${(props) => (props.$isSelecting ? 110 : 1)};
 `;
 
 export interface PlaylistProps {
@@ -83,7 +84,9 @@ export interface PlaylistProps {
   /** When true, selection is in progress - raises z-index to prevent clip boundary interference */
   readonly isSelecting?: boolean;
   /** Data attribute indicating playlist loading state ('loading' | 'ready') */
-  readonly 'data-playlist-state'?: 'loading' | 'ready';
+  readonly "data-playlist-state"?: "loading" | "ready";
+  /** When true, enables selection cursor and behavior */
+  readonly selectionEnabled?: boolean;
 }
 export const Playlist: FunctionComponent<PlaylistProps> = ({
   children,
@@ -100,21 +103,37 @@ export const Playlist: FunctionComponent<PlaylistProps> = ({
   onTracksMouseUp,
   scrollContainerRef,
   isSelecting,
-  'data-playlist-state': playlistState,
+  "data-playlist-state": playlistState,
+  selectionEnabled,
 }) => {
   return (
-    <Wrapper data-scroll-container="true" data-playlist-state={playlistState} ref={scrollContainerRef}>
+    <Wrapper
+      data-scroll-container="true"
+      data-playlist-state={playlistState}
+      ref={scrollContainerRef}
+    >
       <ScrollContainer
         $backgroundColor={backgroundColor}
         $width={scrollContainerWidth}
       >
-        {timescale && <TimescaleWrapper $width={timescaleWidth} $backgroundColor={timescaleBackgroundColor}>{timescale}</TimescaleWrapper>}
-        <TracksContainer $width={tracksWidth} $backgroundColor={backgroundColor}>
+        {timescale && (
+          <TimescaleWrapper
+            $width={timescaleWidth}
+            $backgroundColor={timescaleBackgroundColor}
+          >
+            {timescale}
+          </TimescaleWrapper>
+        )}
+        <TracksContainer
+          $width={tracksWidth}
+          $backgroundColor={backgroundColor}
+        >
           {children}
           {(onTracksClick || onTracksMouseDown) && (
             <ClickOverlay
               $controlsWidth={controlsWidth}
               $isSelecting={isSelecting}
+              $selectionEnabled={selectionEnabled}
               onClick={onTracksClick}
               onMouseDown={onTracksMouseDown}
               onMouseMove={onTracksMouseMove}

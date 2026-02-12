@@ -44,28 +44,33 @@ export interface EffectInstance {
 // permissive constructor signature to unify them in a single lookup map.
 type EffectConstructor = new (options?: Record<string, number | string | boolean>) => ToneAudioNode;
 
+/** Centralizes the single unavoidable cast from a specific Tone.js effect constructor to EffectConstructor. */
+function asEffectConstructor(ctor: new (...args: never[]) => ToneAudioNode): EffectConstructor {
+  return ctor as unknown as EffectConstructor;
+}
+
 // Map of effect IDs to their Tone.js constructors
 const effectConstructors: Record<string, EffectConstructor> = {
-  reverb: Reverb as unknown as EffectConstructor,
-  freeverb: Freeverb as unknown as EffectConstructor,
-  jcReverb: JCReverb as unknown as EffectConstructor,
-  feedbackDelay: FeedbackDelay as unknown as EffectConstructor,
-  pingPongDelay: PingPongDelay as unknown as EffectConstructor,
-  chorus: Chorus as unknown as EffectConstructor,
-  phaser: Phaser as unknown as EffectConstructor,
-  tremolo: Tremolo as unknown as EffectConstructor,
-  vibrato: Vibrato as unknown as EffectConstructor,
-  autoPanner: AutoPanner as unknown as EffectConstructor,
-  autoFilter: AutoFilter as unknown as EffectConstructor,
-  autoWah: AutoWah as unknown as EffectConstructor,
-  eq3: EQ3 as unknown as EffectConstructor,
-  distortion: Distortion as unknown as EffectConstructor,
-  bitCrusher: BitCrusher as unknown as EffectConstructor,
-  chebyshev: Chebyshev as unknown as EffectConstructor,
-  compressor: Compressor as unknown as EffectConstructor,
-  limiter: Limiter as unknown as EffectConstructor,
-  gate: Gate as unknown as EffectConstructor,
-  stereoWidener: StereoWidener as unknown as EffectConstructor,
+  reverb: asEffectConstructor(Reverb),
+  freeverb: asEffectConstructor(Freeverb),
+  jcReverb: asEffectConstructor(JCReverb),
+  feedbackDelay: asEffectConstructor(FeedbackDelay),
+  pingPongDelay: asEffectConstructor(PingPongDelay),
+  chorus: asEffectConstructor(Chorus),
+  phaser: asEffectConstructor(Phaser),
+  tremolo: asEffectConstructor(Tremolo),
+  vibrato: asEffectConstructor(Vibrato),
+  autoPanner: asEffectConstructor(AutoPanner),
+  autoFilter: asEffectConstructor(AutoFilter),
+  autoWah: asEffectConstructor(AutoWah),
+  eq3: asEffectConstructor(EQ3),
+  distortion: asEffectConstructor(Distortion),
+  bitCrusher: asEffectConstructor(BitCrusher),
+  chebyshev: asEffectConstructor(Chebyshev),
+  compressor: asEffectConstructor(Compressor),
+  limiter: asEffectConstructor(Limiter),
+  gate: asEffectConstructor(Gate),
+  stereoWidener: asEffectConstructor(StereoWidener),
 };
 
 // Generate unique instance ID
@@ -112,7 +117,7 @@ export function createEffectInstance(
         effect.disconnect();
         effect.dispose();
       } catch (e) {
-        // Ignore errors during cleanup
+        console.warn(`[waveform-playlist] Error disposing effect "${definition.id}" (${instanceId}):`, e);
       }
     },
 
@@ -161,7 +166,7 @@ export function createEffectInstance(
       try {
         effect.disconnect();
       } catch (e) {
-        // Ignore disconnect errors
+        console.warn(`[waveform-playlist] Error disconnecting effect "${definition.id}" (${instanceId}):`, e);
       }
     },
   };

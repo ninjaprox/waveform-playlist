@@ -1,18 +1,10 @@
 import { useState, useCallback } from 'react';
 import type { ClipTrack, AudioClip, FadeType } from '@waveform-playlist/core';
-import type { EffectsFunction } from '@waveform-playlist/playout';
+import { type EffectsFunction, getUnderlyingAudioParam } from '@waveform-playlist/playout';
 import { encodeWav, downloadBlob, type WavEncoderOptions } from '../utils/wavEncoder';
 
 /** Function type for per-track effects (same as in @waveform-playlist/core) */
 export type TrackEffectsFunction = (graphEnd: unknown, destination: unknown, isOffline: boolean) => void | (() => void);
-
-/**
- * Access the underlying Web Audio AudioParam from a Tone.js Signal/Param wrapper.
- * Tone.js wraps native AudioParam via its Signal class; `_param` is a private Tone.js 15.x internal.
- */
-function getUnderlyingAudioParam(signal: unknown): AudioParam | undefined {
-  return (signal as { _param?: AudioParam })._param;
-}
 
 export interface ExportOptions extends WavEncoderOptions {
   /** Filename for download (without extension) */

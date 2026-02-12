@@ -18,8 +18,19 @@
  * @param signal - A Tone.js Signal or Param wrapper (e.g., `gain.gain`)
  * @returns The underlying AudioParam, or undefined if not found
  */
+let hasWarned = false;
+
 export function getUnderlyingAudioParam(signal: unknown): AudioParam | undefined {
-  return (signal as { _param?: AudioParam })._param;
+  const param = (signal as { _param?: AudioParam })._param;
+  if (!param && !hasWarned) {
+    hasWarned = true;
+    console.warn(
+      '[waveform-playlist] Unable to access Tone.js internal _param. ' +
+      'This likely means the Tone.js version is incompatible. ' +
+      'Fades and mute scheduling may not work correctly.'
+    );
+  }
+  return param;
 }
 
 export type FadeType = 'linear' | 'logarithmic' | 'exponential' | 'sCurve';

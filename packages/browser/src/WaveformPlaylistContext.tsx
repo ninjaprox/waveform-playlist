@@ -41,77 +41,6 @@ export interface TrackState {
   pan: number;
 }
 
-export interface WaveformPlaylistContextValue {
-  // State
-  isPlaying: boolean;
-  currentTime: number;
-  duration: number;
-  audioBuffers: AudioBuffer[];
-  peaksDataArray: TrackClipPeaks[]; // Array of tracks, each containing array of clip peaks
-  trackStates: TrackState[];
-  annotations: AnnotationData[];
-  activeAnnotationId: string | null;
-  selectionStart: number;
-  selectionEnd: number;
-  isAutomaticScroll: boolean;
-  continuousPlay: boolean;
-  linkEndpoints: boolean;
-  annotationsEditable: boolean;
-
-  // Playback controls
-  play: (startTime?: number, playDuration?: number) => Promise<void>;
-  pause: () => void;
-  stop: () => void;
-  setCurrentTime: (time: number) => void;
-
-  // Track controls
-  setTrackMute: (trackIndex: number, muted: boolean) => void;
-  setTrackSolo: (trackIndex: number, soloed: boolean) => void;
-  setTrackVolume: (trackIndex: number, volume: number) => void;
-  setTrackPan: (trackIndex: number, pan: number) => void;
-
-  // Selection
-  setSelection: (start: number, end: number) => void;
-
-  // Time format
-  timeFormat: TimeFormat;
-  setTimeFormat: (format: TimeFormat) => void;
-  formatTime: (seconds: number) => string;
-
-  // Zoom
-  samplesPerPixel: number;
-  zoomIn: () => void;
-  zoomOut: () => void;
-  canZoomIn: boolean;
-  canZoomOut: boolean;
-
-  // Master volume
-  masterVolume: number;
-  setMasterVolume: (volume: number) => void;
-
-  // Automatic scroll
-  setAutomaticScroll: (enabled: boolean) => void;
-  setScrollContainer: (element: HTMLDivElement | null) => void;
-
-  // Annotation controls
-  setContinuousPlay: (enabled: boolean) => void;
-  setLinkEndpoints: (enabled: boolean) => void;
-  setAnnotationsEditable: (enabled: boolean) => void;
-  setAnnotations: React.Dispatch<React.SetStateAction<AnnotationData[]>>;
-  setActiveAnnotationId: (id: string | null) => void;
-
-  // Refs
-  playoutRef: React.RefObject<TonePlayout | null>;
-  currentTimeRef: React.RefObject<number>;
-
-  // Playlist info
-  sampleRate: number;
-  waveHeight: number;
-  timeScaleHeight: number;
-  minimumPlaylistHeight: number;
-  controls: { show: boolean; width: number };
-}
-
 // Split contexts for performance optimization
 // High-frequency updates (currentTime) are isolated from low-frequency state changes
 
@@ -221,9 +150,6 @@ const PlaybackAnimationContext = createContext<PlaybackAnimationContextValue | n
 const PlaylistStateContext = createContext<PlaylistStateContextValue | null>(null);
 const PlaylistControlsContext = createContext<PlaylistControlsContextValue | null>(null);
 const PlaylistDataContext = createContext<PlaylistDataContextValue | null>(null);
-
-// Keep the original context for backwards compatibility
-const WaveformPlaylistContext = createContext<WaveformPlaylistContextValue | null>(null);
 
 export interface WaveformPlaylistProviderProps {
   tracks: ClipTrack[]; // Updated to use clip-based model
@@ -1071,15 +997,15 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
   // Split context values for performance optimization
   // High-frequency updates (currentTime) isolated from other state
 
-  const animationValue: PlaybackAnimationContextValue = {
+  const animationValue: PlaybackAnimationContextValue = useMemo(() => ({
     isPlaying,
     currentTime,
     currentTimeRef,
     playbackStartTimeRef,
     audioStartPositionRef,
-  };
+  }), [isPlaying, currentTime, currentTimeRef, playbackStartTimeRef, audioStartPositionRef]);
 
-  const stateValue: PlaylistStateContextValue = {
+  const stateValue: PlaylistStateContextValue = useMemo(() => ({
     continuousPlay,
     linkEndpoints,
     annotationsEditable,
@@ -1092,18 +1018,24 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     selectedTrackId,
     loopStart,
     loopEnd,
-  };
+  }), [continuousPlay, linkEndpoints, annotationsEditable, isAutomaticScroll, isLoopEnabled, annotations, activeAnnotationId, selectionStart, selectionEnd, selectedTrackId, loopStart, loopEnd]);
 
-  const controlsValue: PlaylistControlsContextValue = {
+  const setCurrentTimeControl = useCallback((time: number) => {
+    currentTimeRef.current = time;
+    setCurrentTime(time);
+  }, [currentTimeRef]);
+
+  const setAutomaticScrollControl = useCallback((enabled: boolean) => {
+    setIsAutomaticScroll(enabled);
+  }, []);
+
+  const controlsValue: PlaylistControlsContextValue = useMemo(() => ({
     // Playback controls
     play,
     pause,
     stop,
     seekTo,
-    setCurrentTime: (time: number) => {
-      currentTimeRef.current = time;
-      setCurrentTime(time);
-    },
+    setCurrentTime: setCurrentTimeControl,
 
     // Track controls
     setTrackMute,
@@ -1127,9 +1059,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     setMasterVolume,
 
     // Automatic scroll
-    setAutomaticScroll: (enabled: boolean) => {
-      setIsAutomaticScroll(enabled);
-    },
+    setAutomaticScroll: setAutomaticScrollControl,
     setScrollContainer,
     scrollContainerRef,
 
@@ -1146,9 +1076,9 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     setLoopRegionFromSelection,
     clearLoopRegion,
 
-  };
+  }), [play, pause, stop, seekTo, setCurrentTimeControl, setTrackMute, setTrackSolo, setTrackVolume, setTrackPan, setSelection, setSelectedTrackId, setTimeFormat, formatTime, zoom.zoomIn, zoom.zoomOut, setMasterVolume, setAutomaticScrollControl, setScrollContainer, scrollContainerRef, setContinuousPlay, setLinkEndpoints, setAnnotationsEditable, setAnnotations, setActiveAnnotationId, setLoopEnabled, setLoopRegion, setLoopRegionFromSelection, clearLoopRegion]);
 
-  const dataValue: PlaylistDataContextValue = {
+  const dataValue: PlaylistDataContextValue = useMemo(() => ({
     duration,
     audioBuffers,
     peaksDataArray,
@@ -1170,15 +1100,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     progressBarWidth,
     isReady,
     mono,
-  };
-
-  // Combined value for backwards compatibility
-  const value: WaveformPlaylistContextValue = {
-    ...animationValue,
-    ...stateValue,
-    ...controlsValue,
-    ...dataValue,
-  };
+  }), [duration, audioBuffers, peaksDataArray, trackStates, tracks, sampleRate, waveHeight, timeScaleHeight, minimumPlaylistHeight, controls, playoutRef, samplesPerPixel, timeFormat, masterVolume, zoom.canZoomIn, zoom.canZoomOut, barWidth, barGap, progressBarWidth, isReady, mono]);
 
   // Merge user theme with default theme
   const mergedTheme = { ...defaultTheme, ...userTheme };
@@ -1189,9 +1111,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
         <PlaylistStateContext.Provider value={stateValue}>
           <PlaylistControlsContext.Provider value={controlsValue}>
             <PlaylistDataContext.Provider value={dataValue}>
-              <WaveformPlaylistContext.Provider value={value}>
                 {children}
-              </WaveformPlaylistContext.Provider>
             </PlaylistDataContext.Provider>
           </PlaylistControlsContext.Provider>
         </PlaylistStateContext.Provider>
@@ -1235,12 +1155,3 @@ export const usePlaylistData = () => {
   return context;
 };
 
-// Main hook that combines all contexts - use this for backwards compatibility
-// or when you need access to multiple contexts
-export const useWaveformPlaylist = () => {
-  const context = useContext(WaveformPlaylistContext);
-  if (!context) {
-    throw new Error('useWaveformPlaylist must be used within WaveformPlaylistProvider');
-  }
-  return context;
-};

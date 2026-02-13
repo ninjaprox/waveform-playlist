@@ -118,6 +118,7 @@ export function useAudioTracks(
     }
 
     let cancelled = false;
+    const abortController = new AbortController();
     // Track loaded tracks by their config index for progressive mode
     const loadedTracksMap = new Map<number, ClipTrack>();
 
@@ -225,7 +226,7 @@ export function useAudioTracks(
             throw new Error(`Track ${index + 1}: Must provide src, audioBuffer, or waveformData`);
           }
 
-          const response = await fetch(config.src);
+          const response = await fetch(config.src, { signal: abortController.signal });
           if (!response.ok) {
             throw new Error(`Failed to fetch ${config.src}: ${response.statusText}`);
           }
@@ -275,9 +276,10 @@ export function useAudioTracks(
 
     loadTracks();
 
-    // Cleanup function to prevent state updates if component unmounts
+    // Cleanup: prevent state updates and abort in-flight fetches on unmount
     return () => {
       cancelled = true;
+      abortController.abort();
     };
   }, [configs, progressive]);
 

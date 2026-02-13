@@ -977,15 +977,12 @@ const label = getShortcutLabel(shortcut);
 
 ### 1. Use Specific Hooks
 
-Prefer the split context hooks over the legacy combined hook:
+Use the split context hooks for optimal performance:
 
 ```tsx
-// Better - only subscribes to playback animation state
+// Only subscribes to playback animation state
 const { isPlaying } = usePlaybackAnimation();
 const { play, pause } = usePlaylistControls();
-
-// Less efficient - subscribes to all state
-const { isPlaying, play, pause } = useWaveformPlaylist();
 ```
 
 ### 2. Memoize Callbacks

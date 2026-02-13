@@ -87,7 +87,7 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
     try {
       graphEnd.disconnect();
     } catch (e) {
-      // Ignore disconnect errors
+      console.warn(`[waveform-playlist] Error disconnecting track "${trackId}" effect chain:`, e);
     }
 
     // Get effect instances in order
@@ -106,7 +106,7 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
         try {
           inst.disconnect();
         } catch (e) {
-          // Ignore
+          console.warn(`[waveform-playlist] Error disconnecting effect "${inst.id}" on track "${trackId}":`, e);
         }
         currentNode.connect(inst.effect);
         currentNode = inst.effect;

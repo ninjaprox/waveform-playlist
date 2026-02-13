@@ -36,7 +36,6 @@ import {
   usePlaybackAnimation,
   usePlaylistData,
   usePlaylistState,
-  useWaveformPlaylist,
   usePlaybackShortcuts,
   useClipSplitting,
   useClipDragHandlers,
@@ -200,7 +199,8 @@ const GrungyTimestamp = styled.div<{ $left: number }>`
 
 // Custom Track Controls Component - compact horizontal layout
 const CustomTrackControls: React.FC<{ trackIndex: number }> = ({ trackIndex }) => {
-  const { trackStates, setTrackMute, setTrackSolo, setTrackVolume } = useWaveformPlaylist();
+  const { trackStates } = usePlaylistData();
+  const { setTrackMute, setTrackSolo, setTrackVolume } = usePlaylistControls();
   const trackState = trackStates[trackIndex];
 
   if (!trackState) return null;

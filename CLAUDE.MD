@@ -90,11 +90,12 @@ pnpm publish --filter @waveform-playlist/NEW-PACKAGE --no-git-checks --access pu
 
 **API Source of Truth:**
 - Context types (hooks, state, controls): `packages/browser/src/WaveformPlaylistContext.tsx`
+- Context hooks: `usePlaybackAnimation`, `usePlaylistState`, `usePlaylistControls`, `usePlaylistData` (no combined hook — `useWaveformPlaylist` was removed in v6.0.2)
 - MediaElement context types: `packages/browser/src/MediaElementPlaylistContext.tsx`
 - AudioTrackConfig interface: `packages/browser/src/hooks/useAudioTracks.ts`
 - Effects hooks return types: `packages/browser/src/hooks/useDynamicEffects.ts`, `useTrackDynamicEffects.ts`
 
-**Common Doc Drift:** Non-existent hooks, wrong property names (e.g., `gain` vs `volume`, `seek` vs `seekTo`), properties attributed to wrong context hooks. Always cross-check docs against source interfaces.
+**Common Doc Drift:** Non-existent hooks (e.g., `useWaveformPlaylist` was removed), wrong property names (e.g., `gain` vs `volume`, `seek` vs `seekTo`), properties attributed to wrong context hooks. Always cross-check docs against source interfaces.
 
 **Verify docs render:** `pnpm --filter website build` (CSS calc warnings are pre-existing, harmless)
 
@@ -546,6 +547,10 @@ const analyser = context.createAnalyser();
 11. **Playlist Loading Detection** - Use `data-playlist-state` attribute and `waveform-playlist:ready` custom event for reliable loading detection in CSS, E2E tests, and external integrations
 12. **Stable React Keys for Tracks/Clips** - Always use `track.id` / `clip.clipId` as React keys, never array indices. Index-based keys cause DOM reuse on removal, breaking `transferControlToOffscreen()` (can only be called once per canvas) and causing stale OffscreenCanvas references.
 13. **Per-Track Maps Must Use Track ID** - Any `Map` storing per-track overrides (render modes, configs) must be keyed by `track.id` (string), not array index. Index keys break when tracks are added/removed.
+14. **Context Value Memoization** - All context value objects in providers must be wrapped with `useMemo`. Extract inline callbacks into `useCallback` first to avoid dependency churn.
+15. **Error Boundary Available** - `PlaylistErrorBoundary` from `@waveform-playlist/ui-components` catches render errors. Uses plain CSS (no styled-components) so it works without ThemeProvider.
+16. **Audio Disconnect Diagnostics** - Use `console.warn('[waveform-playlist] ...')` in catch blocks for audio node disconnect errors, never silently swallow.
+17. **Fetch Cleanup with AbortController** - `useAudioTracks` uses AbortController to cancel in-flight fetches on cleanup. Follow this pattern for any fetch in useEffect.
 
 ### Playlist Loading Detection
 

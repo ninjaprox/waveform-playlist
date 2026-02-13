@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState, useEffect } from 'react';
 import {
   WaveformPlaylistProvider,
-  useWaveformPlaylist,
+  usePlaylistData,
+  usePlaylistControls,
   useZoomControls,
   useTimeFormat,
   useKeyboardShortcuts,
@@ -91,9 +92,10 @@ const TimeFormatDemo: React.FC = () => {
 
 // useMasterVolume via context demo
 // Note: useMasterVolume is an internal hook used by WaveformPlaylistProvider.
-// Components should access masterVolume via useWaveformPlaylist context.
+// Components should access masterVolume via usePlaylistData/usePlaylistControls.
 const MasterVolumeDemo: React.FC = () => {
-  const { masterVolume, setMasterVolume } = useWaveformPlaylist();
+  const { masterVolume } = usePlaylistData();
+  const { setMasterVolume } = usePlaylistControls();
   const [muted, setMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(masterVolume);
 
@@ -110,7 +112,7 @@ const MasterVolumeDemo: React.FC = () => {
 
   return (
     <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>useWaveformPlaylist (masterVolume)</h3>
+      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>usePlaylistData + usePlaylistControls (masterVolume)</h3>
       <div style={{ marginBottom: '1rem' }}>
         <label style={{ display: 'block', marginBottom: '0.5rem' }}>
           Volume: {Math.round(masterVolume * 100)}%

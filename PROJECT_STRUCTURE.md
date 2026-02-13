@@ -878,7 +878,7 @@ The playlist now provides a **flexible/headless API** using React Context and pr
 - `WaveformPlaylistProvider` wraps your app and provides state via context
 - Primitive components (PlayButton, ZoomInButton, etc.) work anywhere inside the provider
 - `Waveform` component accepts a render prop for custom track controls
-- `useWaveformPlaylist` hook provides direct access to state/methods
+- Split context hooks (`usePlaylistData`, `usePlaylistControls`, etc.) provide direct access to state/methods
 
 ### Benefits
 
@@ -900,12 +900,14 @@ import {
   StopButton,
   Waveform,
   MasterVolumeControl,
-  useWaveformPlaylist,
+  usePlaylistData,
+  usePlaylistControls,
 } from '@waveform-playlist/browser';
 
 // Custom track controls
 const CustomTrackControls = ({ trackIndex }) => {
-  const { trackStates, setTrackMute } = useWaveformPlaylist();
+  const { trackStates } = usePlaylistData();
+  const { setTrackMute } = usePlaylistControls();
   return (
     <button onClick={() => setTrackMute(trackIndex, !trackStates[trackIndex].muted)}>
       {trackStates[trackIndex].muted ? 'Unmute' : 'Mute'}

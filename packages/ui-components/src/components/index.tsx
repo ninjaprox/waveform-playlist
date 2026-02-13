@@ -2,6 +2,7 @@
 export * from './AudioPosition';
 export * from './AutomaticScrollCheckbox';
 export * from './Channel';
+export * from './ErrorBoundary';
 export * from './Clip';
 export * from './ClipBoundary';
 export * from './ClipHeader';

@@ -81,7 +81,7 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
     try {
       masterGainNode.disconnect();
     } catch (e) {
-      // Ignore disconnect errors
+      console.warn('[waveform-playlist] Error disconnecting master effects chain:', e);
     }
 
     // Get effect instances in order
@@ -101,7 +101,7 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
         try {
           inst.disconnect();
         } catch (e) {
-          // Ignore
+          console.warn(`[waveform-playlist] Error disconnecting effect "${inst.id}":`, e);
         }
         currentNode.connect(inst.effect);
         currentNode = inst.effect;

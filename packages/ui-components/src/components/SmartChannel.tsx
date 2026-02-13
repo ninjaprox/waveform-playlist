@@ -115,7 +115,6 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
         <div style={{ position: 'absolute', top: (props.index * 2 + 1) * halfHeight, width: props.length, height: halfHeight }}>
           <Channel
             {...props}
-            {...theme}
             index={0}
             waveOutlineColor={waveOutlineColor}
             waveFillColor={waveFillColor}
@@ -135,7 +134,6 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
   return (
     <Channel
       {...props}
-      {...theme}
       waveOutlineColor={waveOutlineColor}
       waveFillColor={waveFillColor}
       waveHeight={waveHeight}
@@ -144,6 +142,6 @@ export const SmartChannel: FunctionComponent<SmartChannelProps> = ({
       barGap={barGap}
       transparentBackground={transparentBackground}
       drawMode={drawMode}
-    ></Channel>
+    />
   );
 };

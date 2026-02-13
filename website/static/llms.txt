@@ -21,7 +21,7 @@ waveform-playlist is a React component library for building browser-based audio 
 - `@waveform-playlist/browser` — Main package: React components, hooks, effects
 - `@waveform-playlist/core` — Data model: ClipTrack, AudioClip, sample-based math
 - `@waveform-playlist/playout` — Audio engine: Tone.js playback, global AudioContext
-- `@waveform-playlist/ui-components` — Styled primitives, theming, playhead components
+- `@waveform-playlist/ui-components` — Styled primitives, theming, playhead components, PlaylistErrorBoundary
 - `@waveform-playlist/annotations` — Annotation parsing, rendering, keyboard controls
 - `@waveform-playlist/recording` — Microphone access, AudioWorklet recording, VU meter, integrated recording hook
 - `@waveform-playlist/webaudio-peaks` — Peak extraction from AudioBuffer

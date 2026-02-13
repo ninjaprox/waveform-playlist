@@ -11,4 +11,4 @@ export * from './PlaylistVisualization';
 export * from './PlaylistAnnotationList';
 
 // Re-export WaveformPlaylistProvider and types from context
-export { WaveformPlaylistProvider, useWaveformPlaylist, type WaveformTrack } from '../WaveformPlaylistContext';
+export { WaveformPlaylistProvider, type WaveformTrack } from '../WaveformPlaylistContext';

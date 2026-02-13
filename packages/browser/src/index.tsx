@@ -8,13 +8,12 @@ export type { EffectsFunction, TrackEffectsFunction } from '@waveform-playlist/p
 // Export new flexible/headless API
 export {
   WaveformPlaylistProvider,
-  useWaveformPlaylist,
   usePlaybackAnimation,
   usePlaylistState,
   usePlaylistControls,
   usePlaylistData,
 } from './WaveformPlaylistContext';
-export type { WaveformPlaylistContextValue, WaveformTrack, TrackState } from './WaveformPlaylistContext';
+export type { WaveformTrack, TrackState } from './WaveformPlaylistContext';
 
 // Export MediaElement-based provider (single-track with playback rate control)
 export {

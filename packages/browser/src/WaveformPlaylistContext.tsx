@@ -10,7 +10,7 @@ import { extractPeaksFromWaveformData } from './waveformDataLoader';
 import type WaveformData from 'waveform-data';
 import type { PeakData } from '@waveform-playlist/webaudio-peaks';
 import type { AnnotationData } from '@waveform-playlist/core';
-import { useTimeFormat, useZoomControls, useMasterVolume } from './hooks';
+import { useTimeFormat, useZoomControls, useMasterVolume, useAnimationFrameLoop } from './hooks';
 
 // Types
 export interface ClipPeaks {
@@ -254,7 +254,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
   const playoutRef = useRef<TonePlayout | null>(null);
   const playStartPositionRef = useRef<number>(0);
   const currentTimeRef = useRef<number>(0);
-  const animationFrameRef = useRef<number | null>(null);
   const trackStatesRef = useRef<TrackState[]>(trackStates);
   const playbackStartTimeRef = useRef<number>(0); // context.currentTime when playback started
   const audioStartPositionRef = useRef<number>(0); // Audio position when playback started
@@ -275,6 +274,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
   const zoom = useZoomControls({ initialSamplesPerPixel, zoomLevels });
   const samplesPerPixel = zoom.samplesPerPixel;
   const { masterVolume, setMasterVolume } = useMasterVolume({ playoutRef, initialVolume: 1.0 });
+  const { animationFrameRef, startAnimationFrameLoop, stopAnimationFrameLoop } = useAnimationFrameLoop();
 
   // Custom setter for continuousPlay that updates BOTH state and ref synchronously
   // This ensures the ref is updated immediately, before the animation loop can read it
@@ -384,10 +384,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     // Stop current playback and animation before disposing
     if (playoutRef.current && wasPlaying) {
       playoutRef.current.stop();
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
+      stopAnimationFrameLoop();
       // Mark that we need to resume playback after playout is rebuilt
       pendingResumeRef.current = { position: resumePosition };
     }
@@ -524,14 +521,12 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     loadAudio();
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      stopAnimationFrameLoop();
       if (playoutRef.current) {
         playoutRef.current.dispose();
       }
     };
-  }, [tracks, onReady, isPlaying]);
+  }, [tracks, onReady, isPlaying, effects, stopAnimationFrameLoop]);
 
   // Regenerate peaks when zoom or mono changes (without reloading audio)
   useEffect(() => {
@@ -617,12 +612,6 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
 
   // Animation loop
   const startAnimationLoop = useCallback(() => {
-    // Cancel any existing animation frame before starting a new one
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-
     const updateTime = () => {
       // Calculate current position based on context.currentTime timing
       const elapsed = getContext().currentTime - playbackStartTimeRef.current;
@@ -720,7 +709,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
           playoutRef.current?.play(timeNow, loopStartRef.current);
 
           // Continue animation loop
-          animationFrameRef.current = requestAnimationFrame(updateTime);
+          startAnimationFrameLoop(updateTime);
           return;
         }
       }
@@ -736,17 +725,12 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
         setActiveAnnotationId(null);
         return;
       }
-      animationFrameRef.current = requestAnimationFrame(updateTime);
+      startAnimationFrameLoop(updateTime);
     };
-    animationFrameRef.current = requestAnimationFrame(updateTime);
-  }, [duration, audioBuffers, samplesPerPixel, continuousPlay]);
+    startAnimationFrameLoop(updateTime);
+  }, [duration, audioBuffers, controls.show, controls.width, setActiveAnnotationId, startAnimationFrameLoop]);
 
-  const stopAnimationLoop = useCallback(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-  }, []);
+  const stopAnimationLoop = stopAnimationFrameLoop;
 
   // Restart animation loop and reschedule playout when continuousPlay changes during playback
   // This ensures the loop always has the current continuousPlay value
@@ -786,7 +770,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     };
 
     reschedulePlayback();
-  }, [continuousPlay, isPlaying, startAnimationLoop, stopAnimationLoop]);
+  }, [continuousPlay, isPlaying, startAnimationLoop, stopAnimationLoop, animationFrameRef]);
 
   // Resume playback after tracks change (e.g., after splitting a clip during playback)
   useEffect(() => {
@@ -878,7 +862,7 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
     currentTimeRef.current = playStartPositionRef.current;
     setCurrentTime(playStartPositionRef.current);
     setActiveAnnotationId(null);
-  }, [stopAnimationLoop]);
+  }, [stopAnimationLoop, setActiveAnnotationId]);
 
   // Seek to a specific time - works whether playing or stopped
   const seekTo = useCallback((time: number) => {
@@ -1154,4 +1138,3 @@ export const usePlaylistData = () => {
   }
   return context;
 };
-

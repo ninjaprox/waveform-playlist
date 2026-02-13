@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
 import { ClipBoundary } from '../components/ClipBoundary';
 
 const meta: Meta<typeof ClipBoundary> = {
@@ -98,9 +97,6 @@ export const BothEdges: Story = {
 
 export const InteractiveHover: Story = {
   render: () => {
-    const [leftHovered, setLeftHovered] = useState(false);
-    const [rightHovered, setRightHovered] = useState(false);
-
     return (
       <div>
         <p style={{ marginBottom: '1rem', fontSize: '0.875rem' }}>

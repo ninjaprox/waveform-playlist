@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { ClipHeader, ClipHeaderPresentational } from '../components/ClipHeader';
+import { ClipHeaderPresentational } from '../components/ClipHeader';
 
 const meta: Meta<typeof ClipHeaderPresentational> = {
   title: 'Components/ClipHeader',

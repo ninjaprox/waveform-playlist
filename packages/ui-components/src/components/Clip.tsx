@@ -2,8 +2,8 @@ import React, { FunctionComponent, ReactNode } from 'react';
 import styled from 'styled-components';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { ClipHeader, CLIP_HEADER_HEIGHT } from './ClipHeader';
-import { ClipBoundary, CLIP_BOUNDARY_WIDTH } from './ClipBoundary';
+import { ClipHeader } from './ClipHeader';
+import { ClipBoundary } from './ClipBoundary';
 import { FadeOverlay } from './FadeOverlay';
 import type { Fade } from '@waveform-playlist/core';
 

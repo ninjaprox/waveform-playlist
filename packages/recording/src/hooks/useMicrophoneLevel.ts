@@ -156,7 +156,7 @@ export function useMicrophoneLevel(
       if (sourceRef.current) {
         try {
           sourceRef.current.disconnect();
-        } catch (e) {
+        } catch {
           // Ignore disconnect errors
         }
         sourceRef.current = null;

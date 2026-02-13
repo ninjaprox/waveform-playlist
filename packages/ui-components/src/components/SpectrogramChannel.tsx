@@ -1,8 +1,9 @@
 import React, { FunctionComponent, useLayoutEffect, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import type { SpectrogramData, ColorMapValue } from '@waveform-playlist/core';
+import type { SpectrogramData } from '@waveform-playlist/core';
 
 const MAX_CANVAS_WIDTH = 1000;
+const LINEAR_FREQUENCY_SCALE = (f: number, minF: number, maxF: number) => (f - minF) / (maxF - minF);
 
 interface WrapperProps {
   readonly $index: number;
@@ -51,6 +52,7 @@ function defaultGetColorMap(): Uint8Array {
   }
   return lut;
 }
+const DEFAULT_COLOR_LUT = defaultGetColorMap();
 
 export interface SpectrogramWorkerCanvasApi {
   registerCanvas(canvasId: string, canvas: OffscreenCanvas): void;
@@ -108,6 +110,8 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   const canvasesRef = useRef<HTMLCanvasElement[]>([]);
   const registeredIdsRef = useRef<string[]>([]);
   const transferredCanvasesRef = useRef<WeakSet<HTMLCanvasElement>>(new WeakSet());
+  const workerApiRef = useRef(workerApi);
+  const onCanvasesReadyRef = useRef(onCanvasesReady);
 
   // Track whether we're in worker mode (canvas transferred)
   const isWorkerMode = !!(workerApi && clipId);
@@ -124,7 +128,18 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
   // Worker mode: transfer canvases to worker on mount
   useEffect(() => {
+    workerApiRef.current = workerApi;
+  }, [workerApi]);
+
+  useEffect(() => {
+    onCanvasesReadyRef.current = onCanvasesReady;
+  }, [onCanvasesReady]);
+
+  // Worker mode: transfer canvases to worker on mount
+  useEffect(() => {
     if (!isWorkerMode) return;
+    const currentWorkerApi = workerApiRef.current;
+    if (!currentWorkerApi || !clipId) return;
 
     const canvasCount = Math.ceil(length / MAX_CANVAS_WIDTH);
     canvasesRef.current.length = canvasCount;
@@ -143,7 +158,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
       try {
         const offscreen = canvas.transferControlToOffscreen();
-        workerApi!.registerCanvas(canvasId, offscreen);
+        currentWorkerApi.registerCanvas(canvasId, offscreen);
         transferredCanvasesRef.current.add(canvas);
         ids.push(canvasId);
         widths.push(Math.min(length - i * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
@@ -155,23 +170,22 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
     registeredIdsRef.current = ids;
 
-    if (ids.length > 0 && onCanvasesReady) {
-      onCanvasesReady(ids, widths);
+    if (ids.length > 0) {
+      onCanvasesReadyRef.current?.(ids, widths);
     }
 
     return () => {
       for (const id of registeredIdsRef.current) {
-        workerApi!.unregisterCanvas(id);
+        currentWorkerApi.unregisterCanvas(id);
       }
       registeredIdsRef.current = [];
     };
-  // Re-run when canvas keys change (length changes cause remount via key prop)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWorkerMode, clipId, channelIndex, length]);
 
-  const lut = colorLUT ?? defaultGetColorMap();
+  const lut = colorLUT ?? DEFAULT_COLOR_LUT;
   const maxF = maxFrequency ?? (data ? data.sampleRate / 2 : 22050);
-  const scaleFn = frequencyScaleFn ?? ((f: number, minF: number, maxF: number) => (f - minF) / (maxF - minF));
+  const scaleFn = frequencyScaleFn ?? LINEAR_FREQUENCY_SCALE;
+  const hasCustomFrequencyScale = Boolean(frequencyScaleFn);
 
   // Main-thread rendering (skipped in worker mode)
   useLayoutEffect(() => {
@@ -224,7 +238,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
           let bin = Math.floor(normalizedY * frequencyBinCount);
 
           // If we have a non-linear scale, find the correct bin
-          if (frequencyScaleFn) {
+          if (hasCustomFrequencyScale) {
             // Binary search: find the bin whose scaled position is closest to normalizedY
             let lo = 0;
             let hi = frequencyBinCount - 1;
@@ -279,7 +293,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       globalPixelOffset += canvasWidth;
     }
 
-  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, frequencyScaleFn, minFrequency, maxF, scaleFn]);
+  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, minFrequency, maxF, scaleFn, hasCustomFrequencyScale]);
 
   // Build canvas chunks
   let totalWidth = length;
@@ -308,4 +322,3 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     </Wrapper>
   );
 };
-

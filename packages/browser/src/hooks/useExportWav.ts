@@ -457,6 +457,7 @@ function applyFadeEnvelope(
       break;
 
     case 'exponential':
+    {
       // Exponential can't handle 0 values, use small value instead
       const expStart = Math.max(startValue, 0.0001);
       const expEnd = Math.max(endValue, 0.0001);
@@ -467,19 +468,24 @@ function applyFadeEnvelope(
         gainParam.setValueAtTime(0, endTime);
       }
       break;
+    }
 
     case 'logarithmic':
+    {
       // Logarithmic fade - more aggressive at start, gentler at end
       // Implemented using setValueCurveAtTime with calculated curve
       const logCurve = generateFadeCurve(startValue, endValue, 256, 'logarithmic');
       gainParam.setValueCurveAtTime(logCurve, startTime, duration);
       break;
+    }
 
     case 'sCurve':
+    {
       // S-curve (ease-in-out) - smooth start and end
       const sCurve = generateFadeCurve(startValue, endValue, 256, 'sCurve');
       gainParam.setValueCurveAtTime(sCurve, startTime, duration);
       break;
+    }
 
     default:
       // Default to linear

@@ -313,12 +313,13 @@ export function useTrackDynamicEffects(): UseTrackDynamicEffectsReturn {
 
   // Cleanup on unmount
   useEffect(() => {
+    const trackEffectInstances = trackEffectInstancesRef.current;
     return () => {
-      trackEffectInstancesRef.current.forEach((instancesMap) => {
+      trackEffectInstances.forEach((instancesMap) => {
         instancesMap.forEach((inst) => inst.dispose());
         instancesMap.clear();
       });
-      trackEffectInstancesRef.current.clear();
+      trackEffectInstances.clear();
     };
   }, []);
 

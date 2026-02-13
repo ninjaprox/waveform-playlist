@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { AnnotationData, AnnotationListOptions } from '../types';
+import type { AnnotationData } from '../types';
 
 const LINK_THRESHOLD = 0.01; // Consider edges "linked" if within 10ms
 

@@ -38,3 +38,6 @@ export type { UseTrackDynamicEffectsReturn, TrackActiveEffect, TrackEffectsState
 
 export { useExportWav } from './useExportWav';
 export type { ExportOptions, ExportResult, UseExportWavReturn, TrackEffectsFunction as ExportTrackEffectsFunction } from './useExportWav';
+
+export { useAnimationFrameLoop } from './useAnimationFrameLoop';
+export type { AnimationFrameLoopControls } from './useAnimationFrameLoop';

@@ -369,7 +369,7 @@ export function useClipDragHandlers({
 
       onTracksChange(newTracks);
     },
-    [tracks, onTracksChange, samplesPerPixel, sampleRate]
+    [tracks, onTracksChange, samplesPerPixel]
   );
 
   return {

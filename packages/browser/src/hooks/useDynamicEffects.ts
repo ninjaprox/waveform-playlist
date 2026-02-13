@@ -277,9 +277,10 @@ export function useDynamicEffects(fftSize: number = 256): UseDynamicEffectsRetur
 
   // Cleanup on unmount
   useEffect(() => {
+    const effectInstances = effectInstancesRef.current;
     return () => {
-      effectInstancesRef.current.forEach((inst) => inst.dispose());
-      effectInstancesRef.current.clear();
+      effectInstances.forEach((inst) => inst.dispose());
+      effectInstances.clear();
     };
   }, []);
 

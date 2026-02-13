@@ -100,8 +100,8 @@ class RecordingProcessor extends AudioWorkletProcessor {
 
   process(
     inputs: Float32Array[][],
-    outputs: Float32Array[][],
-    parameters: Record<string, Float32Array>
+    _outputs: Float32Array[][],
+    _parameters: Record<string, Float32Array>
   ): boolean {
     if (!this.isRecording) {
       return true; // Keep processor alive

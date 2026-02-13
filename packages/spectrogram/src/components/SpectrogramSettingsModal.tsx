@@ -70,20 +70,6 @@ const NumberInput = styled.input`
   box-sizing: border-box;
 `;
 
-const RangeRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const RangeValue = styled.span`
-  font-size: 0.75rem;
-  font-family: monospace;
-  opacity: 0.6;
-  min-width: 3ch;
-  text-align: right;
-`;
-
 const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;

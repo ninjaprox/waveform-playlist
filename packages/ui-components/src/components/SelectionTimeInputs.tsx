@@ -51,7 +51,7 @@ export const SelectionTimeInputs: React.FC<SelectionTimeInputsProps> = ({
   };
 
   return (
-    <>
+    <div className={className}>
       <TimeInput
         id="audio_start"
         label="Start of audio selection"
@@ -68,6 +68,6 @@ export const SelectionTimeInputs: React.FC<SelectionTimeInputsProps> = ({
         className="audio-end form-control mr-sm-2"
         onChange={handleEndChange}
       />
-    </>
+    </div>
   );
 };

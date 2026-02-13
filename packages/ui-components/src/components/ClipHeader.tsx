@@ -100,8 +100,8 @@ export interface ClipHeaderProps {
  */
 export const ClipHeader: FunctionComponent<ClipHeaderProps> = ({
   clipId,
-  trackIndex,
-  clipIndex,
+  trackIndex: _trackIndex,
+  clipIndex: _clipIndex,
   trackName,
   isSelected = false,
   disableDrag = false,

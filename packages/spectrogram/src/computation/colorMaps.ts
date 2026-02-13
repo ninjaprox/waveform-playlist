@@ -10,7 +10,7 @@
  * By dofuuz, licensed under CC0 1.0 Universal.
  */
 
-import type { ColorMapName, ColorMapValue } from '@waveform-playlist/core';
+import type { ColorMapValue } from '@waveform-playlist/core';
 
 // Pre-computed 256-entry LUT: Uint8Array of length 768 (256 * 3 RGB)
 type ColorLUT = Uint8Array;

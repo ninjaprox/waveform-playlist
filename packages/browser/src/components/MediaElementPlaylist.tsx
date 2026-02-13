@@ -63,7 +63,7 @@ export const MediaElementPlaylist: React.FC<MediaElementPlaylistProps> = ({
   const theme = useTheme() as import('@waveform-playlist/ui-components').WaveformPlaylistTheme;
 
   // MediaElement context hooks
-  const { isPlaying, currentTimeRef } = useMediaElementAnimation();
+  const { isPlaying } = useMediaElementAnimation();
   const { annotations, activeAnnotationId } = useMediaElementState();
   const annotationIntegration = useContext(AnnotationIntegrationContext);
   const { play, seekTo, setActiveAnnotationId, setAnnotations, setScrollContainer } = useMediaElementControls();

@@ -11,7 +11,6 @@ import React, {
 import { ThemeProvider } from 'styled-components';
 import {
   MediaElementPlayout,
-  type MediaElementTrackOptions,
 } from '@waveform-playlist/media-element-playout';
 import { type WaveformDataObject } from '@waveform-playlist/core';
 import {
@@ -23,6 +22,7 @@ import { extractPeaksFromWaveformData } from './waveformDataLoader';
 import type WaveformData from 'waveform-data';
 import type { PeakData } from '@waveform-playlist/webaudio-peaks';
 import type { ClipPeaks, TrackClipPeaks } from './WaveformPlaylistContext';
+import { useAnimationFrameLoop } from './hooks/useAnimationFrameLoop';
 
 // Configuration for a single media element track
 export interface MediaElementTrackConfig {
@@ -202,12 +202,12 @@ export const MediaElementPlaylistProvider: React.FC<
   // Refs
   const playoutRef = useRef<MediaElementPlayout | null>(null);
   const currentTimeRef = useRef<number>(0);
-  const animationFrameRef = useRef<number | null>(null);
   const continuousPlayRef = useRef<boolean>(continuousPlay);
   const activeAnnotationIdRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const isAutomaticScrollRef = useRef<boolean>(automaticScroll);
   const samplesPerPixelRef = useRef<number>(initialSamplesPerPixel);
+  const { startAnimationFrameLoop, stopAnimationFrameLoop } = useAnimationFrameLoop();
 
   // Sync refs
   useEffect(() => {
@@ -259,10 +259,7 @@ export const MediaElementPlaylistProvider: React.FC<
 
     // Set up playback complete callback
     playout.setOnPlaybackComplete(() => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
+      stopAnimationFrameLoop();
       setIsPlaying(false);
       setActiveAnnotationId(null);
       currentTimeRef.current = 0;
@@ -274,12 +271,10 @@ export const MediaElementPlaylistProvider: React.FC<
     onReady?.();
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      stopAnimationFrameLoop();
       playout.dispose();
     };
-  }, [track.source, track.waveformData, track.name, initialPlaybackRate, onReady]);
+  }, [track.source, track.waveformData, track.name, initialPlaybackRate, onReady, stopAnimationFrameLoop, setActiveAnnotationId]);
 
   // Generate peaks from waveform data
   useEffect(() => {
@@ -308,10 +303,6 @@ export const MediaElementPlaylistProvider: React.FC<
 
   // Animation loop
   const startAnimationLoop = useCallback(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-
     const updateTime = () => {
       const time = playoutRef.current?.getCurrentTime() ?? 0;
       currentTimeRef.current = time;
@@ -368,18 +359,13 @@ export const MediaElementPlaylistProvider: React.FC<
         container.scrollLeft = targetScrollLeft;
       }
 
-      animationFrameRef.current = requestAnimationFrame(updateTime);
+      startAnimationFrameLoop(updateTime);
     };
 
-    animationFrameRef.current = requestAnimationFrame(updateTime);
-  }, [setActiveAnnotationId, sampleRate, controls]);
+    startAnimationFrameLoop(updateTime);
+  }, [setActiveAnnotationId, sampleRate, controls, startAnimationFrameLoop]);
 
-  const stopAnimationLoop = useCallback(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-  }, []);
+  const stopAnimationLoop = stopAnimationFrameLoop;
 
   // Playback controls
   const play = useCallback(

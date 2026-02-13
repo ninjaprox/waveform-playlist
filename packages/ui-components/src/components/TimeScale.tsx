@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useRef, useEffect, useContext } from 'react';
+import React, { FunctionComponent, useRef, useEffect, useContext, useMemo } from 'react';
 import styled, { withTheme, DefaultTheme } from 'styled-components';
 import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
 import { useDevicePixelRatio } from '../contexts/DevicePixelRatio';
@@ -12,48 +12,48 @@ function formatTime(milliseconds: number) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-interface PlaylistTimeScaleScroll {
+interface PlaylistTimeScaleScrollProps {
   readonly $cssWidth: number;
   readonly $controlWidth: number;
   readonly $timeScaleHeight: number;
 }
-const PlaylistTimeScaleScroll = styled.div.attrs<PlaylistTimeScaleScroll>((props) => ({
+const PlaylistTimeScaleScroll = styled.div.attrs<PlaylistTimeScaleScrollProps>((props) => ({
   style: {
     width: `${props.$cssWidth}px`,
     marginLeft: `${props.$controlWidth}px`,
     height: `${props.$timeScaleHeight}px`,
   },
-}))<PlaylistTimeScaleScroll>`
+}))<PlaylistTimeScaleScrollProps>`
   position: relative;
   overflow: visible; /* Allow time labels to render above the container */
   border-bottom: 1px solid ${props => props.theme.timeColor};
   box-sizing: border-box;
 `;
 
-interface TimeTicks {
+interface TimeTicksProps {
   readonly $cssWidth: number;
   readonly $timeScaleHeight: number;
 }
-const TimeTicks = styled.canvas.attrs<TimeTicks>((props) => ({
+const TimeTicks = styled.canvas.attrs<TimeTicksProps>((props) => ({
   style: {
     width: `${props.$cssWidth}px`,
     height: `${props.$timeScaleHeight}px`,
   },
-}))<TimeTicks>`
+}))<TimeTicksProps>`
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
 `;
 
-interface TimeStamp {
+interface TimeStampProps {
   readonly $left: number;
 }
-const TimeStamp = styled.div.attrs<TimeStamp>((props) => ({
+const TimeStamp = styled.div.attrs<TimeStampProps>((props) => ({
   style: {
     left: `${props.$left + 4}px`, // Offset 4px to the right of the tick
   },
-}))<TimeStamp>`
+}))<TimeStampProps>`
   position: absolute;
   font-size: 0.75rem; /* Smaller font to prevent overflow */
   white-space: nowrap; /* Prevent text wrapping */
@@ -82,8 +82,6 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
     secondStep,
     renderTimestamp,
   } = props;
-  const canvasInfo = new Map();
-  const timeMarkers = [];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const {
     sampleRate,
@@ -92,6 +90,48 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
     controls: { show: showControls, width: controlWidth },
   } = useContext(PlaylistInfoContext);
   const devicePixelRatio = useDevicePixelRatio();
+
+  const { widthX, canvasInfo, timeMarkers } = useMemo(() => {
+    const nextCanvasInfo = new Map<number, number>();
+    const nextTimeMarkers: React.ReactNode[] = [];
+    const nextWidthX = secondsToPixels(duration / 1000, samplesPerPixel, sampleRate);
+    const pixPerSec = sampleRate / samplesPerPixel;
+    let counter = 0;
+
+    for (let i = 0; i < nextWidthX; i += (pixPerSec * secondStep) / 1000) {
+      const pix = Math.floor(i);
+
+      if (counter % marker === 0) {
+        const timeMs = counter;
+        const timestamp = formatTime(timeMs);
+
+        const timestampContent = renderTimestamp ? (
+          <React.Fragment key={`timestamp-${counter}`}>
+            {renderTimestamp(timeMs, pix)}
+          </React.Fragment>
+        ) : (
+          <TimeStamp key={timestamp} $left={pix}>
+            {timestamp}
+          </TimeStamp>
+        );
+
+        nextTimeMarkers.push(timestampContent);
+        nextCanvasInfo.set(pix, timeScaleHeight);
+      } else if (counter % bigStep === 0) {
+        nextCanvasInfo.set(pix, Math.floor(timeScaleHeight / 2));
+      } else if (counter % secondStep === 0) {
+        nextCanvasInfo.set(pix, Math.floor(timeScaleHeight / 5));
+      }
+
+      counter += secondStep;
+    }
+
+    return {
+      widthX: nextWidthX,
+      canvasInfo: nextCanvasInfo,
+      timeMarkers: nextTimeMarkers,
+    };
+  }, [duration, samplesPerPixel, sampleRate, marker, bigStep, secondStep, renderTimestamp, timeScaleHeight]);
 
   useEffect(() => {
     if (canvasRef.current !== null) {
@@ -116,45 +156,8 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
     devicePixelRatio,
     timeColor,
     timeScaleHeight,
-    bigStep,
-    secondStep,
-    marker,
     canvasInfo,
   ]);
-
-  const widthX = secondsToPixels(duration / 1000, samplesPerPixel, sampleRate);
-  const pixPerSec = sampleRate / samplesPerPixel;
-  let counter = 0;
-
-  for (let i = 0; i < widthX; i += (pixPerSec * secondStep) / 1000) {
-    const pix = Math.floor(i);
-
-    // create three levels of time markers - at marker point also place a timestamp.
-    if (counter % marker === 0) {
-      const timeMs = counter;
-      const timestamp = formatTime(timeMs);
-
-      // Use custom renderer if provided, otherwise use default
-      const timestampContent = renderTimestamp ? (
-        <React.Fragment key={`timestamp-${counter}`}>
-          {renderTimestamp(timeMs, pix)}
-        </React.Fragment>
-      ) : (
-        <TimeStamp key={timestamp} $left={pix}>
-          {timestamp}
-        </TimeStamp>
-      );
-
-      timeMarkers.push(timestampContent);
-      canvasInfo.set(pix, timeScaleHeight);
-    } else if (counter % bigStep === 0) {
-      canvasInfo.set(pix, Math.floor(timeScaleHeight / 2));
-    } else if (counter % secondStep === 0) {
-      canvasInfo.set(pix, Math.floor(timeScaleHeight / 5));
-    }
-
-    counter += secondStep;
-  }
 
   return (
     <PlaylistTimeScaleScroll

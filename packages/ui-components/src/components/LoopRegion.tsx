@@ -382,7 +382,7 @@ export const TimescaleLoopRegion: React.FC<TimescaleLoopRegionProps> = ({
   maxPosition = Infinity,
   controlsOffset = 0,
 }) => {
-  const [isCreating, setIsCreating] = useState(false);
+  const [, setIsCreating] = useState(false);
   const createStartX = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 

@@ -97,7 +97,7 @@ export function useMicrophoneAccess(): UseMicrophoneAccessReturn {
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, []);
+  }, [enumerateDevices, stream]);
 
   return {
     stream,

@@ -7,6 +7,15 @@ import {
 } from '@waveform-playlist/browser';
 import { Channel } from '../components/Channel';
 
+type WaveformDataMetadata = {
+  sampleRate: number;
+  channels: number;
+  duration: number;
+  samplesPerPixel: number;
+  length: number;
+  bits: 8 | 16;
+};
+
 /**
  * BBC Waveform Data Loading
  *
@@ -24,14 +33,7 @@ import { Channel } from '../components/Channel';
 const WaveformDataDemo: React.FC<{ src: string; title: string }> = ({ src, title }) => {
   const [peaks, setPeaks] = useState<Int8Array | Int16Array | null>(null);
   const [bits, setBits] = useState<8 | 16>(8);
-  const [metadata, setMetadata] = useState<{
-    sampleRate: number;
-    channels: number;
-    duration: number;
-    samplesPerPixel: number;
-    length: number;
-    bits: 8 | 16;
-  } | null>(null);
+  const [metadata, setMetadata] = useState<WaveformDataMetadata | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -443,7 +445,7 @@ export const StereoVersion2: StoryObj = {
 
 export const MetadataOnly: StoryObj = {
   render: () => {
-    const [metadata, setMetadata] = useState<any>(null);
+    const [metadata, setMetadata] = useState<WaveformDataMetadata | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

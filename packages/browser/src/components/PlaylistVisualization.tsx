@@ -87,7 +87,7 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
   renderTrackControls,
   renderTimestamp,
   renderPlayhead,
-  annotationControls,
+  annotationControls: _annotationControls,
   getAnnotationBoxLabel,
   className,
   showClipHeaders = false,
@@ -106,7 +106,7 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
     annotations,
     activeAnnotationId,
     annotationsEditable,
-    linkEndpoints,
+    linkEndpoints: _linkEndpoints,
     continuousPlay,
     selectedTrackId,
     loopStart,
@@ -115,7 +115,7 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
   } = usePlaylistState();
   const annotationIntegration = useContext(AnnotationIntegrationContext);
   const {
-    setAnnotations,
+    setAnnotations: _setAnnotations,
     setActiveAnnotationId,
     setTrackMute,
     setTrackSolo,

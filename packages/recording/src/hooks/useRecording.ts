@@ -157,7 +157,7 @@ export function useRecording(
       console.error('Failed to start recording:', err);
       setError(err instanceof Error ? err : new Error('Failed to start recording'));
     }
-  }, [stream, channelCount, samplesPerPixel, loadWorklet, isRecording, isPaused]);
+  }, [stream, channelCount, samplesPerPixel, loadWorklet]);
 
   // Stop recording
   const stopRecording = useCallback(async (): Promise<AudioBuffer | null> => {
@@ -174,7 +174,7 @@ export function useRecording(
         if (mediaStreamSourceRef.current) {
           try {
             mediaStreamSourceRef.current.disconnect(workletNodeRef.current);
-          } catch (e) {
+          } catch {
             // Source may have already been disconnected when stream changed
             // This is fine - just ignore the error
           }
@@ -257,7 +257,7 @@ export function useRecording(
         if (mediaStreamSourceRef.current) {
           try {
             mediaStreamSourceRef.current.disconnect(workletNodeRef.current);
-          } catch (e) {
+          } catch {
             // Source may have already been disconnected when stream changed
             // This is fine - just ignore the error
           }

@@ -95,7 +95,7 @@ export function useIntegratedRecording(
     isPaused,
     duration,
     peaks,
-    audioBuffer: _audioBuffer,
+    audioBuffer: _recordedAudioBuffer,
     startRecording: startRec,
     stopRecording: stopRec,
     pauseRecording,
@@ -197,7 +197,7 @@ export function useIntegratedRecording(
     if (hasPermission && devices.length > 0 && selectedDevice === null) {
       setSelectedDevice(devices[0].deviceId);
     }
-  }, [hasPermission, devices.length]); // Intentionally not including selectedDevice to avoid re-triggering
+  }, [hasPermission, devices, selectedDevice]);
 
   // Request microphone access
   const requestMicAccess = useCallback(async () => {

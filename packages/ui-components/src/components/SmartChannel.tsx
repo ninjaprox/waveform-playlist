@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import { useDevicePixelRatio, usePlaylistInfo, useTheme } from '../contexts';
 import { Channel } from './Channel';
-import { SpectrogramChannel, type SpectrogramChannelProps, type SpectrogramWorkerCanvasApi } from './SpectrogramChannel';
+import { SpectrogramChannel, type SpectrogramWorkerCanvasApi } from './SpectrogramChannel';
 import type { SpectrogramData, RenderMode } from '@waveform-playlist/core';
 
 export interface SmartChannelProps {

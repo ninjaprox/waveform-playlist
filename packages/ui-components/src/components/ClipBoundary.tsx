@@ -1,7 +1,5 @@
 import React, { FunctionComponent } from 'react';
 import styled from 'styled-components';
-import type { DraggableAttributes } from '@dnd-kit/core';
-import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import type { DragHandleProps as BaseDragHandleProps } from './ClipHeader';
 
 export const CLIP_BOUNDARY_WIDTH = 8; // Width of the draggable boundary in pixels
@@ -102,8 +100,8 @@ export interface ClipBoundaryProps {
  */
 export const ClipBoundary: FunctionComponent<ClipBoundaryProps> = ({
   clipId,
-  trackIndex,
-  clipIndex,
+  trackIndex: _trackIndex,
+  clipIndex: _clipIndex,
   edge,
   dragHandleProps,
   touchOptimized = false,

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   WaveformPlaylistProvider,
   usePlaylistData,
@@ -11,7 +11,7 @@ import {
 } from '@waveform-playlist/browser';
 import type { KeyboardShortcut } from '@waveform-playlist/browser';
 import { BaseButton, BaseSlider, BaseSelect } from '../styled';
-import type { TimeFormat } from '../utils/timeFormat';
+import type { TimeFormat as TimeFormatType } from '../utils/timeFormat';
 
 /**
  * Hook Testing Harness
@@ -60,7 +60,7 @@ const TimeFormatDemo: React.FC = () => {
         <label style={{ display: 'block', marginBottom: '0.5rem' }}>Format:</label>
         <BaseSelect
           value={timeFormat}
-          onChange={(e) => setTimeFormat(e.target.value as TimeFormat)}
+          onChange={(e) => setTimeFormat(e.target.value as TimeFormatType)}
           style={{ width: '200px' }}
         >
           <option value="seconds">Seconds</option>
@@ -287,7 +287,7 @@ export const ZoomControls: StoryObj = {
   },
 };
 
-export const TimeFormat: StoryObj = {
+export const TimeFormatStory: StoryObj = {
   render: () => (
     <HookDemoWrapper>
       <TimeFormatDemo />

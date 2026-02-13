@@ -63,7 +63,7 @@ const meta: Meta<typeof FadeOverlay> = {
     },
   },
   decorators: [
-    (Story, context) => (
+    (Story) => (
       <ClipContainer $width={300}>
         <Story />
       </ClipContainer>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { ClipTrack, createTrack, createClipFromSeconds, type Fade, type TrackEffectsFunction, type WaveformDataObject, type RenderMode, type SpectrogramConfig, type ColorMapValue } from '@waveform-playlist/core';
 import * as Tone from 'tone';
 

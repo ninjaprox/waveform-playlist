@@ -401,6 +401,50 @@ const LazyExample = createLazyExample(
 
 **Documentation:** `website/docs/effects.md`
 
+### Shared Animation Frame Loop Hook (Provider Refactor, 2026-02-13)
+
+**Decision:** Centralize requestAnimationFrame lifecycle logic in a shared hook used by both playlist providers.
+
+**Implementation:**
+- New hook: `packages/browser/src/hooks/useAnimationFrameLoop.ts`
+- Exported from: `packages/browser/src/hooks/index.ts`
+- Integrated into:
+  - `packages/browser/src/WaveformPlaylistContext.tsx`
+  - `packages/browser/src/MediaElementPlaylistContext.tsx`
+
+**Why:**
+- Removes duplicated `requestAnimationFrame` / `cancelAnimationFrame` logic across providers
+- Ensures a single in-flight animation frame per provider
+- Standardizes cleanup on unmount and playback transitions
+
+### SpectrogramChannel Hook Stability (2026-02-13)
+
+**Decision:** Use stable default references for LUT/scale and remove hook dependency suppression.
+
+**Implementation:** `packages/ui-components/src/components/SpectrogramChannel.tsx`
+- Hoisted stable defaults:
+  - `DEFAULT_COLOR_LUT`
+  - `LINEAR_FREQUENCY_SCALE`
+- Updated effect dependencies to include worker/callback references explicitly
+- Removed `react-hooks/exhaustive-deps` suppression
+
+**Why:**
+- Prevents unnecessary redraw/recompute caused by new inline default references each render
+- Reduces stale-closure risk in worker canvas registration effect
+
+### ESLint Baseline (2026-02-13)
+
+**Decision:** Add a root flat ESLint config with TypeScript + React Hooks checks.
+
+**Implementation:**
+- Config file: `eslint.config.mjs`
+- Root `package.json` devDependencies include:
+  - `eslint`, `@eslint/js`
+  - `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
+  - `eslint-plugin-react-hooks`, `globals`
+
+**Status:** TypeScript checks pass (`pnpm typecheck`). Lint execution is currently blocked in offline environments until dependencies are installable (`pnpm install` needed when network is available).
+
 ---
 
 ## Recording Architecture

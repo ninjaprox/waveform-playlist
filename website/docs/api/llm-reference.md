@@ -559,9 +559,23 @@ Buttons: PlayButton, PauseButton, StopButton, RewindButton, FastForwardButton,
 Controls: MasterVolumeControl, TimeFormatSelect, AudioPosition, SelectionTimeInputs
 Checkboxes: AutomaticScrollCheckbox, ContinuousPlayCheckbox, LinkEndpointsCheckbox, EditableCheckbox
 Playheads: Playhead, PlayheadWithMarker (from @waveform-playlist/ui-components)
+Error Handling: PlaylistErrorBoundary (from @waveform-playlist/ui-components)
 ```
 
 All button/control components connect to context automatically. No props required for basic usage. All accept `className` and `style`.
+
+### PlaylistErrorBoundary
+
+```typescript
+import { PlaylistErrorBoundary } from '@waveform-playlist/ui-components';
+
+interface PlaylistErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode; // Custom fallback UI
+}
+```
+
+Catches render errors in child components. Uses plain CSS (works without ThemeProvider).
 
 ---
 

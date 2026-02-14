@@ -4,7 +4,7 @@ Place screenshots here for social media sharing (Open Graph / Twitter Cards).
 
 ## Required Images
 
-All images should be **1200x630 pixels** (or 2:1 aspect ratio) for optimal display on social platforms.
+All images are **2400x1260 pixels** (2x Retina, 2:1 aspect ratio) for optimal display on social platforms.
 
 ### Main Site
 - `waveform-playlist-social.png` - Main site social card (used as default for homepage and docs)
@@ -27,6 +27,10 @@ All images should be **1200x630 pixels** (or 2:1 aspect ratio) for optimal displ
 | `example-waveform-data.png` | BBC Waveform - Pre-computed peaks |
 | `example-flexible-api.png` | Flexible API - Custom UI hooks |
 | `example-stereo.png` | Stereo - L/R channel waveforms |
+| `example-mobile-multi-clip.png` | Mobile Multi-Clip - Touch-optimized editing |
+| `example-mobile-annotations.png` | Mobile Annotations - Touch annotation editing |
+| `example-media-element.png` | Media Element - HTMLAudioElement playback |
+| `example-mir-spectrogram.png` | MIR Spectrogram - Frequency-domain visualization |
 
 ## Tips for Screenshots
 
@@ -36,9 +40,17 @@ All images should be **1200x630 pixels** (or 2:1 aspect ratio) for optimal displ
 4. **Include UI context** - Show some controls to convey interactivity
 5. **Capture key features** - Effects panel, recording VU meter, annotations overlay, etc.
 
-## Image Generation Tips
+## Image Generation
 
-You can take screenshots at higher resolution and scale down:
-- Take at 2400x1260 for Retina displays, save as PNG
-- Use browser DevTools device toolbar to set exact viewport sizes
-- Consider a subtle branded overlay with the example name
+Screenshots are taken with Playwright using a dedicated browser context:
+
+```js
+const context = await browser.newContext({
+  viewport: { width: 1200, height: 630 },
+  deviceScaleFactor: 2,
+  colorScheme: 'dark'
+});
+```
+
+This produces 2400x1260 retina PNGs in dark mode. Each page waits for
+`[data-playlist-state="ready"]` before capture (except pages without playlists).

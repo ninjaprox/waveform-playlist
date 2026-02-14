@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   useRef,
   ReactNode,
 } from 'react';
@@ -11,7 +12,9 @@ import React, {
 export interface ScrollViewport {
   scrollLeft: number;
   containerWidth: number;
+  /** Left edge of the rendering window in pixels. Includes a 1.5× container-width over-scan buffer to the left of the visible area. */
   visibleStart: number;
+  /** Right edge of the rendering window in pixels. Includes a 1.5× container-width over-scan buffer to the right of the visible area. */
   visibleEnd: number;
 }
 
@@ -79,8 +82,10 @@ export const ScrollViewportProvider = ({
     };
   }, [containerRef, measure, scheduleUpdate]);
 
+  const contextValue = useMemo(() => viewport, [viewport]);
+
   return (
-    <ScrollViewportContext.Provider value={viewport}>
+    <ScrollViewportContext.Provider value={contextValue}>
       {children}
     </ScrollViewportContext.Provider>
   );

@@ -40,6 +40,7 @@ const SpectrogramCanvas = styled.canvas.attrs<CanvasProps>((props) => ({
 }))<CanvasProps>`
   position: absolute;
   top: 0;
+  /* Promote to own compositing layer for smoother scrolling */
   will-change: transform;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -189,14 +190,24 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       const canvasIdx = parseInt(canvas.dataset.index!, 10);
       const canvasId = `${clipId}-ch${channelIndex}-chunk${canvasIdx}`;
 
+      let offscreen: OffscreenCanvas;
       try {
-        const offscreen = canvas.transferControlToOffscreen();
+        offscreen = canvas.transferControlToOffscreen();
+      } catch (err) {
+        console.warn(`[spectrogram] transferControlToOffscreen failed for ${canvasId}:`, err);
+        continue;
+      }
+
+      // Mark transferred immediately — transferControlToOffscreen is irreversible,
+      // so the canvas must never be attempted again even if registerCanvas fails.
+      transferredCanvasesRef.current.add(canvas);
+
+      try {
         currentWorkerApi.registerCanvas(canvasId, offscreen);
-        transferredCanvasesRef.current.add(canvas);
         newIds.push(canvasId);
         newWidths.push(Math.min(length - canvasIdx * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
       } catch (err) {
-        console.warn(`[spectrogram] transferControlToOffscreen failed for ${canvasId}:`, err);
+        console.warn(`[spectrogram] registerCanvas failed for ${canvasId}:`, err);
         continue;
       }
     }
@@ -215,6 +226,8 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
     const remaining: string[] = [];
     for (const id of registeredIdsRef.current) {
+      // Canvas IDs follow the format `${clipId}-ch${channelIndex}-chunk${chunkIdx}`.
+      // Extract the chunk index to look up the corresponding canvas element.
       const match = id.match(/chunk(\d+)$/);
       if (!match) { remaining.push(id); continue; }
       const chunkIdx = parseInt(match[1], 10);
@@ -234,7 +247,11 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       const api = workerApiRef.current;
       if (!api) return;
       for (const id of registeredIdsRef.current) {
-        api.unregisterCanvas(id);
+        try {
+          api.unregisterCanvas(id);
+        } catch (err) {
+          console.warn(`[spectrogram] unregisterCanvas failed for ${id}:`, err);
+        }
       }
       registeredIdsRef.current = [];
     };

@@ -84,7 +84,6 @@
     "@waveform-playlist/core": "workspace:*",
     "@waveform-playlist/loaders": "workspace:*",
     "@waveform-playlist/playout": "workspace:*",
-    "@waveform-playlist/webaudio-peaks": "workspace:*",
     "react-async-hook": "^4.0.0",
     "waveform-data": "^4.4.0"
   }

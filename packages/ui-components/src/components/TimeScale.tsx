@@ -1,8 +1,10 @@
-import React, { FunctionComponent, useRef, useEffect, useContext, useMemo } from 'react';
+import React, { FunctionComponent, useRef, useEffect, useLayoutEffect, useContext, useMemo, useCallback } from 'react';
 import styled, { withTheme, DefaultTheme } from 'styled-components';
 import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
 import { useDevicePixelRatio } from '../contexts/DevicePixelRatio';
+import { useScrollViewportSelector } from '../contexts/ScrollViewport';
 import { secondsToPixels } from '../utils/conversions';
+import { MAX_CANVAS_WIDTH } from '../constants';
 
 function formatTime(milliseconds: number) {
   const seconds = Math.floor(milliseconds / 1000);
@@ -30,20 +32,22 @@ const PlaylistTimeScaleScroll = styled.div.attrs<PlaylistTimeScaleScrollProps>((
   box-sizing: border-box;
 `;
 
-interface TimeTicksProps {
+interface TimeTickChunkProps {
   readonly $cssWidth: number;
   readonly $timeScaleHeight: number;
+  readonly $left: number;
 }
-const TimeTicks = styled.canvas.attrs<TimeTicksProps>((props) => ({
+const TimeTickChunk = styled.canvas.attrs<TimeTickChunkProps>((props) => ({
   style: {
     width: `${props.$cssWidth}px`,
     height: `${props.$timeScaleHeight}px`,
+    left: `${props.$left}px`,
   },
-}))<TimeTicksProps>`
+}))<TimeTickChunkProps>`
   position: absolute;
-  left: 0;
-  right: 0;
   bottom: 0;
+  /* Promote to own compositing layer for smoother scrolling */
+  will-change: transform;
 `;
 
 interface TimeStampProps {
@@ -82,7 +86,7 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
     secondStep,
     renderTimestamp,
   } = props;
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRefsMap = useRef<Map<number, HTMLCanvasElement>>(new Map());
   const {
     sampleRate,
     samplesPerPixel,
@@ -91,9 +95,16 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
   } = useContext(PlaylistInfoContext);
   const devicePixelRatio = useDevicePixelRatio();
 
-  const { widthX, canvasInfo, timeMarkers } = useMemo(() => {
+  const canvasRefCallback = useCallback((canvas: HTMLCanvasElement | null) => {
+    if (canvas !== null) {
+      const idx = parseInt(canvas.dataset.index!, 10);
+      canvasRefsMap.current.set(idx, canvas);
+    }
+  }, []);
+
+  const { widthX, canvasInfo, timeMarkersWithPositions } = useMemo(() => {
     const nextCanvasInfo = new Map<number, number>();
-    const nextTimeMarkers: React.ReactNode[] = [];
+    const nextMarkers: Array<{ pix: number; element: React.ReactNode }> = [];
     const nextWidthX = secondsToPixels(duration / 1000, samplesPerPixel, sampleRate);
     const pixPerSec = sampleRate / samplesPerPixel;
     let counter = 0;
@@ -105,7 +116,7 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
         const timeMs = counter;
         const timestamp = formatTime(timeMs);
 
-        const timestampContent = renderTimestamp ? (
+        const element = renderTimestamp ? (
           <React.Fragment key={`timestamp-${counter}`}>
             {renderTimestamp(timeMs, pix)}
           </React.Fragment>
@@ -115,7 +126,7 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
           </TimeStamp>
         );
 
-        nextTimeMarkers.push(timestampContent);
+        nextMarkers.push({ pix, element });
         nextCanvasInfo.set(pix, timeScaleHeight);
       } else if (counter % bigStep === 0) {
         nextCanvasInfo.set(pix, Math.floor(timeScaleHeight / 2));
@@ -129,35 +140,107 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
     return {
       widthX: nextWidthX,
       canvasInfo: nextCanvasInfo,
-      timeMarkers: nextTimeMarkers,
+      timeMarkersWithPositions: nextMarkers,
     };
   }, [duration, samplesPerPixel, sampleRate, marker, bigStep, secondStep, renderTimestamp, timeScaleHeight]);
 
-  useEffect(() => {
-    if (canvasRef.current !== null) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
+  // Selector returns comma-joined visible chunk indices. Component only
+  // re-renders when the set of visible chunks actually changes.
+  const visibleChunkKey = useScrollViewportSelector((viewport) => {
+    const totalChunks = Math.ceil(widthX / MAX_CANVAS_WIDTH);
+    const indices: number[] = [];
 
-      if (ctx) {
-        ctx.resetTransform();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.imageSmoothingEnabled = false;
-        ctx.fillStyle = timeColor;
-        ctx.scale(devicePixelRatio, devicePixelRatio);
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkLeft = i * MAX_CANVAS_WIDTH;
+      const chunkWidth = Math.min(widthX - chunkLeft, MAX_CANVAS_WIDTH);
 
-        for (const [pixLeft, scaleHeight] of canvasInfo.entries()) {
-          const scaleY = timeScaleHeight - scaleHeight;
-          ctx.fillRect(pixLeft, scaleY, 1, scaleHeight);
+      if (viewport) {
+        const chunkEnd = chunkLeft + chunkWidth;
+        if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
+          continue;
         }
       }
+
+      indices.push(i);
     }
-  }, [
-    duration,
-    devicePixelRatio,
-    timeColor,
-    timeScaleHeight,
-    canvasInfo,
-  ]);
+
+    return indices.join(',');
+  });
+
+  const visibleChunkIndices = visibleChunkKey
+    ? visibleChunkKey.split(',').map(Number)
+    : [];
+
+  // Build visible canvas chunk elements
+  const visibleChunks = visibleChunkIndices.map((i) => {
+    const chunkLeft = i * MAX_CANVAS_WIDTH;
+    const chunkWidth = Math.min(widthX - chunkLeft, MAX_CANVAS_WIDTH);
+
+    return (
+      <TimeTickChunk
+        key={`timescale-${i}`}
+        $cssWidth={chunkWidth}
+        $left={chunkLeft}
+        $timeScaleHeight={timeScaleHeight}
+        width={chunkWidth * devicePixelRatio}
+        height={timeScaleHeight * devicePixelRatio}
+        data-index={i}
+        ref={canvasRefCallback}
+      />
+    );
+  });
+
+  // Filter time markers to visible chunk range. Uses chunk boundaries
+  // rather than exact viewport pixels — sufficient given the 1.5× overscan buffer.
+  const firstChunkLeft = visibleChunkIndices.length > 0
+    ? visibleChunkIndices[0] * MAX_CANVAS_WIDTH
+    : 0;
+  const lastChunkRight = visibleChunkIndices.length > 0
+    ? (visibleChunkIndices[visibleChunkIndices.length - 1] + 1) * MAX_CANVAS_WIDTH
+    : Infinity;
+
+  const visibleMarkers = visibleChunkIndices.length > 0
+    ? timeMarkersWithPositions
+        .filter(({ pix }) => pix >= firstChunkLeft && pix < lastChunkRight)
+        .map(({ element }) => element)
+    : timeMarkersWithPositions.map(({ element }) => element);
+
+  // Clean up stale refs for unmounted chunks
+  useEffect(() => {
+    const currentMap = canvasRefsMap.current;
+    for (const [idx, canvas] of currentMap.entries()) {
+      if (!canvas.isConnected) {
+        currentMap.delete(idx);
+      }
+    }
+  });
+
+  // Draw tick marks on visible canvas chunks.
+  // visibleChunkKey changes only when chunks mount/unmount, not on every scroll pixel.
+  useLayoutEffect(() => {
+    for (const [chunkIdx, canvas] of canvasRefsMap.current.entries()) {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) continue;
+
+      const chunkLeft = chunkIdx * MAX_CANVAS_WIDTH;
+      const chunkWidth = canvas.width / devicePixelRatio;
+
+      ctx.resetTransform();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = false;
+      ctx.fillStyle = timeColor;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+
+      for (const [pixLeft, scaleHeight] of canvasInfo.entries()) {
+        // Only draw ticks within this chunk's range
+        if (pixLeft < chunkLeft || pixLeft >= chunkLeft + chunkWidth) continue;
+
+        const localX = pixLeft - chunkLeft;
+        const scaleY = timeScaleHeight - scaleHeight;
+        ctx.fillRect(localX, scaleY, 1, scaleHeight);
+      }
+    }
+  }, [duration, devicePixelRatio, timeColor, timeScaleHeight, canvasInfo, visibleChunkKey]);
 
   return (
     <PlaylistTimeScaleScroll
@@ -165,14 +248,8 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
       $controlWidth={showControls ? controlWidth : 0}
       $timeScaleHeight={timeScaleHeight}
     >
-      {timeMarkers}
-      <TimeTicks
-        $cssWidth={widthX}
-        $timeScaleHeight={timeScaleHeight}
-        width={widthX * devicePixelRatio}
-        height={timeScaleHeight * devicePixelRatio}
-        ref={canvasRef}
-      />
+      {visibleMarkers}
+      {visibleChunks}
     </PlaylistTimeScaleScroll>
   );
 };

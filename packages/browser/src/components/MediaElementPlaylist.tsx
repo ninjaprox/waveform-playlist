@@ -14,7 +14,7 @@ import {
   waveformColorToCss,
 } from '@waveform-playlist/ui-components';
 import { AnnotationIntegrationContext } from '../AnnotationIntegrationContext';
-import type { Peaks } from '@waveform-playlist/webaudio-peaks';
+import type { Peaks } from '@waveform-playlist/core';
 import {
   useMediaElementAnimation,
   useMediaElementState,

@@ -36,20 +36,25 @@ interface ProgressOverlayProps {
   readonly $color: string;
   readonly $height: number;
   readonly $top: number;
+  readonly $width: number;
 }
 
 const ProgressOverlay = styled.div.attrs<ProgressOverlayProps>((props) => ({
   style: {
     top: `${props.$top}px`,
     height: `${props.$height}px`,
+    width: `${props.$width}px`,
     background: props.$color,
+    transform: 'scaleX(0)',
   },
 }))<ProgressOverlayProps>`
   position: absolute;
   left: 0;
   pointer-events: none;
   z-index: 1;
-  will-change: width;
+  transform-origin: left;
+  /* scaleX changes are composite-only (GPU) — no layout reflow per frame */
+  will-change: transform;
 `;
 
 const ChannelContainer = styled.div`
@@ -102,22 +107,20 @@ export const ChannelWithProgress: React.FC<ChannelWithProgressProps> = ({
         // Calculate clip bounds in samples
         const clipEndSample = clipStartSample + clipDurationSamples;
 
-        // Calculate how much of this clip has been played
-        let progressWidth = 0;
+        // Calculate progress ratio (0 to 1) for scaleX transform
+        let ratio = 0;
 
         if (currentSample <= clipStartSample) {
-          // Playhead is before this clip - no progress
-          progressWidth = 0;
+          ratio = 0;
         } else if (currentSample >= clipEndSample) {
-          // Playhead is past this clip - full progress
-          progressWidth = smartChannelProps.length;
+          ratio = 1;
         } else {
-          // Playhead is within this clip - partial progress
           const playedSamples = currentSample - clipStartSample;
-          progressWidth = Math.floor(playedSamples / samplesPerPixel);
+          ratio = playedSamples / clipDurationSamples;
         }
 
-        progressRef.current.style.width = `${progressWidth}px`;
+        // scaleX is composite-only — no layout reflow, GPU-accelerated
+        progressRef.current.style.transform = `scaleX(${ratio})`;
       }
 
       if (isPlaying) {
@@ -147,17 +150,17 @@ export const ChannelWithProgress: React.FC<ChannelWithProgressProps> = ({
       const currentSample = currentTime * sampleRate;
       const clipEndSample = clipStartSample + clipDurationSamples;
 
-      let progressWidth = 0;
+      let ratio = 0;
       if (currentSample <= clipStartSample) {
-        progressWidth = 0;
+        ratio = 0;
       } else if (currentSample >= clipEndSample) {
-        progressWidth = smartChannelProps.length;
+        ratio = 1;
       } else {
         const playedSamples = currentSample - clipStartSample;
-        progressWidth = Math.floor(playedSamples / samplesPerPixel);
+        ratio = playedSamples / clipDurationSamples;
       }
 
-      progressRef.current.style.width = `${progressWidth}px`;
+      progressRef.current.style.transform = `scaleX(${ratio})`;
     }
   });
 
@@ -227,6 +230,7 @@ export const ChannelWithProgress: React.FC<ChannelWithProgressProps> = ({
         $color={progressColor}
         $height={effectiveHeight}
         $top={effectiveTop}
+        $width={smartChannelProps.length}
       />
       {/* Waveform canvas with transparent background */}
       <ChannelContainer>

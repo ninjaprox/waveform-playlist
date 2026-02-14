@@ -271,6 +271,8 @@ export interface CreateTrackOptions {
   pan?: number;
   color?: string;
   height?: number;
+  spectrogramConfig?: SpectrogramConfig;
+  spectrogramColorMap?: ColorMapValue;
 }
 
 /**
@@ -409,6 +411,8 @@ export function createTrack(options: CreateTrackOptions): ClipTrack {
     pan = 0,
     color,
     height,
+    spectrogramConfig,
+    spectrogramColorMap,
   } = options;
 
   return {
@@ -421,6 +425,8 @@ export function createTrack(options: CreateTrackOptions): ClipTrack {
     pan,
     color,
     height,
+    spectrogramConfig,
+    spectrogramColorMap,
   };
 }
 

@@ -1,8 +1,8 @@
 import React, { FunctionComponent, useLayoutEffect, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import type { SpectrogramData } from '@waveform-playlist/core';
-
-const MAX_CANVAS_WIDTH = 1000;
+import { useScrollViewportSelector } from '../contexts/ScrollViewport';
+import { MAX_CANVAS_WIDTH } from '../constants';
 const LINEAR_FREQUENCY_SCALE = (f: number, minF: number, maxF: number) => (f - minF) / (maxF - minF);
 
 interface WrapperProps {
@@ -27,16 +27,19 @@ const Wrapper = styled.div.attrs<WrapperProps>((props) => ({
 interface CanvasProps {
   readonly $cssWidth: number;
   readonly $waveHeight: number;
+  readonly $left: number;
 }
 
 const SpectrogramCanvas = styled.canvas.attrs<CanvasProps>((props) => ({
   style: {
     width: `${props.$cssWidth}px`,
     height: `${props.$waveHeight}px`,
+    left: `${props.$left}px`,
   },
 }))<CanvasProps>`
-  float: left;
-  position: relative;
+  position: absolute;
+  top: 0;
+  /* Promote to own compositing layer for smoother scrolling */
   will-change: transform;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -116,6 +119,33 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   // Track whether we're in worker mode (canvas transferred)
   const isWorkerMode = !!(workerApi && clipId);
 
+  // Selector returns comma-joined visible chunk indices. Component only
+  // re-renders when the set of visible chunks actually changes.
+  const visibleChunkKey = useScrollViewportSelector((viewport) => {
+    const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
+    const indices: number[] = [];
+
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkLeft = i * MAX_CANVAS_WIDTH;
+      const chunkWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
+
+      if (viewport) {
+        const chunkEnd = chunkLeft + chunkWidth;
+        if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
+          continue;
+        }
+      }
+
+      indices.push(i);
+    }
+
+    return indices.join(',');
+  });
+
+  const visibleChunkIndices = visibleChunkKey
+    ? visibleChunkKey.split(',').map(Number)
+    : [];
+
   const canvasRef = useCallback(
     (canvas: HTMLCanvasElement | null) => {
       if (canvas !== null) {
@@ -126,7 +156,12 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     []
   );
 
-  // Worker mode: transfer canvases to worker on mount
+  const lut = colorLUT ?? DEFAULT_COLOR_LUT;
+  const maxF = maxFrequency ?? (data ? data.sampleRate / 2 : 22050);
+  const scaleFn = frequencyScaleFn ?? LINEAR_FREQUENCY_SCALE;
+  const hasCustomFrequencyScale = Boolean(frequencyScaleFn);
+
+  // Keep refs in sync with latest props
   useEffect(() => {
     workerApiRef.current = workerApi;
   }, [workerApi]);
@@ -135,17 +170,18 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     onCanvasesReadyRef.current = onCanvasesReady;
   }, [onCanvasesReady]);
 
-  // Worker mode: transfer canvases to worker on mount
+  // Worker mode: transfer new canvases to worker.
+  // Uses visibleChunkKey so it only re-runs when chunks mount/unmount,
+  // not on every scroll pixel. No cleanup — stale registrations are
+  // handled by the effect below, and full cleanup happens on unmount.
   useEffect(() => {
     if (!isWorkerMode) return;
     const currentWorkerApi = workerApiRef.current;
     if (!currentWorkerApi || !clipId) return;
 
-    const canvasCount = Math.ceil(length / MAX_CANVAS_WIDTH);
-    canvasesRef.current.length = canvasCount;
     const canvases = canvasesRef.current;
-    const ids: string[] = [];
-    const widths: number[] = [];
+    const newIds: string[] = [];
+    const newWidths: number[] = [];
 
     for (let i = 0; i < canvases.length; i++) {
       const canvas = canvases[i];
@@ -154,54 +190,99 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       // Skip canvases that have already been transferred to the worker
       if (transferredCanvasesRef.current.has(canvas)) continue;
 
-      const canvasId = `${clipId}-ch${channelIndex}-chunk${i}`;
+      const canvasIdx = parseInt(canvas.dataset.index!, 10);
+      const canvasId = `${clipId}-ch${channelIndex}-chunk${canvasIdx}`;
 
+      let offscreen: OffscreenCanvas;
       try {
-        const offscreen = canvas.transferControlToOffscreen();
-        currentWorkerApi.registerCanvas(canvasId, offscreen);
-        transferredCanvasesRef.current.add(canvas);
-        ids.push(canvasId);
-        widths.push(Math.min(length - i * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
+        offscreen = canvas.transferControlToOffscreen();
       } catch (err) {
         console.warn(`[spectrogram] transferControlToOffscreen failed for ${canvasId}:`, err);
         continue;
       }
+
+      // Mark transferred immediately — transferControlToOffscreen is irreversible,
+      // so the canvas must never be attempted again even if registerCanvas fails.
+      transferredCanvasesRef.current.add(canvas);
+
+      try {
+        currentWorkerApi.registerCanvas(canvasId, offscreen);
+        newIds.push(canvasId);
+        newWidths.push(Math.min(length - canvasIdx * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
+      } catch (err) {
+        console.warn(`[spectrogram] registerCanvas failed for ${canvasId}:`, err);
+        continue;
+      }
     }
 
-    registeredIdsRef.current = ids;
-
-    if (ids.length > 0) {
-      onCanvasesReadyRef.current?.(ids, widths);
+    if (newIds.length > 0) {
+      registeredIdsRef.current = [...registeredIdsRef.current, ...newIds];
+      onCanvasesReadyRef.current?.(newIds, newWidths);
     }
+  }, [isWorkerMode, clipId, channelIndex, length, visibleChunkKey]);
 
+  // Clean up stale worker registrations for canvases that unmounted
+  useEffect(() => {
+    if (!isWorkerMode) return;
+    const currentWorkerApi = workerApiRef.current;
+    if (!currentWorkerApi) return;
+
+    const remaining: string[] = [];
+    for (const id of registeredIdsRef.current) {
+      // Canvas IDs follow the format `${clipId}-ch${channelIndex}-chunk${chunkIdx}`.
+      // Extract the chunk index to look up the corresponding canvas element.
+      const match = id.match(/chunk(\d+)$/);
+      if (!match) { remaining.push(id); continue; }
+      const chunkIdx = parseInt(match[1], 10);
+      const canvas = canvasesRef.current[chunkIdx];
+      if (canvas && canvas.isConnected) {
+        remaining.push(id);
+      } else {
+        try {
+          currentWorkerApi.unregisterCanvas(id);
+        } catch (err) {
+          console.warn(`[spectrogram] unregisterCanvas failed for ${id}:`, err);
+        }
+      }
+    }
+    registeredIdsRef.current = remaining;
+  });
+
+  // Unregister all canvases from worker on component unmount
+  useEffect(() => {
     return () => {
+      const api = workerApiRef.current;
+      if (!api) return;
       for (const id of registeredIdsRef.current) {
-        currentWorkerApi.unregisterCanvas(id);
+        try {
+          api.unregisterCanvas(id);
+        } catch (err) {
+          console.warn(`[spectrogram] unregisterCanvas failed for ${id}:`, err);
+        }
       }
       registeredIdsRef.current = [];
     };
-  }, [isWorkerMode, clipId, channelIndex, length]);
+  }, []);
 
-  const lut = colorLUT ?? DEFAULT_COLOR_LUT;
-  const maxF = maxFrequency ?? (data ? data.sampleRate / 2 : 22050);
-  const scaleFn = frequencyScaleFn ?? LINEAR_FREQUENCY_SCALE;
-  const hasCustomFrequencyScale = Boolean(frequencyScaleFn);
-
-  // Main-thread rendering (skipped in worker mode)
+  // Main-thread rendering (skipped in worker mode).
+  // visibleChunkKey changes only when chunks mount/unmount, not on every scroll pixel.
   useLayoutEffect(() => {
     if (isWorkerMode || !data) return;
 
     const canvases = canvasesRef.current;
     const { frequencyBinCount, frameCount, hopSize, sampleRate, gainDb, rangeDb: rawRangeDb } = data;
     const rangeDb = rawRangeDb === 0 ? 1 : rawRangeDb;
-    let globalPixelOffset = 0;
 
     // Pre-compute Y mapping: for each pixel row, which frequency bin(s) to sample
     const binToFreq = (bin: number) => (bin / frequencyBinCount) * (sampleRate / 2);
 
-    for (let canvasIdx = 0; canvasIdx < canvases.length; canvasIdx++) {
-      const canvas = canvases[canvasIdx];
-      if (!canvas) continue;
+    for (let i = 0; i < canvases.length; i++) {
+      const canvas = canvases[i];
+      if (!canvas) continue;  // Skip unmounted chunks
+
+      const canvasIdx = parseInt(canvas.dataset.index!, 10);
+      const globalPixelOffset = canvasIdx * MAX_CANVAS_WIDTH;  // Compute from index
+
       const ctx = canvas.getContext('2d');
       if (!ctx) continue;
 
@@ -290,31 +371,28 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
         ctx.drawImage(tmpCanvas, 0, 0, canvas.width, canvas.height);
       }
 
-      globalPixelOffset += canvasWidth;
     }
 
-  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, minFrequency, maxF, scaleFn, hasCustomFrequencyScale]);
+  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, minFrequency, maxF, scaleFn, hasCustomFrequencyScale, visibleChunkKey]);
 
-  // Build canvas chunks
-  let totalWidth = length;
-  let canvasCount = 0;
-  const canvases = [];
-  while (totalWidth > 0) {
-    const currentWidth = Math.min(totalWidth, MAX_CANVAS_WIDTH);
-    canvases.push(
+  // Build visible canvas chunk elements
+  const canvases = visibleChunkIndices.map((i) => {
+    const chunkLeft = i * MAX_CANVAS_WIDTH;
+    const currentWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
+
+    return (
       <SpectrogramCanvas
-        key={`${length}-${canvasCount}`}
+        key={`${length}-${i}`}
         $cssWidth={currentWidth}
+        $left={chunkLeft}
         width={currentWidth * devicePixelRatio}
         height={waveHeight * devicePixelRatio}
         $waveHeight={waveHeight}
-        data-index={canvasCount}
+        data-index={i}
         ref={canvasRef}
       />
     );
-    totalWidth -= currentWidth;
-    canvasCount++;
-  }
+  });
 
   return (
     <Wrapper $index={index} $cssWidth={length} $waveHeight={waveHeight}>

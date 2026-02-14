@@ -15,7 +15,13 @@
       "@waveform-playlist/ui-components": ["../packages/ui-components/src"],
       "@waveform-playlist/ui-components/*": ["../packages/ui-components/src/*"],
       "@waveform-playlist/annotations": ["../packages/annotations/src"],
-      "@waveform-playlist/annotations/*": ["../packages/annotations/src/*"]
+      "@waveform-playlist/annotations/*": ["../packages/annotations/src/*"],
+      "@waveform-playlist/spectrogram": ["../packages/spectrogram/src"],
+      "@waveform-playlist/spectrogram/*": ["../packages/spectrogram/src/*"],
+      "@waveform-playlist/recording": ["../packages/recording/src"],
+      "@waveform-playlist/recording/*": ["../packages/recording/src/*"],
+      "@waveform-playlist/loaders": ["../packages/loaders/src"],
+      "@waveform-playlist/loaders/*": ["../packages/loaders/src/*"]
     }
   },
   "include": [

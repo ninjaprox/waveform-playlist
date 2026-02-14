@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, startTransition } from 'react';
 
 export interface ZoomControls {
   samplesPerPixel: number;
@@ -28,12 +28,20 @@ export function useZoomControls({
   const canZoomIn = zoomIndex > 0;
   const canZoomOut = zoomIndex < zoomLevels.length - 1;
 
+  // Wrap zoom state changes in startTransition so React treats them as
+  // non-urgent. During playback, this allows animation RAF callbacks to
+  // interleave with the zoom re-render. Rapid consecutive zooms are
+  // batched — only the final level triggers peak recalculation.
   const zoomIn = useCallback(() => {
-    setZoomIndex((prev) => Math.max(0, prev - 1));
+    startTransition(() => {
+      setZoomIndex((prev) => Math.max(0, prev - 1));
+    });
   }, []);
 
   const zoomOut = useCallback(() => {
-    setZoomIndex((prev) => Math.min(zoomLevels.length - 1, prev + 1));
+    startTransition(() => {
+      setZoomIndex((prev) => Math.min(zoomLevels.length - 1, prev + 1));
+    });
   }, [zoomLevels.length]);
 
   return {

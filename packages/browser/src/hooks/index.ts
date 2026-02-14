@@ -41,3 +41,6 @@ export type { ExportOptions, ExportResult, UseExportWavReturn, TrackEffectsFunct
 
 export { useAnimationFrameLoop } from './useAnimationFrameLoop';
 export type { AnimationFrameLoopControls } from './useAnimationFrameLoop';
+
+export { useWaveformDataCache } from './useWaveformDataCache';
+export type { UseWaveformDataCacheReturn } from './useWaveformDataCache';

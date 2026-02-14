@@ -94,6 +94,7 @@ pnpm publish --filter @waveform-playlist/NEW-PACKAGE --no-git-checks --access pu
 - MediaElement context types: `packages/browser/src/MediaElementPlaylistContext.tsx`
 - AudioTrackConfig interface: `packages/browser/src/hooks/useAudioTracks.ts`
 - Effects hooks return types: `packages/browser/src/hooks/useDynamicEffects.ts`, `useTrackDynamicEffects.ts`
+- Peak types (`Peaks`, `Bits`, `PeakData`): `packages/core/src/types/index.ts` (re-exported by `webaudio-peaks` for backwards compat)
 
 **Common Doc Drift:** Non-existent hooks (e.g., `useWaveformPlaylist` was removed), wrong property names (e.g., `gain` vs `volume`, `seek` vs `seekTo`), properties attributed to wrong context hooks. Always cross-check docs against source interfaces.
 
@@ -158,10 +159,13 @@ pnpm publish --filter @waveform-playlist/NEW-PACKAGE --no-git-checks --access pu
 
 - **Build packages**: `pnpm build` - Build all packages
 - **TypeScript check**: `pnpm typecheck` (enforced in build scripts)
+- **Lint**: `pnpm lint` - ESLint across all packages. **Always run before committing.**
 - **Dev server**: `pnpm --filter website start` - Docusaurus dev server
 - **Hard refresh**: Always use Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows/Linux) after builds
 
 **pnpm Build Ordering:** `pnpm recursive run` determines build order from `dependencies` and `devDependencies` only — **not** `peerDependencies`. If package A needs package B's types at build time (e.g., for DTS generation), B must be in A's `devDependencies` even if it's already a `peerDependency`. Without this, CI builds fail because packages build in parallel/alphabetical order.
+
+**Type Migration Gotcha:** When moving types between packages, `pnpm typecheck` resolves workspace packages via `dist/` (not source). Build the source package first: `pnpm --filter @waveform-playlist/PACKAGE build` before `pnpm typecheck`. Also grep the entire repo for old import paths — easy to miss straggling imports.
 
 ### E2E Testing with Playwright
 
@@ -443,7 +447,39 @@ const LazyExample = createLazyExample(
   - `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
   - `eslint-plugin-react-hooks`, `globals`
 
-**Status:** TypeScript checks pass (`pnpm typecheck`). Lint execution is currently blocked in offline environments until dependencies are installable (`pnpm install` needed when network is available).
+**Usage:** Run `pnpm lint` before committing. Catches missing hook dependencies, unused variables, and React Hooks rule violations.
+
+### Horizontal Virtual Scrolling (Phase 4, 2026-02-13)
+
+**Decision:** Viewport-aware canvas rendering — only mount canvas chunks visible in the scroll container + buffer.
+
+**Implementation:**
+- `ScrollViewportContext` in `packages/ui-components/src/contexts/ScrollViewport.tsx`
+- `ScrollViewportProvider` wraps content inside `Playlist.tsx`, observes `Wrapper` scroll element
+- `useScrollViewport()` returns `{ scrollLeft, containerWidth, visibleStart, visibleEnd }` or `null`
+- Buffer: 1.5x viewport width on each side
+- RAF-throttled scroll listener + ResizeObserver
+
+**Components affected:**
+- `TimeScale` — chunked into 1000px canvases (was single canvas, crashed with long files)
+- `Channel` — absolute positioning, only renders visible chunks
+- `SpectrogramChannel` — only mounts visible chunks (biggest memory win)
+- All use absolute positioning (`left: chunkIndex * 1000px`) instead of `float: left`
+
+**Backwards compatibility:** `useScrollViewport()` returns `null` without provider. All components default to rendering everything when viewport is `null`.
+
+### Web Worker Peak Generation (2026-02-13)
+
+**Decision:** Generate `WaveformData` in a web worker at load time, then use `resample()` for near-instant zoom changes.
+
+**Key files:**
+- `packages/browser/src/workers/peaksWorker.ts` — Inline Blob worker (portable across bundlers)
+- `packages/browser/src/hooks/useWaveformDataCache.ts` — Cache hook, watches tracks for clips with `audioBuffer` but no `waveformData`
+- `packages/browser/src/waveformDataLoader.ts` — `extractPeaksFromWaveformDataFull()` for resample + channel extraction
+
+**Peak resolution order in WaveformPlaylistContext:** (1) `clip.waveformData` (external pre-computed), (2) worker cache hit, (3) empty peaks while worker runs.
+
+**Automatic:** Any clip with `audioBuffer` (loaded or recorded) gets worker treatment — no opt-in needed.
 
 ---
 

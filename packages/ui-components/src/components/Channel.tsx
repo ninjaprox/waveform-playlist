@@ -1,13 +1,13 @@
-import React, { FunctionComponent, useLayoutEffect, useCallback, useRef } from 'react';
+import React, { FunctionComponent, useLayoutEffect, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
-import { Peaks, Bits } from '@waveform-playlist/webaudio-peaks';
+import type { Peaks, Bits } from '@waveform-playlist/core';
 import { WaveformColor, WaveformDrawMode, isWaveformGradient, waveformColorToCss } from '../wfpl-theme';
+import { useScrollViewportSelector } from '../contexts/ScrollViewport';
+import { MAX_CANVAS_WIDTH } from '../constants';
 
 // Re-export WaveformColor for consumers
 export type { WaveformColor } from '../wfpl-theme';
 export type { WaveformDrawMode } from '../wfpl-theme';
-
-const MAX_CANVAS_WIDTH = 1000;
 
 /**
  * Creates a Canvas gradient from a WaveformColor configuration
@@ -39,16 +39,18 @@ function createCanvasFillStyle(
 interface WaveformProps {
   readonly $cssWidth: number;
   readonly $waveHeight: number;
+  readonly $left: number;
 }
 
 const Waveform = styled.canvas.attrs<WaveformProps>((props) => ({
   style: {
     width: `${props.$cssWidth}px`,
     height: `${props.$waveHeight}px`,
+    left: `${props.$left}px`,
   },
 }))<WaveformProps>`
-  float: left;
-  position: relative;
+  position: absolute;
+  top: 0;
   /* Promote to own compositing layer for smoother scrolling */
   will-change: transform;
   /* Disable image rendering interpolation */
@@ -121,6 +123,36 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
   } = props;
   const canvasesRef = useRef<HTMLCanvasElement[]>([]);
 
+  // Selector returns a comma-joined string of visible chunk indices.
+  // useSyncExternalStore compares strings by value (Object.is), so
+  // the component only re-renders when the set of visible chunks changes,
+  // not on every scroll pixel.
+  const visibleChunkKey = useScrollViewportSelector((viewport) => {
+    const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
+    const indices: number[] = [];
+
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkLeft = i * MAX_CANVAS_WIDTH;
+      const chunkWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
+
+      if (viewport) {
+        const chunkEnd = chunkLeft + chunkWidth;
+        if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
+          continue;
+        }
+      }
+
+      indices.push(i);
+    }
+
+    return indices.join(',');
+  });
+
+  // Parse the key back to indices for rendering and drawing
+  const visibleChunkIndices = visibleChunkKey
+    ? visibleChunkKey.split(',').map(Number)
+    : [];
+
   const canvasRef = useCallback(
     (canvas: HTMLCanvasElement | null) => {
       if (canvas !== null) {
@@ -131,13 +163,29 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
     []
   );
 
+  // Clean up stale refs for unmounted chunks
+  useEffect(() => {
+    const canvases = canvasesRef.current;
+    for (let i = canvases.length - 1; i >= 0; i--) {
+      if (canvases[i] && !canvases[i].isConnected) {
+        delete canvases[i];
+      }
+    }
+  });
+
+  // Draw waveform bars on visible canvas chunks.
+  // visibleChunkKey changes only when chunks mount/unmount, not on every scroll pixel.
   useLayoutEffect(() => {
     const canvases = canvasesRef.current;
     const step = barWidth + barGap;
-    let globalPixelOffset = 0; // Track global pixel position across all canvases
 
     for (let i = 0; i < canvases.length; i++) {
       const canvas = canvases[i];
+      if (!canvas) continue; // Skip unmounted chunks (sparse array from virtualization)
+
+      const canvasIdx = parseInt(canvas.dataset.index!, 10);
+      const globalPixelOffset = canvasIdx * MAX_CANVAS_WIDTH;
+
       const ctx = canvas.getContext('2d');
       const h2 = Math.floor(waveHeight / 2);
       const maxValue = 2 ** (bits - 1);
@@ -210,8 +258,6 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
           }
         }
       }
-
-      globalPixelOffset += canvas.width / devicePixelRatio;
     }
   }, [
     data,
@@ -224,29 +270,27 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
     barWidth,
     barGap,
     drawMode,
+    visibleChunkKey,
   ]);
 
-  let totalWidth = length;
-  let waveformCount = 0;
-  const waveforms = [];
-  while (totalWidth > 0) {
-    const currentWidth = Math.min(totalWidth, MAX_CANVAS_WIDTH);
-    const waveform = (
+  // Build visible canvas chunk elements
+  const waveforms = visibleChunkIndices.map((i) => {
+    const chunkLeft = i * MAX_CANVAS_WIDTH;
+    const currentWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
+
+    return (
       <Waveform
-        key={`${length}-${waveformCount}`}
+        key={`${length}-${i}`}
         $cssWidth={currentWidth}
+        $left={chunkLeft}
         width={currentWidth * devicePixelRatio}
         height={waveHeight * devicePixelRatio}
         $waveHeight={waveHeight}
-        data-index={waveformCount}
+        data-index={i}
         ref={canvasRef}
       />
     );
-
-    waveforms.push(waveform);
-    totalWidth -= currentWidth;
-    waveformCount += 1;
-  }
+  });
 
   // Background color depends on draw mode:
   // Visual result is always: waveOutlineColor = bars, waveFillColor = background

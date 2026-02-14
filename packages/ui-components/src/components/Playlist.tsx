@@ -1,5 +1,6 @@
 import styled, { DefaultTheme, withTheme } from 'styled-components';
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useRef, useCallback } from 'react';
+import { ScrollViewportProvider } from '../contexts/ScrollViewport';
 
 const Wrapper = styled.div`
   overflow-y: hidden;
@@ -102,27 +103,36 @@ export const Playlist: FunctionComponent<PlaylistProps> = ({
   isSelecting,
   'data-playlist-state': playlistState,
 }) => {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const handleRef = useCallback((el: HTMLDivElement | null) => {
+    wrapperRef.current = el;
+    scrollContainerRef?.(el);
+  }, [scrollContainerRef]);
+
   return (
-    <Wrapper data-scroll-container="true" data-playlist-state={playlistState} ref={scrollContainerRef}>
-      <ScrollContainer
-        $backgroundColor={backgroundColor}
-        $width={scrollContainerWidth}
-      >
-        {timescale && <TimescaleWrapper $width={timescaleWidth} $backgroundColor={timescaleBackgroundColor}>{timescale}</TimescaleWrapper>}
-        <TracksContainer $width={tracksWidth} $backgroundColor={backgroundColor}>
-          {children}
-          {(onTracksClick || onTracksMouseDown) && (
-            <ClickOverlay
-              $controlsWidth={controlsWidth}
-              $isSelecting={isSelecting}
-              onClick={onTracksClick}
-              onMouseDown={onTracksMouseDown}
-              onMouseMove={onTracksMouseMove}
-              onMouseUp={onTracksMouseUp}
-            />
-          )}
-        </TracksContainer>
-      </ScrollContainer>
+    <Wrapper data-scroll-container="true" data-playlist-state={playlistState} ref={handleRef}>
+      <ScrollViewportProvider containerRef={wrapperRef}>
+        <ScrollContainer
+          $backgroundColor={backgroundColor}
+          $width={scrollContainerWidth}
+        >
+          {timescale && <TimescaleWrapper $width={timescaleWidth} $backgroundColor={timescaleBackgroundColor}>{timescale}</TimescaleWrapper>}
+          <TracksContainer $width={tracksWidth} $backgroundColor={backgroundColor}>
+            {children}
+            {(onTracksClick || onTracksMouseDown) && (
+              <ClickOverlay
+                $controlsWidth={controlsWidth}
+                $isSelecting={isSelecting}
+                onClick={onTracksClick}
+                onMouseDown={onTracksMouseDown}
+                onMouseMove={onTracksMouseMove}
+                onMouseUp={onTracksMouseUp}
+              />
+            )}
+          </TracksContainer>
+        </ScrollContainer>
+      </ScrollViewportProvider>
     </Wrapper>
   );
 };

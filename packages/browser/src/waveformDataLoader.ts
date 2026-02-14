@@ -6,6 +6,7 @@
  */
 
 import WaveformData from 'waveform-data';
+import type { PeakData, Peaks } from '@waveform-playlist/core';
 
 /**
  * Load waveform data from a .dat or .json file
@@ -165,4 +166,97 @@ export function extractPeaksFromWaveformData(
   }
 
   return { data: peaks, bits, length };
+}
+
+/**
+ * Extract peaks from a WaveformData object, handling ALL channels, mono merging,
+ * slicing, and resampling.
+ *
+ * Bit depth is determined by the WaveformData source — all typed arrays match
+ * the source's bit depth for consistent data/metadata.
+ *
+ * @param waveformData - WaveformData instance (should be generated with split_channels: true)
+ * @param samplesPerPixel - Target samples per pixel
+ * @param isMono - Whether to merge channels to mono
+ * @param offsetSamples - Optional start offset in samples (for clip trimming)
+ * @param durationSamples - Optional duration in samples (for clip trimming)
+ * @returns PeakData matching the interface from @waveform-playlist/core
+ */
+export function extractPeaksFromWaveformDataFull(
+  waveformData: WaveformData,
+  samplesPerPixel: number,
+  isMono: boolean,
+  offsetSamples?: number,
+  durationSamples?: number,
+): PeakData {
+  let processedData = waveformData;
+
+  // Slice if offset/duration specified
+  if (offsetSamples !== undefined && durationSamples !== undefined) {
+    const sourceScale = waveformData.scale;
+    const startIndex = Math.floor(offsetSamples / sourceScale);
+    const endIndex = Math.ceil((offsetSamples + durationSamples) / sourceScale);
+    processedData = processedData.slice({ startIndex, endIndex });
+  }
+
+  // Resample to target scale if different
+  if (processedData.scale !== samplesPerPixel) {
+    processedData = processedData.resample({ scale: samplesPerPixel });
+  }
+
+  const numChannels = processedData.channels;
+  const bits = processedData.bits as 8 | 16;
+
+  // Extract peaks for all channels
+  const channelPeaks: Peaks[] = [];
+  for (let c = 0; c < numChannels; c++) {
+    const channel = processedData.channel(c);
+    const minArray = channel.min_array();
+    const maxArray = channel.max_array();
+    const len = minArray.length;
+
+    const peaks: Peaks = bits === 8
+      ? new Int8Array(len * 2)
+      : new Int16Array(len * 2);
+
+    for (let i = 0; i < len; i++) {
+      peaks[i * 2] = minArray[i];
+      peaks[i * 2 + 1] = maxArray[i];
+    }
+    channelPeaks.push(peaks);
+  }
+
+  // Handle mono merging (same algorithm as makeMono in webaudio-peaks)
+  if (isMono && channelPeaks.length > 1) {
+    const weight = 1 / channelPeaks.length;
+    const numPeaks = channelPeaks[0].length / 2;
+    const monoPeaks: Peaks = bits === 8
+      ? new Int8Array(numPeaks * 2)
+      : new Int16Array(numPeaks * 2);
+
+    for (let i = 0; i < numPeaks; i++) {
+      let min = 0;
+      let max = 0;
+      for (let c = 0; c < channelPeaks.length; c++) {
+        min += weight * channelPeaks[c][i * 2];
+        max += weight * channelPeaks[c][i * 2 + 1];
+      }
+      monoPeaks[i * 2] = min;
+      monoPeaks[i * 2 + 1] = max;
+    }
+
+    return {
+      length: numPeaks,
+      data: [monoPeaks],
+      bits,
+    };
+  }
+
+  const peakLength = channelPeaks.length > 0 ? channelPeaks[0].length / 2 : 0;
+
+  return {
+    length: peakLength,
+    data: channelPeaks,
+    bits,
+  };
 }

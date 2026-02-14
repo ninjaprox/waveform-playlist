@@ -44,3 +44,6 @@ export type { AnimationFrameLoopControls } from './useAnimationFrameLoop';
 
 export { useWaveformDataCache } from './useWaveformDataCache';
 export type { UseWaveformDataCacheReturn } from './useWaveformDataCache';
+
+export { useDynamicTracks } from './useDynamicTracks';
+export type { TrackSource, TrackLoadError, UseDynamicTracksReturn } from './useDynamicTracks';

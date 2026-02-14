@@ -578,12 +578,19 @@ export const WaveformPlaylistProvider: React.FC<WaveformPlaylistProviderProps> =
           }
         }
 
-        // Path C: No peaks data available yet — render empty while worker processes
+        // Path C: No peaks data available yet — render empty while worker processes.
+        // Use correct channel count from audioBuffer to prevent track height shift
+        // when peaks arrive (mono mode collapses to 1 channel).
         if (!peaks) {
           if (!clip.audioBuffer && !clip.waveformData) {
             console.warn(`[waveform-playlist] Clip "${clip.id}" has no audio data or waveform data`);
           }
-          peaks = { length: 0, data: [], bits: 16 };
+          const numChannels = mono ? 1 : (clip.audioBuffer?.numberOfChannels ?? 1);
+          peaks = {
+            length: 0,
+            data: Array.from({ length: numChannels }, () => new Int16Array(0)),
+            bits: 16,
+          };
         }
 
         return {

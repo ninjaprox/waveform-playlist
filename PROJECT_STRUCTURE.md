@@ -125,7 +125,7 @@ const clip = createClipFromSeconds({
   │   ├── Selection.tsx
   │   ├── AnnotationBox.tsx
   │   └── TrackControls/
-  ├── contexts/          # React contexts (theme, playlist info, playout)
+  ├── contexts/          # React contexts (theme, playlist info, playout, scroll viewport)
   ├── utils/             # Utilities (time formatting, conversions)
   ├── styled/            # Shared styled components
   │   ├── CheckboxStyles.tsx  # Checkbox, label, wrapper
@@ -196,8 +196,10 @@ const clip = createClipFromSeconds({
   ├── index.tsx                         # Main entry point + API exports
   ├── WaveformPlaylistContext.tsx        # Context provider (flexible API)
   ├── MediaElementPlaylistContext.tsx    # Context provider (HTMLAudioElement)
+  ├── AnnotationIntegrationContext.tsx   # Optional annotation integration
   ├── SpectrogramIntegrationContext.tsx  # Optional spectrogram integration
   ├── hooks/                            # Custom hooks
+  │   ├── useAnimationFrameLoop.ts      # Shared rAF loop for providers
   │   ├── useAnnotationDragHandlers.ts  # Annotation drag logic
   │   ├── useAnnotationKeyboardControls.ts # Annotation navigation & editing
   │   ├── useAudioEffects.ts            # Audio effects management
@@ -206,13 +208,14 @@ const clip = createClipFromSeconds({
   │   ├── useClipSplitting.ts           # Split clips at playhead
   │   ├── useDragSensors.ts             # @dnd-kit sensor config
   │   ├── useDynamicEffects.ts          # Master effects chain
+  │   ├── useDynamicTracks.ts           # Runtime track additions (placeholder-then-replace)
   │   ├── useExportWav.ts               # WAV export via Tone.Offline
-  │   ├── useIntegratedRecording.ts     # Recording integration
   │   ├── useKeyboardShortcuts.ts       # Flexible keyboard shortcut system
   │   ├── useMasterVolume.ts            # Master volume control
   │   ├── usePlaybackShortcuts.ts       # Default playback shortcuts
   │   ├── useTimeFormat.ts              # Time formatting
   │   ├── useTrackDynamicEffects.ts     # Per-track effects
+  │   ├── useWaveformDataCache.ts       # Web worker peak generation cache
   │   └── useZoomControls.ts            # Zoom level management
   ├── components/                       # React components
   │   ├── PlaylistVisualization.tsx      # Main waveform + track rendering
@@ -225,6 +228,8 @@ const clip = createClipFromSeconds({
   │   ├── effectDefinitions.ts          # 20 Tone.js effect definitions
   │   ├── effectFactory.ts              # Effect instance creation
   │   └── index.ts
+  ├── workers/                          # Web workers
+  │   └── peaksWorker.ts                # Inline Blob worker for peak generation
   └── waveformDataLoader.ts            # BBC waveform-data.js support
   ```
 - **Build:** Vite + tsup
@@ -631,20 +636,22 @@ Business logic is extracted into reusable custom hooks that can be used by any c
 
 **Hooks (in `packages/browser/src/hooks/`):**
 
-- `useAudioTracks` - Track loading and management
+- `useAnimationFrameLoop` - Shared rAF lifecycle for both playlist providers
+- `useAudioTracks` - Declarative track loading (configs-driven)
 - `useClipDragHandlers` - Clip drag-to-move and boundary trimming
 - `useClipSplitting` - Split clips at playhead
 - `useAnnotationDragHandlers` - Annotation drag logic
 - `useAnnotationKeyboardControls` - Annotation navigation & editing
+- `useDynamicTracks` - Runtime track additions with placeholder-then-replace pattern
 - `useKeyboardShortcuts` - Flexible keyboard shortcut system
 - `usePlaybackShortcuts` - Default playback shortcuts (0 = rewind)
 - `useDynamicEffects` - Master effects chain with runtime parameter updates
 - `useTrackDynamicEffects` - Per-track effects management
 - `useAudioEffects` - Audio effects management
 - `useExportWav` - WAV export via Tone.Offline
-- `useIntegratedRecording` - Recording integration
 - `useMasterVolume` - Master volume control
 - `useTimeFormat` - Time formatting and format selection
+- `useWaveformDataCache` - Web worker peak generation and cache
 - `useZoomControls` - Zoom level management
 - `useDragSensors` - @dnd-kit sensor configuration
 

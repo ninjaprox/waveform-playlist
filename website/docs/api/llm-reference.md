@@ -317,6 +317,36 @@ interface UseAudioTracksOptions {
 
 ---
 
+## useDynamicTracks
+
+```typescript
+type TrackSource =
+  | File                                      // Drag-and-drop / file input
+  | Blob                                      // Raw audio blob
+  | string                                    // URL shorthand
+  | { src: string; name?: string };           // URL with optional name
+
+interface TrackLoadError {
+  name: string;                               // Display name of the failed source
+  error: Error;                               // The underlying error
+}
+
+function useDynamicTracks(): UseDynamicTracksReturn;
+
+interface UseDynamicTracksReturn {
+  tracks: ClipTrack[];                        // Includes placeholders + loaded
+  addTracks: (sources: TrackSource[]) => void; // Add files or URLs at runtime
+  removeTrack: (trackId: string) => void;     // Remove by id, aborts in-flight fetch
+  loadingCount: number;                       // Number currently decoding
+  isLoading: boolean;                         // loadingCount > 0
+  errors: TrackLoadError[];                   // Failed loads (tracks auto-removed)
+}
+```
+
+Imperative complement to `useAudioTracks`. Creates placeholder tracks (`clips: []`) immediately when `addTracks()` is called. Placeholders show track controls with empty waveform area while audio decodes in parallel. Each placeholder is atomically replaced with the loaded track (same `id`) on success, or removed on error with the failure recorded in `errors`.
+
+---
+
 ## Effects Hooks
 
 ### useDynamicEffects

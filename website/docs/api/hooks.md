@@ -19,6 +19,7 @@ import {
 
   // Specialized hooks
   useAudioTracks,
+  useDynamicTracks,
   useZoomControls,
   useTimeFormat,
   useMasterVolume,
@@ -195,6 +196,80 @@ const { tracks, loading, error, progress } = useAudioTracks([
 
 if (loading) return <div>Loading... {Math.round(progress * 100)}%</div>;
 if (error) return <div>Error: {error}</div>;
+```
+
+---
+
+## useDynamicTracks
+
+Imperative hook for adding tracks at runtime (drag-and-drop, file picker). Complements `useAudioTracks` which is declarative (configs-driven).
+
+Placeholder tracks with `clips: []` appear instantly while audio decodes in parallel. Each placeholder is atomically replaced with the loaded track on success, or removed on error.
+
+### Signature
+
+```typescript
+function useDynamicTracks(): UseDynamicTracksReturn;
+```
+
+### TrackSource
+
+```typescript
+type TrackSource =
+  | File                            // Drag-and-drop / file input
+  | Blob                            // Raw audio blob
+  | string                          // URL shorthand
+  | { src: string; name?: string }; // URL with optional name
+```
+
+### Returns
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `tracks` | `ClipTrack[]` | Current tracks (placeholders + loaded) |
+| `addTracks` | `(sources: TrackSource[]) => void` | Add files or URLs at runtime |
+| `removeTrack` | `(trackId: string) => void` | Remove a track by id. Aborts in-flight fetch if still loading. |
+| `loadingCount` | `number` | Number of sources currently decoding |
+| `isLoading` | `boolean` | `true` when any source is still decoding |
+| `errors` | `TrackLoadError[]` | Tracks that failed to load (removed from `tracks` automatically) |
+
+### TrackLoadError
+
+```typescript
+interface TrackLoadError {
+  name: string;   // Display name of the source that failed
+  error: Error;   // The underlying error
+}
+```
+
+### Example
+
+```tsx
+function DragDropPlaylist() {
+  const { tracks, addTracks, removeTrack, loadingCount, isLoading, errors } = useDynamicTracks();
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('audio/'));
+    if (files.length > 0) addTracks(files);
+  };
+
+  return (
+    <div>
+      <div onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
+        {isLoading
+          ? `Decoding ${loadingCount} file(s)...`
+          : 'Drop audio files here'}
+      </div>
+
+      {tracks.length > 0 && (
+        <WaveformPlaylistProvider tracks={tracks}>
+          <Waveform onRemoveTrack={(index) => removeTrack(tracks[index].id)} />
+        </WaveformPlaylistProvider>
+      )}
+    </div>
+  );
+}
 ```
 
 ---

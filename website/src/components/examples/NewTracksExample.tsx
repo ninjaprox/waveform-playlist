@@ -9,7 +9,6 @@
 
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
-import * as Tone from 'tone';
 import {
   WaveformPlaylistProvider,
   Waveform,
@@ -20,8 +19,8 @@ import {
   ZoomInButton,
   ZoomOutButton,
   AutomaticScrollCheckbox,
+  useDynamicTracks,
 } from '@waveform-playlist/browser';
-import { ClipTrack, createTrack, createClipFromSeconds } from '@waveform-playlist/core';
 import { useDocusaurusTheme } from '../../hooks/useDocusaurusTheme';
 import { FolderOpenIcon, MusicNotesIcon } from '@phosphor-icons/react';
 
@@ -88,12 +87,10 @@ const HiddenFileInput = styled.input`
 
 export function NewTracksExample() {
   const { theme } = useDocusaurusTheme();
-  const [tracks, setTracks] = useState<ClipTrack[]>([]);
+  const { tracks, addTracks, removeTrack, loadingCount, isLoading, errors } = useDynamicTracks();
   const [isDragging, setIsDragging] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Handle file drop
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -104,74 +101,29 @@ export function NewTracksExample() {
       );
 
       if (files.length > 0) {
-        addFiles(files);
+        addTracks(files);
       }
     },
-    [tracks]
+    [addTracks]
   );
 
-  // Handle file input change
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (files && files.length > 0) {
-        addFiles(Array.from(files) as File[]);
+        addTracks(Array.from(files) as File[]);
       }
     },
-    [tracks]
+    [addTracks]
   );
 
-  // Add files as tracks - PROGRESSIVELY (each track appears as it loads)
-  const addFiles = async (files: File[]) => {
-    setIsLoading(true);
-    const audioContext = Tone.getContext().rawContext as AudioContext;
-
-    // Load each file independently (not Promise.all) so tracks appear one by one
-    files.forEach(async (file) => {
-      try {
-        // Read file as ArrayBuffer
-        const arrayBuffer = await file.arrayBuffer();
-
-        // Decode to AudioBuffer
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-        // Create clip with the audio buffer
-        const clip = createClipFromSeconds({
-          audioBuffer,
-          startTime: 0,
-          duration: audioBuffer.duration,
-          offset: 0,
-          name: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
-        });
-
-        // Create track with single clip
-        const newTrack = createTrack({
-          name: file.name.replace(/\.[^/.]+$/, ''),
-          clips: [clip],
-          muted: false,
-          soloed: false,
-          volume: 1,
-          pan: 0,
-        });
-
-        // Add this track immediately - triggers re-render
-        setTracks(prev => [...prev, newTrack]);
-      } catch (error) {
-        console.error('Error loading audio file:', file.name, error);
-      }
-    });
-
-    // Clear loading state after a short delay (files load asynchronously)
-    setTimeout(() => setIsLoading(false), 500);
-  };
-
-  // Remove a track
   const handleRemoveTrack = (index: number) => {
-    const newTracks = tracks.filter((_, i) => i !== index);
-    setTracks(newTracks);
+    const track = tracks[index];
+    if (track) {
+      removeTrack(track.id);
+    }
   };
 
-  // Handle drag events
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
@@ -182,7 +134,6 @@ export function NewTracksExample() {
     setIsDragging(false);
   };
 
-  // Handle click to open file picker
   const handleDropZoneClick = () => {
     fileInputRef.current?.click();
   };
@@ -198,8 +149,10 @@ export function NewTracksExample() {
       >
         {isLoading ? (
           <>
-            <DropZoneText>⏳ Loading audio files...</DropZoneText>
-            <DropZoneSubtext>Please wait while we process your files</DropZoneSubtext>
+            <DropZoneText>
+              Decoding {loadingCount} file{loadingCount !== 1 ? 's' : ''}...
+            </DropZoneText>
+            <DropZoneSubtext>Placeholder tracks are shown below while audio decodes</DropZoneSubtext>
           </>
         ) : (
           <>
@@ -220,6 +173,22 @@ export function NewTracksExample() {
         multiple
         onChange={handleFileInput}
       />
+
+      {errors.length > 0 && (
+        <div role="alert" style={{
+          padding: '0.75rem 1rem',
+          marginBottom: '1rem',
+          background: 'var(--ifm-color-danger-contrast-background, #fdf0ef)',
+          border: '1px solid var(--ifm-color-danger-dark, #c0392b)',
+          borderRadius: '0.5rem',
+          color: 'var(--ifm-color-danger-darkest, #7f1d1d)',
+          fontSize: '0.875rem',
+        }}>
+          {errors.map((e, i) => (
+            <div key={i}>Failed to load &quot;{e.name}&quot;: {e.error.message}</div>
+          ))}
+        </div>
+      )}
 
       {tracks.length > 0 && (
         <WaveformPlaylistProvider
@@ -257,7 +226,7 @@ export function NewTracksExample() {
           </Controls>
 
           <Waveform
-            onRemoveTrack={(index) => handleRemoveTrack(index)}
+            onRemoveTrack={handleRemoveTrack}
           />
         </WaveformPlaylistProvider>
       )}

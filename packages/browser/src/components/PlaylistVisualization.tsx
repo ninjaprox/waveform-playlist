@@ -129,7 +129,6 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
     setLoopRegion,
   } = usePlaylistControls();
   const {
-    audioBuffers,
     peaksDataArray,
     trackStates,
     tracks,
@@ -192,8 +191,17 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
     setScrollContainer(element);
   }, [setScrollContainer]);
 
-  // Calculate dimensions
-  let displayDuration = audioBuffers.length > 0 ? duration : DEFAULT_EMPTY_TRACK_DURATION;
+  // Calculate dimensions — derive duration directly from tracks prop to prevent width
+  // shift. The `duration` state is set in an effect and lags tracks by at least one render.
+  const tracksMaxDuration = tracks.reduce((max, track) => {
+    return track.clips.reduce((clipMax, clip) => {
+      const end = (clip.startSample + clip.durationSamples) / clip.sampleRate;
+      return Math.max(clipMax, end);
+    }, max);
+  }, 0);
+  let displayDuration = tracksMaxDuration > 0
+    ? tracksMaxDuration
+    : (duration > 0 ? duration : DEFAULT_EMPTY_TRACK_DURATION);
 
   if (recordingState?.isRecording) {
     const recordingEndSample = recordingState.startSample + recordingState.durationSamples;
@@ -235,7 +243,7 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
     for (let i = 0; i < peaksDataArray.length; i++) {
       const trackClipPeaks = peaksDataArray[i];
       const rawCh = trackClipPeaks.length > 0
-        ? Math.max(...trackClipPeaks.map(clip => clip.peaks.data.length))
+        ? Math.max(1, ...trackClipPeaks.map(clip => clip.peaks.data.length))
         : 1;
       const trackMode = spectrogram?.trackSpectrogramOverrides.get(tracks[i]?.id)?.renderMode ?? tracks[i]?.renderMode ?? 'waveform';
       const effectiveCh = trackMode === 'both' ? rawCh * 2 : rawCh;
@@ -297,9 +305,12 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
     }
   };
 
-  // Only show loading if we have tracks WITH clips but haven't loaded their data yet
+  // Only show loading if we have tracks WITH clips but peaks haven't been computed yet.
+  // Don't check audioBuffers — it's set in an effect and can be stale for one or more
+  // renders after tracks change, causing the playlist to unmount and remount (layout shift).
+  // Placeholder tracks (clips: []) bypass this check intentionally.
   const hasClips = tracks.some(track => track.clips.length > 0);
-  if (hasClips && (audioBuffers.length === 0 || peaksDataArray.length === 0)) {
+  if (hasClips && peaksDataArray.length === 0) {
     return <div className={className}>Loading waveform...</div>;
   }
 
@@ -449,7 +460,7 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
                 );
 
                 const rawChannels = trackClipPeaks.length > 0
-                  ? Math.max(...trackClipPeaks.map(clip => clip.peaks.data.length))
+                  ? Math.max(1, ...trackClipPeaks.map(clip => clip.peaks.data.length))
                   : 1;
                 const maxChannels = rawChannels;
 

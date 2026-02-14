@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useLayoutEffect, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import type { SpectrogramData } from '@waveform-playlist/core';
-import { useScrollViewportSelector } from '../contexts/ScrollViewport';
+import { useVisibleChunkIndices } from '../contexts/ScrollViewport';
 import { MAX_CANVAS_WIDTH } from '../constants';
 const LINEAR_FREQUENCY_SCALE = (f: number, minF: number, maxF: number) => (f - minF) / (maxF - minF);
 
@@ -119,32 +119,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   // Track whether we're in worker mode (canvas transferred)
   const isWorkerMode = !!(workerApi && clipId);
 
-  // Selector returns comma-joined visible chunk indices. Component only
-  // re-renders when the set of visible chunks actually changes.
-  const visibleChunkKey = useScrollViewportSelector((viewport) => {
-    const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
-    const indices: number[] = [];
-
-    for (let i = 0; i < totalChunks; i++) {
-      const chunkLeft = i * MAX_CANVAS_WIDTH;
-      const chunkWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
-
-      if (viewport) {
-        const chunkEnd = chunkLeft + chunkWidth;
-        if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
-          continue;
-        }
-      }
-
-      indices.push(i);
-    }
-
-    return indices.join(',');
-  });
-
-  const visibleChunkIndices = visibleChunkKey
-    ? visibleChunkKey.split(',').map(Number)
-    : [];
+  const visibleChunkIndices = useVisibleChunkIndices(length, MAX_CANVAS_WIDTH);
 
   const canvasRef = useCallback(
     (canvas: HTMLCanvasElement | null) => {
@@ -171,7 +146,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   }, [onCanvasesReady]);
 
   // Worker mode: transfer new canvases to worker.
-  // Uses visibleChunkKey so it only re-runs when chunks mount/unmount,
+  // Uses visibleChunkIndices so it only re-runs when chunks mount/unmount,
   // not on every scroll pixel. No cleanup — stale registrations are
   // handled by the effect below, and full cleanup happens on unmount.
   useEffect(() => {
@@ -219,7 +194,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       registeredIdsRef.current = [...registeredIdsRef.current, ...newIds];
       onCanvasesReadyRef.current?.(newIds, newWidths);
     }
-  }, [isWorkerMode, clipId, channelIndex, length, visibleChunkKey]);
+  }, [isWorkerMode, clipId, channelIndex, length, visibleChunkIndices]);
 
   // Clean up stale worker registrations for canvases that unmounted
   useEffect(() => {
@@ -265,7 +240,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   }, []);
 
   // Main-thread rendering (skipped in worker mode).
-  // visibleChunkKey changes only when chunks mount/unmount, not on every scroll pixel.
+  // visibleChunkIndices changes only when chunks mount/unmount, not on every scroll pixel.
   useLayoutEffect(() => {
     if (isWorkerMode || !data) return;
 
@@ -373,7 +348,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
     }
 
-  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, minFrequency, maxF, scaleFn, hasCustomFrequencyScale, visibleChunkKey]);
+  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, minFrequency, maxF, scaleFn, hasCustomFrequencyScale, visibleChunkIndices]);
 
   // Build visible canvas chunk elements
   const canvases = visibleChunkIndices.map((i) => {

@@ -459,10 +459,9 @@ export const PlaylistVisualization: React.FC<PlaylistVisualizationProps> = ({
                   </Controls>
                 );
 
-                const rawChannels = trackClipPeaks.length > 0
+                const maxChannels = trackClipPeaks.length > 0
                   ? Math.max(1, ...trackClipPeaks.map(clip => clip.peaks.data.length))
                   : 1;
-                const maxChannels = rawChannels;
 
                 return (
                   <TrackControlsContext.Provider key={track.id} value={trackControls}>

@@ -3,6 +3,7 @@ import React, {
   useContext,
   useEffect,
   useCallback,
+  useMemo,
   useRef,
   useSyncExternalStore,
   ReactNode,
@@ -157,5 +158,42 @@ export function useScrollViewportSelector<T>(
     store ? store.subscribe : EMPTY_SUBSCRIBE,
     () => selector(store ? store.getSnapshot() : null),
     () => selector(null),
+  );
+}
+
+/**
+ * Returns the indices of canvas chunks that are currently visible (plus overscan buffer).
+ * Only triggers a re-render when the set of visible chunks changes, not on every scroll pixel.
+ *
+ * @param totalWidth Total width in CSS pixels of the content being chunked.
+ * @param chunkWidth Width of each chunk in CSS pixels. Defaults to MAX_CANVAS_WIDTH (1000).
+ */
+export function useVisibleChunkIndices(totalWidth: number, chunkWidth: number): number[] {
+  const visibleChunkKey = useScrollViewportSelector((viewport) => {
+    const totalChunks = Math.ceil(totalWidth / chunkWidth);
+    const indices: number[] = [];
+
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkLeft = i * chunkWidth;
+      const thisChunkWidth = Math.min(totalWidth - chunkLeft, chunkWidth);
+
+      if (viewport) {
+        const chunkEnd = chunkLeft + thisChunkWidth;
+        if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
+          continue;
+        }
+      }
+
+      indices.push(i);
+    }
+
+    return indices.join(',');
+  });
+
+  // Memoize on the key string so the returned array is referentially stable
+  // between renders — safe to use directly in useLayoutEffect dependency arrays.
+  return useMemo(
+    () => visibleChunkKey ? visibleChunkKey.split(',').map(Number) : [],
+    [visibleChunkKey],
   );
 }

@@ -381,6 +381,7 @@ const LazyExample = createLazyExample(
 - `useAnnotationKeyboardControls` - Annotation navigation, editing, auto-scroll, and playback
 - `useDynamicEffects` - Master effects chain with runtime parameter updates
 - `useTrackDynamicEffects` - Per-track effects management
+- `useDynamicTracks` - Runtime track additions with placeholder-then-replace pattern
 - `usePlaybackControls`, `useTimeFormat`, `useZoomControls`, etc.
 
 **Location:** `packages/browser/src/hooks/`
@@ -630,7 +631,9 @@ const analyser = context.createAnalyser();
 14. **Context Value Memoization** - All context value objects in providers must be wrapped with `useMemo`. Extract inline callbacks into `useCallback` first to avoid dependency churn.
 15. **Error Boundary Available** - `PlaylistErrorBoundary` from `@waveform-playlist/ui-components` catches render errors. Uses plain CSS (no styled-components) so it works without ThemeProvider.
 16. **Audio Disconnect Diagnostics** - Use `console.warn('[waveform-playlist] ...')` in catch blocks for audio node disconnect errors, never silently swallow.
-17. **Fetch Cleanup with AbortController** - `useAudioTracks` uses AbortController to cancel in-flight fetches on cleanup. Follow this pattern for any fetch in useEffect.
+17. **Fetch Cleanup with AbortController** - `useAudioTracks` uses AbortController to cancel in-flight fetches on cleanup. Follow this pattern for any fetch in useEffect. For per-item abort (e.g., removing one loading track), use `Map<id, AbortController>` instead of `Set<AbortController>`.
+18. **Derive Render Guards from Props, Not Effect State** - Don't use effect-set state (e.g., `audioBuffers`) in render guards. Effect state lags props by one+ renders, causing content to flash/disappear. Compute values synchronously from props instead.
+19. **Copy Refs in useEffect Body** - When accessing a ref in `useEffect` cleanup, copy `.current` to a local variable inside the effect body. ESLint's `react-hooks/exhaustive-deps` rule flags refs that may change between render and cleanup.
 
 ### Playlist Loading Detection
 

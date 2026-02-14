@@ -2,7 +2,7 @@ import React, { FunctionComponent, useLayoutEffect, useEffect, useCallback, useR
 import styled from 'styled-components';
 import type { Peaks, Bits } from '@waveform-playlist/core';
 import { WaveformColor, WaveformDrawMode, isWaveformGradient, waveformColorToCss } from '../wfpl-theme';
-import { useScrollViewportSelector } from '../contexts/ScrollViewport';
+import { useVisibleChunkIndices } from '../contexts/ScrollViewport';
 import { MAX_CANVAS_WIDTH } from '../constants';
 
 // Re-export WaveformColor for consumers
@@ -123,35 +123,7 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
   } = props;
   const canvasesRef = useRef<HTMLCanvasElement[]>([]);
 
-  // Selector returns a comma-joined string of visible chunk indices.
-  // useSyncExternalStore compares strings by value (Object.is), so
-  // the component only re-renders when the set of visible chunks changes,
-  // not on every scroll pixel.
-  const visibleChunkKey = useScrollViewportSelector((viewport) => {
-    const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
-    const indices: number[] = [];
-
-    for (let i = 0; i < totalChunks; i++) {
-      const chunkLeft = i * MAX_CANVAS_WIDTH;
-      const chunkWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
-
-      if (viewport) {
-        const chunkEnd = chunkLeft + chunkWidth;
-        if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
-          continue;
-        }
-      }
-
-      indices.push(i);
-    }
-
-    return indices.join(',');
-  });
-
-  // Parse the key back to indices for rendering and drawing
-  const visibleChunkIndices = visibleChunkKey
-    ? visibleChunkKey.split(',').map(Number)
-    : [];
+  const visibleChunkIndices = useVisibleChunkIndices(length, MAX_CANVAS_WIDTH);
 
   const canvasRef = useCallback(
     (canvas: HTMLCanvasElement | null) => {
@@ -270,7 +242,7 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
     barWidth,
     barGap,
     drawMode,
-    visibleChunkKey,
+    visibleChunkIndices,
   ]);
 
   // Build visible canvas chunk elements

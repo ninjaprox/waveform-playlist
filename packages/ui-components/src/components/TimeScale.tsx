@@ -2,7 +2,7 @@ import React, { FunctionComponent, useRef, useEffect, useLayoutEffect, useContex
 import styled, { withTheme, DefaultTheme } from 'styled-components';
 import { PlaylistInfoContext } from '../contexts/PlaylistInfo';
 import { useDevicePixelRatio } from '../contexts/DevicePixelRatio';
-import { useScrollViewportSelector } from '../contexts/ScrollViewport';
+import { useVisibleChunkIndices } from '../contexts/ScrollViewport';
 import { secondsToPixels } from '../utils/conversions';
 import { MAX_CANVAS_WIDTH } from '../constants';
 
@@ -144,32 +144,7 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
     };
   }, [duration, samplesPerPixel, sampleRate, marker, bigStep, secondStep, renderTimestamp, timeScaleHeight]);
 
-  // Selector returns comma-joined visible chunk indices. Component only
-  // re-renders when the set of visible chunks actually changes.
-  const visibleChunkKey = useScrollViewportSelector((viewport) => {
-    const totalChunks = Math.ceil(widthX / MAX_CANVAS_WIDTH);
-    const indices: number[] = [];
-
-    for (let i = 0; i < totalChunks; i++) {
-      const chunkLeft = i * MAX_CANVAS_WIDTH;
-      const chunkWidth = Math.min(widthX - chunkLeft, MAX_CANVAS_WIDTH);
-
-      if (viewport) {
-        const chunkEnd = chunkLeft + chunkWidth;
-        if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
-          continue;
-        }
-      }
-
-      indices.push(i);
-    }
-
-    return indices.join(',');
-  });
-
-  const visibleChunkIndices = visibleChunkKey
-    ? visibleChunkKey.split(',').map(Number)
-    : [];
+  const visibleChunkIndices = useVisibleChunkIndices(widthX, MAX_CANVAS_WIDTH);
 
   // Build visible canvas chunk elements
   const visibleChunks = visibleChunkIndices.map((i) => {
@@ -240,7 +215,7 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
         ctx.fillRect(localX, scaleY, 1, scaleHeight);
       }
     }
-  }, [duration, devicePixelRatio, timeColor, timeScaleHeight, canvasInfo, visibleChunkKey]);
+  }, [duration, devicePixelRatio, timeColor, timeScaleHeight, canvasInfo, visibleChunkIndices]);
 
   return (
     <PlaylistTimeScaleScroll

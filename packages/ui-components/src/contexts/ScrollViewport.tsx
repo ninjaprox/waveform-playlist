@@ -39,12 +39,21 @@ export const ScrollViewportProvider = ({
     const scrollLeft = el.scrollLeft;
     const containerWidth = el.clientWidth;
     const buffer = containerWidth * 1.5;
+    const visibleStart = Math.max(0, scrollLeft - buffer);
+    const visibleEnd = scrollLeft + containerWidth + buffer;
 
-    setViewport({
-      scrollLeft,
-      containerWidth,
-      visibleStart: Math.max(0, scrollLeft - buffer),
-      visibleEnd: scrollLeft + containerWidth + buffer,
+    // Skip update if scroll hasn't moved enough to matter for chunk visibility.
+    // Canvas chunks are 1000px wide, and the 1.5× buffer covers well beyond the
+    // viewport edges, so small scroll deltas don't change which chunks are visible.
+    setViewport((prev) => {
+      if (
+        prev &&
+        prev.containerWidth === containerWidth &&
+        Math.abs(prev.scrollLeft - scrollLeft) < 100
+      ) {
+        return prev; // Same reference — React skips re-render of consumers
+      }
+      return { scrollLeft, containerWidth, visibleStart, visibleEnd };
     });
   }, [containerRef]);
 

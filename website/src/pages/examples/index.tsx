@@ -161,7 +161,7 @@ const WaveformDecoration: React.FC<{ className?: string }> = ({ className }) => 
       </linearGradient>
     </defs>
     {[...Array(40)].map((_, i) => {
-      const height = 10 + Math.sin(i * 0.5) * 20 + Math.random() * 15;
+      const height = Math.max(2, 10 + Math.sin(i * 0.5) * 20 + Math.random() * 15);
       return (
         <rect
           key={i}

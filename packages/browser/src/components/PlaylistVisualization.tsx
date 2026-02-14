@@ -28,7 +28,7 @@ import {
 } from '@waveform-playlist/ui-components';
 import { AnnotationIntegrationContext } from '../AnnotationIntegrationContext';
 import { usePlaybackAnimation, usePlaylistState, usePlaylistControls, usePlaylistData } from '../WaveformPlaylistContext';
-import type { Peaks } from '@waveform-playlist/webaudio-peaks';
+import type { Peaks } from '@waveform-playlist/core';
 import { AnimatedPlayhead } from './AnimatedPlayhead';
 import { ChannelWithProgress } from './ChannelWithProgress';
 import type { SpectrogramConfig } from '@waveform-playlist/core';

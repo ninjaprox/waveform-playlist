@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useLayoutEffect, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
-import { Peaks, Bits } from '@waveform-playlist/webaudio-peaks';
+import type { Peaks, Bits } from '@waveform-playlist/core';
 import { WaveformColor, WaveformDrawMode, isWaveformGradient, waveformColorToCss } from '../wfpl-theme';
 import { useScrollViewportSelector } from '../contexts/ScrollViewport';
 import { MAX_CANVAS_WIDTH } from '../constants';

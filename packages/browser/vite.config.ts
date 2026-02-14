@@ -56,7 +56,6 @@ export default defineConfig({
       '@waveform-playlist/core': resolve(__dirname, '../core/dist/index.mjs'),
       '@waveform-playlist/playout': resolve(__dirname, '../playout/dist/index.mjs'),
       '@waveform-playlist/loaders': resolve(__dirname, '../loaders/dist/index.mjs'),
-      '@waveform-playlist/webaudio-peaks': resolve(__dirname, '../webaudio-peaks/dist/index.mjs'),
     },
   },
 });

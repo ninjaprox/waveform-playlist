@@ -1,24 +1,6 @@
-/**
- * Peaks type - represents a typed array of peak data
- */
-export type Peaks = Int8Array | Int16Array;
-
-/**
- * Bits type - number of bits for peak data
- */
-export type Bits = 8 | 16;
-
-/**
- * PeakData - result of peak extraction
- */
-export interface PeakData {
-  /** Number of peaks extracted */
-  length: number;
-  /** Array of peak data for each channel */
-  data: Peaks[];
-  /** Bit depth of peak data */
-  bits: Bits;
-}
+// Re-export peak types from core (canonical source of truth)
+export type { Peaks, Bits, PeakData } from '@waveform-playlist/core';
+import type { Peaks, Bits, PeakData } from '@waveform-playlist/core';
 
 /**
  * Find minimum and maximum values in a typed array

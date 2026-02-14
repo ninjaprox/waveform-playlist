@@ -1,3 +1,25 @@
+/**
+ * Peaks type - represents a typed array of interleaved min/max peak data
+ */
+export type Peaks = Int8Array | Int16Array;
+
+/**
+ * Bits type - number of bits for peak data
+ */
+export type Bits = 8 | 16;
+
+/**
+ * PeakData - result of peak extraction
+ */
+export interface PeakData {
+  /** Number of peak pairs extracted */
+  length: number;
+  /** Array of peak data for each channel (interleaved min/max) */
+  data: Peaks[];
+  /** Bit depth of peak data */
+  bits: Bits;
+}
+
 export interface WaveformConfig {
   sampleRate: number;
   samplesPerPixel: number;

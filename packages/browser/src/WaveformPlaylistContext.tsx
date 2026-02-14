@@ -6,7 +6,7 @@ import { type TimeFormat, type WaveformPlaylistTheme, defaultTheme } from '@wave
 import { getContext } from 'tone';
 import { extractPeaksFromWaveformDataFull } from './waveformDataLoader';
 import type WaveformData from 'waveform-data';
-import type { PeakData } from '@waveform-playlist/webaudio-peaks';
+import type { PeakData } from '@waveform-playlist/core';
 import type { AnnotationData } from '@waveform-playlist/core';
 import { useTimeFormat, useZoomControls, useMasterVolume, useAnimationFrameLoop, useWaveformDataCache } from './hooks';
 

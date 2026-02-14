@@ -6,7 +6,7 @@
  */
 
 import WaveformData from 'waveform-data';
-import type { PeakData, Peaks } from '@waveform-playlist/webaudio-peaks';
+import type { PeakData, Peaks } from '@waveform-playlist/core';
 
 /**
  * Load waveform data from a .dat or .json file
@@ -180,7 +180,7 @@ export function extractPeaksFromWaveformData(
  * @param isMono - Whether to merge channels to mono
  * @param offsetSamples - Optional start offset in samples (for clip trimming)
  * @param durationSamples - Optional duration in samples (for clip trimming)
- * @returns PeakData matching the interface from @waveform-playlist/webaudio-peaks
+ * @returns PeakData matching the interface from @waveform-playlist/core
  */
 export function extractPeaksFromWaveformDataFull(
   waveformData: WaveformData,

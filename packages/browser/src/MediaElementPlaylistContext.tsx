@@ -20,7 +20,7 @@ import {
 import type { AnnotationData } from '@waveform-playlist/core';
 import { extractPeaksFromWaveformData } from './waveformDataLoader';
 import type WaveformData from 'waveform-data';
-import type { PeakData } from '@waveform-playlist/webaudio-peaks';
+import type { PeakData } from '@waveform-playlist/core';
 import type { ClipPeaks, TrackClipPeaks } from './WaveformPlaylistContext';
 import { useAnimationFrameLoop } from './hooks/useAnimationFrameLoop';
 

@@ -5,7 +5,7 @@ import { useDevicePixelRatio } from '../contexts/DevicePixelRatio';
 import { useVisibleChunkIndices } from '../contexts/ScrollViewport';
 import { useChunkedCanvasRefs } from '../hooks/useChunkedCanvasRefs';
 import { secondsToPixels } from '../utils/conversions';
-import { MAX_CANVAS_WIDTH } from '../constants';
+import { MAX_CANVAS_WIDTH } from '@waveform-playlist/core';
 
 function formatTime(milliseconds: number) {
   const seconds = Math.floor(milliseconds / 1000);

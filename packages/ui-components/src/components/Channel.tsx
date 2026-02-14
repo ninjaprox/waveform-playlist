@@ -4,7 +4,7 @@ import type { Peaks, Bits } from '@waveform-playlist/core';
 import { WaveformColor, WaveformDrawMode, isWaveformGradient, waveformColorToCss } from '../wfpl-theme';
 import { useVisibleChunkIndices } from '../contexts/ScrollViewport';
 import { useChunkedCanvasRefs } from '../hooks/useChunkedCanvasRefs';
-import { MAX_CANVAS_WIDTH } from '../constants';
+import { MAX_CANVAS_WIDTH } from '@waveform-playlist/core';
 
 // Re-export WaveformColor for consumers
 export type { WaveformColor } from '../wfpl-theme';

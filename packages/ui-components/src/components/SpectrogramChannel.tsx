@@ -130,68 +130,13 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     []
   );
 
-  // Worker mode: transfer canvases to worker on mount
-  useEffect(() => {
-    workerApiRef.current = workerApi;
-  }, [workerApi]);
-
-  useEffect(() => {
-    onCanvasesReadyRef.current = onCanvasesReady;
-  }, [onCanvasesReady]);
-
-  // Worker mode: transfer canvases to worker on mount
-  useEffect(() => {
-    if (!isWorkerMode) return;
-    const currentWorkerApi = workerApiRef.current;
-    if (!currentWorkerApi || !clipId) return;
-
-    const canvases = canvasesRef.current;
-    const ids: string[] = [];
-    const widths: number[] = [];
-
-    for (let i = 0; i < canvases.length; i++) {
-      const canvas = canvases[i];
-      if (!canvas) continue;
-
-      // Skip canvases that have already been transferred to the worker
-      if (transferredCanvasesRef.current.has(canvas)) continue;
-
-      const canvasIdx = parseInt(canvas.dataset.index!, 10);
-      const canvasId = `${clipId}-ch${channelIndex}-chunk${canvasIdx}`;
-
-      try {
-        const offscreen = canvas.transferControlToOffscreen();
-        currentWorkerApi.registerCanvas(canvasId, offscreen);
-        transferredCanvasesRef.current.add(canvas);
-        ids.push(canvasId);
-        widths.push(Math.min(length - canvasIdx * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
-      } catch (err) {
-        console.warn(`[spectrogram] transferControlToOffscreen failed for ${canvasId}:`, err);
-        continue;
-      }
-    }
-
-    registeredIdsRef.current = [...registeredIdsRef.current, ...ids];
-
-    if (ids.length > 0) {
-      onCanvasesReadyRef.current?.(ids, widths);
-    }
-
-    return () => {
-      for (const id of ids) {
-        currentWorkerApi.unregisterCanvas(id);
-      }
-      registeredIdsRef.current = registeredIdsRef.current.filter(id => !ids.includes(id));
-    };
-  }, [isWorkerMode, clipId, channelIndex, length, viewport]);
-
   const lut = colorLUT ?? DEFAULT_COLOR_LUT;
   const maxF = maxFrequency ?? (data ? data.sampleRate / 2 : 22050);
   const scaleFn = frequencyScaleFn ?? LINEAR_FREQUENCY_SCALE;
   const hasCustomFrequencyScale = Boolean(frequencyScaleFn);
 
   // Compute which chunk indices are visible — derive a stable key so
-  // the drawing effect only re-runs when the actual set of chunks changes,
+  // effects only re-run when the actual set of chunks changes,
   // not on every scroll pixel.
   const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
   const visibleChunkIndices: number[] = [];
@@ -211,6 +156,90 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   }
 
   const visibleChunkKey = visibleChunkIndices.join(',');
+
+  // Keep refs in sync with latest props
+  useEffect(() => {
+    workerApiRef.current = workerApi;
+  }, [workerApi]);
+
+  useEffect(() => {
+    onCanvasesReadyRef.current = onCanvasesReady;
+  }, [onCanvasesReady]);
+
+  // Worker mode: transfer new canvases to worker.
+  // Uses visibleChunkKey so it only re-runs when chunks mount/unmount,
+  // not on every scroll pixel. No cleanup — stale registrations are
+  // handled by the effect below, and full cleanup happens on unmount.
+  useEffect(() => {
+    if (!isWorkerMode) return;
+    const currentWorkerApi = workerApiRef.current;
+    if (!currentWorkerApi || !clipId) return;
+
+    const canvases = canvasesRef.current;
+    const newIds: string[] = [];
+    const newWidths: number[] = [];
+
+    for (let i = 0; i < canvases.length; i++) {
+      const canvas = canvases[i];
+      if (!canvas) continue;
+
+      // Skip canvases that have already been transferred to the worker
+      if (transferredCanvasesRef.current.has(canvas)) continue;
+
+      const canvasIdx = parseInt(canvas.dataset.index!, 10);
+      const canvasId = `${clipId}-ch${channelIndex}-chunk${canvasIdx}`;
+
+      try {
+        const offscreen = canvas.transferControlToOffscreen();
+        currentWorkerApi.registerCanvas(canvasId, offscreen);
+        transferredCanvasesRef.current.add(canvas);
+        newIds.push(canvasId);
+        newWidths.push(Math.min(length - canvasIdx * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
+      } catch (err) {
+        console.warn(`[spectrogram] transferControlToOffscreen failed for ${canvasId}:`, err);
+        continue;
+      }
+    }
+
+    if (newIds.length > 0) {
+      registeredIdsRef.current = [...registeredIdsRef.current, ...newIds];
+      onCanvasesReadyRef.current?.(newIds, newWidths);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWorkerMode, clipId, channelIndex, length, visibleChunkKey]);
+
+  // Clean up stale worker registrations for canvases that unmounted
+  useEffect(() => {
+    if (!isWorkerMode) return;
+    const currentWorkerApi = workerApiRef.current;
+    if (!currentWorkerApi) return;
+
+    const remaining: string[] = [];
+    for (const id of registeredIdsRef.current) {
+      const match = id.match(/chunk(\d+)$/);
+      if (!match) { remaining.push(id); continue; }
+      const chunkIdx = parseInt(match[1], 10);
+      const canvas = canvasesRef.current[chunkIdx];
+      if (canvas && canvas.isConnected) {
+        remaining.push(id);
+      } else {
+        currentWorkerApi.unregisterCanvas(id);
+      }
+    }
+    registeredIdsRef.current = remaining;
+  });
+
+  // Unregister all canvases from worker on component unmount
+  useEffect(() => {
+    return () => {
+      const api = workerApiRef.current;
+      if (!api) return;
+      for (const id of registeredIdsRef.current) {
+        api.unregisterCanvas(id);
+      }
+      registeredIdsRef.current = [];
+    };
+  }, []);
 
   // Main-thread rendering (skipped in worker mode).
   // visibleChunkKey changes only when chunks mount/unmount, not on every scroll pixel.

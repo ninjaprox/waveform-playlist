@@ -238,7 +238,11 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       if (canvas && canvas.isConnected) {
         remaining.push(id);
       } else {
-        currentWorkerApi.unregisterCanvas(id);
+        try {
+          currentWorkerApi.unregisterCanvas(id);
+        } catch (err) {
+          console.warn(`[spectrogram] unregisterCanvas failed for ${id}:`, err);
+        }
       }
     }
     registeredIdsRef.current = remaining;

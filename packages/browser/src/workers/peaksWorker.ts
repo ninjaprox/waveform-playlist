@@ -234,6 +234,7 @@ export function createPeaksWorker(): PeaksWorkerApi {
 
   worker.onerror = (e: ErrorEvent) => {
     terminated = true;
+    worker.terminate();
     for (const [, entry] of pending) {
       entry.reject(e.error ?? new Error(e.message));
     }

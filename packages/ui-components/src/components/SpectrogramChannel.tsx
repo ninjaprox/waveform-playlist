@@ -1,6 +1,7 @@
 import React, { FunctionComponent, useLayoutEffect, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import type { SpectrogramData } from '@waveform-playlist/core';
+import { useScrollViewport } from '../contexts/ScrollViewport';
 
 const MAX_CANVAS_WIDTH = 1000;
 const LINEAR_FREQUENCY_SCALE = (f: number, minF: number, maxF: number) => (f - minF) / (maxF - minF);
@@ -27,16 +28,18 @@ const Wrapper = styled.div.attrs<WrapperProps>((props) => ({
 interface CanvasProps {
   readonly $cssWidth: number;
   readonly $waveHeight: number;
+  readonly $left: number;
 }
 
 const SpectrogramCanvas = styled.canvas.attrs<CanvasProps>((props) => ({
   style: {
     width: `${props.$cssWidth}px`,
     height: `${props.$waveHeight}px`,
+    left: `${props.$left}px`,
   },
 }))<CanvasProps>`
-  float: left;
-  position: relative;
+  position: absolute;
+  top: 0;
   will-change: transform;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -107,6 +110,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   onCanvasesReady,
 }) => {
   const channelIndex = channelIndexProp ?? index;
+  const viewport = useScrollViewport();
   const canvasesRef = useRef<HTMLCanvasElement[]>([]);
   const registeredIdsRef = useRef<string[]>([]);
   const transferredCanvasesRef = useRef<WeakSet<HTMLCanvasElement>>(new WeakSet());
@@ -141,8 +145,6 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     const currentWorkerApi = workerApiRef.current;
     if (!currentWorkerApi || !clipId) return;
 
-    const canvasCount = Math.ceil(length / MAX_CANVAS_WIDTH);
-    canvasesRef.current.length = canvasCount;
     const canvases = canvasesRef.current;
     const ids: string[] = [];
     const widths: number[] = [];
@@ -154,33 +156,34 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
       // Skip canvases that have already been transferred to the worker
       if (transferredCanvasesRef.current.has(canvas)) continue;
 
-      const canvasId = `${clipId}-ch${channelIndex}-chunk${i}`;
+      const canvasIdx = parseInt(canvas.dataset.index!, 10);
+      const canvasId = `${clipId}-ch${channelIndex}-chunk${canvasIdx}`;
 
       try {
         const offscreen = canvas.transferControlToOffscreen();
         currentWorkerApi.registerCanvas(canvasId, offscreen);
         transferredCanvasesRef.current.add(canvas);
         ids.push(canvasId);
-        widths.push(Math.min(length - i * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
+        widths.push(Math.min(length - canvasIdx * MAX_CANVAS_WIDTH, MAX_CANVAS_WIDTH));
       } catch (err) {
         console.warn(`[spectrogram] transferControlToOffscreen failed for ${canvasId}:`, err);
         continue;
       }
     }
 
-    registeredIdsRef.current = ids;
+    registeredIdsRef.current = [...registeredIdsRef.current, ...ids];
 
     if (ids.length > 0) {
       onCanvasesReadyRef.current?.(ids, widths);
     }
 
     return () => {
-      for (const id of registeredIdsRef.current) {
+      for (const id of ids) {
         currentWorkerApi.unregisterCanvas(id);
       }
-      registeredIdsRef.current = [];
+      registeredIdsRef.current = registeredIdsRef.current.filter(id => !ids.includes(id));
     };
-  }, [isWorkerMode, clipId, channelIndex, length]);
+  }, [isWorkerMode, clipId, channelIndex, length, viewport]);
 
   const lut = colorLUT ?? DEFAULT_COLOR_LUT;
   const maxF = maxFrequency ?? (data ? data.sampleRate / 2 : 22050);
@@ -194,14 +197,17 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
     const canvases = canvasesRef.current;
     const { frequencyBinCount, frameCount, hopSize, sampleRate, gainDb, rangeDb: rawRangeDb } = data;
     const rangeDb = rawRangeDb === 0 ? 1 : rawRangeDb;
-    let globalPixelOffset = 0;
 
     // Pre-compute Y mapping: for each pixel row, which frequency bin(s) to sample
     const binToFreq = (bin: number) => (bin / frequencyBinCount) * (sampleRate / 2);
 
-    for (let canvasIdx = 0; canvasIdx < canvases.length; canvasIdx++) {
-      const canvas = canvases[canvasIdx];
-      if (!canvas) continue;
+    for (let i = 0; i < canvases.length; i++) {
+      const canvas = canvases[i];
+      if (!canvas) continue;  // Skip unmounted chunks
+
+      const canvasIdx = parseInt(canvas.dataset.index!, 10);
+      const globalPixelOffset = canvasIdx * MAX_CANVAS_WIDTH;  // Compute from index
+
       const ctx = canvas.getContext('2d');
       if (!ctx) continue;
 
@@ -290,30 +296,38 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
         ctx.drawImage(tmpCanvas, 0, 0, canvas.width, canvas.height);
       }
 
-      globalPixelOffset += canvasWidth;
     }
 
   }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, minFrequency, maxF, scaleFn, hasCustomFrequencyScale]);
 
-  // Build canvas chunks
-  let totalWidth = length;
-  let canvasCount = 0;
+  // Build canvas chunks — only mount canvases within the visible viewport
+  const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
   const canvases = [];
-  while (totalWidth > 0) {
-    const currentWidth = Math.min(totalWidth, MAX_CANVAS_WIDTH);
+
+  for (let i = 0; i < totalChunks; i++) {
+    const chunkLeft = i * MAX_CANVAS_WIDTH;
+    const currentWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
+
+    // Visibility check — skip chunks outside the viewport (when viewport is available)
+    if (viewport) {
+      const chunkEnd = chunkLeft + currentWidth;
+      if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
+        continue;
+      }
+    }
+
     canvases.push(
       <SpectrogramCanvas
-        key={`${length}-${canvasCount}`}
+        key={`${length}-${i}`}
         $cssWidth={currentWidth}
+        $left={chunkLeft}
         width={currentWidth * devicePixelRatio}
         height={waveHeight * devicePixelRatio}
         $waveHeight={waveHeight}
-        data-index={canvasCount}
+        data-index={i}
         ref={canvasRef}
       />
     );
-    totalWidth -= currentWidth;
-    canvasCount++;
   }
 
   return (

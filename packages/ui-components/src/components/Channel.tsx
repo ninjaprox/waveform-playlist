@@ -135,6 +135,30 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
     []
   );
 
+  // Compute which chunk indices are visible — derive a stable key so
+  // the drawing effect only re-runs when the actual set of chunks changes,
+  // not on every scroll pixel.
+  const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
+  const visibleChunkIndices: number[] = [];
+
+  for (let i = 0; i < totalChunks; i++) {
+    const chunkLeft = i * MAX_CANVAS_WIDTH;
+    const chunkWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
+
+    if (viewport) {
+      const chunkEnd = chunkLeft + chunkWidth;
+      if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
+        continue;
+      }
+    }
+
+    visibleChunkIndices.push(i);
+  }
+
+  const visibleChunkKey = visibleChunkIndices.join(',');
+
+  // Draw waveform bars on visible canvas chunks.
+  // visibleChunkKey changes only when chunks mount/unmount, not on every scroll pixel.
   useLayoutEffect(() => {
     const canvases = canvasesRef.current;
     const step = barWidth + barGap;
@@ -219,6 +243,7 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
         }
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     data,
     bits,
@@ -230,25 +255,15 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
     barWidth,
     barGap,
     drawMode,
-    viewport,
+    visibleChunkKey,
   ]);
 
-  const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
-  const waveforms = [];
-
-  for (let i = 0; i < totalChunks; i++) {
+  // Build visible canvas chunk elements
+  const waveforms = visibleChunkIndices.map((i) => {
     const chunkLeft = i * MAX_CANVAS_WIDTH;
     const currentWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
 
-    // Visibility check — skip chunks outside viewport+buffer
-    if (viewport) {
-      const chunkEnd = chunkLeft + currentWidth;
-      if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
-        continue;
-      }
-    }
-
-    waveforms.push(
+    return (
       <Waveform
         key={`${length}-${i}`}
         $cssWidth={currentWidth}
@@ -260,7 +275,7 @@ export const Channel: FunctionComponent<ChannelProps> = (props) => {
         ref={canvasRef}
       />
     );
-  }
+  });
 
   // Background color depends on draw mode:
   // Visual result is always: waveOutlineColor = bars, waveFillColor = background

@@ -146,9 +146,11 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
 
   const viewport = useScrollViewport();
 
-  // Build visible canvas chunks
+  // Compute which chunk indices are visible — derive a stable key so
+  // the drawing effect only re-runs when the actual set of chunks changes,
+  // not on every scroll pixel.
   const totalChunks = Math.ceil(widthX / MAX_CANVAS_WIDTH);
-  const visibleChunks: React.ReactNode[] = [];
+  const visibleChunkIndices: number[] = [];
 
   for (let i = 0; i < totalChunks; i++) {
     const chunkLeft = i * MAX_CANVAS_WIDTH;
@@ -161,7 +163,17 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
       }
     }
 
-    visibleChunks.push(
+    visibleChunkIndices.push(i);
+  }
+
+  const visibleChunkKey = visibleChunkIndices.join(',');
+
+  // Build visible canvas chunk elements
+  const visibleChunks = visibleChunkIndices.map((i) => {
+    const chunkLeft = i * MAX_CANVAS_WIDTH;
+    const chunkWidth = Math.min(widthX - chunkLeft, MAX_CANVAS_WIDTH);
+
+    return (
       <TimeTickChunk
         key={`timescale-${i}`}
         $cssWidth={chunkWidth}
@@ -173,7 +185,7 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
         ref={canvasRefCallback}
       />
     );
-  }
+  });
 
   // Filter time markers to visible range
   const visibleMarkers = viewport
@@ -192,6 +204,8 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
     }
   });
 
+  // Draw tick marks on visible canvas chunks.
+  // visibleChunkKey changes only when chunks mount/unmount, not on every scroll pixel.
   useLayoutEffect(() => {
     for (const [chunkIdx, canvas] of canvasRefsMap.current.entries()) {
       const ctx = canvas.getContext('2d');
@@ -215,7 +229,8 @@ export const TimeScale: FunctionComponent<TimeScalePropsWithTheme> = (props) => 
         ctx.fillRect(localX, scaleY, 1, scaleHeight);
       }
     }
-  }, [duration, devicePixelRatio, timeColor, timeScaleHeight, canvasInfo, viewport]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duration, devicePixelRatio, timeColor, timeScaleHeight, canvasInfo, visibleChunkKey]);
 
   return (
     <PlaylistTimeScaleScroll

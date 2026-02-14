@@ -190,7 +190,30 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
   const scaleFn = frequencyScaleFn ?? LINEAR_FREQUENCY_SCALE;
   const hasCustomFrequencyScale = Boolean(frequencyScaleFn);
 
-  // Main-thread rendering (skipped in worker mode)
+  // Compute which chunk indices are visible — derive a stable key so
+  // the drawing effect only re-runs when the actual set of chunks changes,
+  // not on every scroll pixel.
+  const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
+  const visibleChunkIndices: number[] = [];
+
+  for (let i = 0; i < totalChunks; i++) {
+    const chunkLeft = i * MAX_CANVAS_WIDTH;
+    const chunkWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
+
+    if (viewport) {
+      const chunkEnd = chunkLeft + chunkWidth;
+      if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
+        continue;
+      }
+    }
+
+    visibleChunkIndices.push(i);
+  }
+
+  const visibleChunkKey = visibleChunkIndices.join(',');
+
+  // Main-thread rendering (skipped in worker mode).
+  // visibleChunkKey changes only when chunks mount/unmount, not on every scroll pixel.
   useLayoutEffect(() => {
     if (isWorkerMode || !data) return;
 
@@ -298,25 +321,15 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
 
     }
 
-  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, minFrequency, maxF, scaleFn, hasCustomFrequencyScale, viewport]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWorkerMode, data, length, waveHeight, devicePixelRatio, samplesPerPixel, lut, minFrequency, maxF, scaleFn, hasCustomFrequencyScale, visibleChunkKey]);
 
-  // Build canvas chunks — only mount canvases within the visible viewport
-  const totalChunks = Math.ceil(length / MAX_CANVAS_WIDTH);
-  const canvases = [];
-
-  for (let i = 0; i < totalChunks; i++) {
+  // Build visible canvas chunk elements
+  const canvases = visibleChunkIndices.map((i) => {
     const chunkLeft = i * MAX_CANVAS_WIDTH;
     const currentWidth = Math.min(length - chunkLeft, MAX_CANVAS_WIDTH);
 
-    // Visibility check — skip chunks outside the viewport (when viewport is available)
-    if (viewport) {
-      const chunkEnd = chunkLeft + currentWidth;
-      if (chunkEnd <= viewport.visibleStart || chunkLeft >= viewport.visibleEnd) {
-        continue;
-      }
-    }
-
-    canvases.push(
+    return (
       <SpectrogramCanvas
         key={`${length}-${i}`}
         $cssWidth={currentWidth}
@@ -328,7 +341,7 @@ export const SpectrogramChannel: FunctionComponent<SpectrogramChannelProps> = ({
         ref={canvasRef}
       />
     );
-  }
+  });
 
   return (
     <Wrapper $index={index} $cssWidth={length} $waveHeight={waveHeight}>

@@ -158,6 +158,7 @@ pnpm publish --filter @waveform-playlist/NEW-PACKAGE --no-git-checks --access pu
 
 - **Build packages**: `pnpm build` - Build all packages
 - **TypeScript check**: `pnpm typecheck` (enforced in build scripts)
+- **Lint**: `pnpm lint` - ESLint across all packages. **Always run before committing.**
 - **Dev server**: `pnpm --filter website start` - Docusaurus dev server
 - **Hard refresh**: Always use Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows/Linux) after builds
 
@@ -443,7 +444,7 @@ const LazyExample = createLazyExample(
   - `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
   - `eslint-plugin-react-hooks`, `globals`
 
-**Status:** TypeScript checks pass (`pnpm typecheck`). Lint execution is currently blocked in offline environments until dependencies are installable (`pnpm install` needed when network is available).
+**Usage:** Run `pnpm lint` before committing. Catches missing hook dependencies, unused variables, and React Hooks rule violations.
 
 ### Horizontal Virtual Scrolling (Phase 4, 2026-02-13)
 
